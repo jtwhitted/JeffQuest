@@ -69,7 +69,7 @@ const getGameTitlePrompt = ai.definePrompt({
     prompt: `Analyze the provided image of a board game box and identify the main title of the game. Return only the title.
   
   Image: {{media url=photoDataUri}}`,
-    model: 'googleai/gemini-pro-vision',
+    model: 'googleai/gemini-1.5-flash',
 });
 
 
