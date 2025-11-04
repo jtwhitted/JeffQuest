@@ -110,11 +110,8 @@ const getGameDetailsFlow = ai.defineFlow(
       throw new Error(`Could not fetch details for any search results for "${title}".`);
     }
 
-    // Step 4: Now that we have the best game, get its full details.
-    // This is a bit redundant if getBggGameDetails already returns everything,
-    // but it's a good practice if the tool were split into lightweight/heavyweight versions.
+    // Step 4: We have the best game, which is the first in the sorted list.
     const gameDetails = sortedResults[0];
-
 
     // Map BGG complexity to our difficulty enum
     let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';

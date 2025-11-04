@@ -27,10 +27,9 @@ async function fetchAndParseXml(url: string) {
 }
 
 function parseXml(xmlText: string) {
-    // Basic XML parsing without a library. This is fragile but sufficient for this API.
-    const getItemXmls = (xml: string, tag: string) => {
+    const getItemXmls = (xml: string, tag: string): string[] => {
         const itemRegex = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, 'g');
-        return [...xml.matchAll(itemRegex)].map(match => match[0]);
+        return xml.match(itemRegex) || [];
     };
     
     const getLinks = (xml: string, type: string) => {
@@ -142,9 +141,9 @@ export const getBggGameDetails = ai.defineTool(
     },
     async (input) => {
         const url = `https://boardgamegeek.com/xmlapi2/thing?id=${input.id}&stats=1`;
-        const { getValue, getTagValue, getLinks, rawXml } = await fetchAndParseXml(url);
+        const { getValue, getTagValue, getLinks, rawXml, getItemXmls } = await fetchAndParseXml(url);
         
-        const itemXml = getItemXmls(rawXml, 'item')[0]; // The whole response is for one "thing"
+        const itemXml = getItemXmls(rawXml, 'item')[0];
 
         if (!itemXml) {
             throw new Error(`Could not parse 'item' from BGG response for ID ${input.id}`);
@@ -169,10 +168,10 @@ export const getBggGameDetails = ai.defineTool(
         const designers = getLinks(itemXml, 'boardgamedesigner');
         const publishers = getLinks(itemXml, 'boardgamepublisher');
         
-        const ratings = getItemXmls(itemXml, 'ratings')[0];
-        const average = ratings ? parseFloat(getValue(ratings, 'average') || '0') : 0;
-        const ratingCount = ratings ? parseInt(getValue(ratings, 'usersrated') || '0', 10) : 0;
-        const complexity = ratings ? parseFloat(getValue(ratings, 'averageweight') || '0') : 0;
+        const ratingsXml = getItemXmls(itemXml, 'ratings')[0] || '';
+        const average = parseFloat(getValue(ratingsXml, 'average') || '0');
+        const ratingCount = parseInt(getValue(ratingsXml, 'usersrated') || '0', 10);
+        const complexity = parseFloat(getValue(ratingsXml, 'averageweight') || '0');
         
         const originalImageUrl = getTagValue(itemXml, 'image');
 
@@ -196,9 +195,3 @@ export const getBggGameDetails = ai.defineTool(
         };
     }
 );
-
-function getItemXmls(xml: string, tag: string) {
-    const itemRegex = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, 'g');
-    const matches = xml.match(itemRegex);
-    return matches || [];
-}
