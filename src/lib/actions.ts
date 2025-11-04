@@ -93,6 +93,7 @@ export async function deleteGame(gameId: string) {
 
 const playerFormSchema = z.object({
     name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
+    avatarUrl: z.string().optional(),
 });
 
 export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promise<Player | null> {
@@ -102,13 +103,15 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promi
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
         return null;
     }
+    
+    const { name, avatarUrl } = validatedFields.data;
 
     const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
 
     const newPlayer: Player = {
         id: `p${Math.floor(Math.random() * 1000) + 5}`, // semi-random ID for demo
-        name: validatedFields.data.name,
-        avatarUrl: randomImage.imageUrl,
+        name,
+        avatarUrl: avatarUrl || randomImage.imageUrl,
     };
 
     console.log('New player added:', newPlayer);

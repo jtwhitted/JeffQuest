@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
 import React, { useState } from 'react';
 import { addPlayer } from '@/lib/actions';
 import type { Player } from '@/lib/types';
@@ -26,6 +26,8 @@ import {
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { AvatarCaptureDialog } from './avatar-capture-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface AddPlayerDialogProps {
   open: boolean;
@@ -35,23 +37,37 @@ interface AddPlayerDialogProps {
 
 const formSchema = z.object({
     name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
+    avatarUrl: z.string().optional(),
 });
 
 export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayerDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCaptureDialogOpen, setCaptureDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
         name: '',
+        avatarUrl: '',
     }
   });
+
+  const avatarUrl = form.watch('avatarUrl');
+
+  const handleAvatarCaptured = (imageDataUrl: string) => {
+    form.setValue('avatarUrl', imageDataUrl);
+    setCaptureDialogOpen(false);
+    toast({
+      title: 'Avatar Captured!',
+      description: 'A new photo has been set for the player.',
+    });
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const newPlayer = await addPlayer({ name: values.name });
+      const newPlayer = await addPlayer(values);
       if (newPlayer) {
         onPlayerAdded(newPlayer);
         toast({
@@ -80,43 +96,62 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-                <DialogHeader>
-                    <DialogTitle>Add New Player</DialogTitle>
-                    <DialogDescription>
-                        Enter the name of the new player to add them to your group.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel htmlFor="name" className="text-right">
-                                Name
-                                </FormLabel>
-                                <FormControl>
-                                    <Input id="name" {...field} className="col-span-3" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-                <DialogFooter>
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>Cancel</Button>
-                    <Button type="submit" disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Player
-                    </Button>
-                </DialogFooter>
-            </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <>
+      <AvatarCaptureDialog
+        open={isCaptureDialogOpen}
+        onOpenChange={setCaptureDialogOpen}
+        onAvatarCaptured={handleAvatarCaptured}
+      />
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[425px]">
+          <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <DialogHeader>
+                      <DialogTitle>Add New Player</DialogTitle>
+                      <DialogDescription>
+                          Enter the player's name and optionally capture their avatar.
+                      </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                      <div className="flex flex-col items-center gap-4">
+                        <Avatar className="h-24 w-24">
+                            <AvatarImage src={avatarUrl} alt="New player avatar" />
+                            <AvatarFallback className="text-3xl">
+                                {form.getValues('name')?.charAt(0) || <Camera />}
+                            </AvatarFallback>
+                        </Avatar>
+                        <Button type="button" variant="outline" onClick={() => setCaptureDialogOpen(true)}>
+                           <Camera className="mr-2 h-4 w-4" />
+                           Take Photo
+                        </Button>
+                      </div>
+                      <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel htmlFor="name" className="text-right">
+                                  Name
+                                  </FormLabel>
+                                  <FormControl>
+                                      <Input id="name" {...field} className="col-span-3" />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                  </div>
+                  <DialogFooter>
+                      <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>Cancel</Button>
+                      <Button type="submit" disabled={isLoading}>
+                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Save Player
+                      </Button>
+                  </DialogFooter>
+              </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
