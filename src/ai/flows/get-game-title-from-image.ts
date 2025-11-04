@@ -8,7 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 import { searchBgg, getBggGameDetails } from './bgg-tools';
 
 const GetGameDetailsInputSchema = z.object({
