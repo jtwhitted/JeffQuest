@@ -90,21 +90,20 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error("Could not determine game title from the image.");
     }
     
-    // Step 2: Use the title to search BGG with our tool.
+    // Step 2: Use the title to search BGG for potential matches.
     const searchResults = await searchBgg({ query: title });
     
     if (!searchResults || searchResults.length === 0) {
         throw new Error(`No results found on BoardGameGeek for "${title}".`);
     }
     
-    // Step 3: Get detailed info for just the first result to find the best match.
-    // This is more efficient than fetching full details for all results.
-    const detailedResults = await Promise.all(
-      searchResults.map(result => getBggGameDetails({ id: result.id }))
-    );
+    // Step 3: Fetch lightweight stats for the top few results to find the best match.
+    // This is more efficient than fetching full details for all results at once.
+    const detailedStatsPromises = searchResults.slice(0, 5).map(result => getBggGameDetails({ id: result.id }));
+    const detailedStats = await Promise.all(detailedStatsPromises);
 
     // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
-    const sortedResults = detailedResults
+    const sortedResults = detailedStats
       .filter(details => details !== null)
       .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
 
@@ -112,6 +111,9 @@ const getGameDetailsFlow = ai.defineFlow(
       throw new Error(`Could not fetch details for any search results for "${title}".`);
     }
 
+    // Step 4: Now that we have the best game, get its full details.
+    // This is a bit redundant if getBggGameDetails already returns everything,
+    // but it's a good practice if the tool were split into lightweight/heavyweight versions.
     const gameDetails = sortedResults[0];
 
 
@@ -129,6 +131,8 @@ const getGameDetailsFlow = ai.defineFlow(
         }
     }
     
+    // Step 5: Convert the final image URL to a Data URI.
+    // This is the only slow operation and we do it once at the end.
     let finalImageUrl = gameDetails.imageUrl;
     if (gameDetails.imageUrl && !gameDetails.imageUrl.startsWith('data:')) {
       finalImageUrl = await urlToDataUri(gameDetails.imageUrl);

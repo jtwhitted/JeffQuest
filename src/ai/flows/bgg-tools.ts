@@ -13,13 +13,23 @@ import { z } from 'zod';
 async function fetchAndParseXml(url: string) {
     const response = await fetch(url, { headers: { 'Accept': 'application/xml' } });
     if (!response.ok) {
-        throw new Error(`Failed to fetch from BGG API: ${response.statusText}`);
+        // Wait a moment and retry once, as BGG API can be flaky.
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const retryResponse = await fetch(url, { headers: { 'Accept': 'application/xml' } });
+        if (!retryResponse.ok) {
+             throw new Error(`BGG API request failed after retry: ${retryResponse.statusText} for URL: ${url}`);
+        }
+        const xmlText = await retryResponse.text();
+        return parseXml(xmlText);
     }
     const xmlText = await response.text();
-    
+    return parseXml(xmlText);
+}
+
+function parseXml(xmlText: string) {
     // Basic XML parsing without a library. This is fragile but sufficient for this API.
-    const getItemXmls = (xml: string) => {
-        const itemRegex = /<item id="\d+" type="boardgame">[\s\S]*?<\/item>/g;
+    const getItemXmls = (xml: string, tag: string) => {
+        const itemRegex = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, 'g');
         return [...xml.matchAll(itemRegex)].map(match => match[0]);
     };
     
@@ -38,7 +48,7 @@ async function fetchAndParseXml(url: string) {
         const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
         const match = xml.match(regex);
         // Decode HTML entities
-        return match ? match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n').replace(/&rsquo;/g, "'") : null;
+        return match ? match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n').replace(/&rsquo;/g, "'").replace(/&#.*;/g, '') : null;
     };
 
     return { getItemXmls, getValue, getTagValue, getLinks, rawXml: xmlText };
@@ -66,16 +76,14 @@ export const searchBgg = ai.defineTool(
     },
     async (input) => {
         const exactMatchUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame&exact=1`;
-        let xml = await fetch(exactMatchUrl).then(res => res.text());
-        
-        let { getItemXmls } = await fetchAndParseXml(exactMatchUrl);
-        let itemXmls = getItemXmls(xml);
+        let { getItemXmls, rawXml } = await fetchAndParseXml(exactMatchUrl);
+        let itemXmls = getItemXmls(rawXml, 'item');
 
         // If no exact match, fall back to a regular search
         if (!itemXmls || itemXmls.length === 0) {
             const searchUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame`;
-            xml = await fetch(searchUrl).then(res => res.text());
-            itemXmls = (await fetchAndParseXml(searchUrl)).getItemXmls(xml);
+            const searchResult = await fetchAndParseXml(searchUrl);
+            itemXmls = searchResult.getItemXmls(searchResult.rawXml, 'item');
         }
         
         return itemXmls.slice(0, 5).map(itemXml => {
@@ -136,7 +144,11 @@ export const getBggGameDetails = ai.defineTool(
         const url = `https://boardgamegeek.com/xmlapi2/thing?id=${input.id}&stats=1`;
         const { getValue, getTagValue, getLinks, rawXml } = await fetchAndParseXml(url);
         
-        const itemXml = rawXml; // The whole response is for one "thing"
+        const itemXml = getItemXmls(rawXml, 'item')[0]; // The whole response is for one "thing"
+
+        if (!itemXml) {
+            throw new Error(`Could not parse 'item' from BGG response for ID ${input.id}`);
+        }
 
         const primaryNameMatch = itemXml.match(/<name type="primary" value="([^"]*)"/);
         let name = primaryNameMatch ? primaryNameMatch[1] : 'Unknown';
@@ -157,7 +169,7 @@ export const getBggGameDetails = ai.defineTool(
         const designers = getLinks(itemXml, 'boardgamedesigner');
         const publishers = getLinks(itemXml, 'boardgamepublisher');
         
-        const ratings = getTagValue(itemXml, 'ratings');
+        const ratings = getItemXmls(itemXml, 'ratings')[0];
         const average = ratings ? parseFloat(getValue(ratings, 'average') || '0') : 0;
         const ratingCount = ratings ? parseInt(getValue(ratings, 'usersrated') || '0', 10) : 0;
         const complexity = ratings ? parseFloat(getValue(ratings, 'averageweight') || '0') : 0;
@@ -184,3 +196,9 @@ export const getBggGameDetails = ai.defineTool(
         };
     }
 );
+
+function getItemXmls(xml: string, tag: string) {
+    const itemRegex = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, 'g');
+    const matches = xml.match(itemRegex);
+    return matches || [];
+}

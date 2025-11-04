@@ -90,25 +90,16 @@ export function GameScanDialog({
     setIsLoading(true);
     try {
       const result = await getGameDetailsFromImage({ photoDataUri: capturedImage });
-      
-      toast({
-        title: "API Result Received",
-        description: (
-            <pre className="mt-2 w-[340px] max-h-60 overflow-y-auto rounded-md bg-slate-950 p-4">
-                <code className="text-white">{JSON.stringify(result, null, 2)}</code>
-            </pre>
-        ),
-        duration: 20000, // Show for 20 seconds for debugging
-      });
-
       onDetailsScanned(result);
       handleClose();
     } catch (error) {
       console.error('Error identifying game details:', error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       toast({
         variant: 'destructive',
         title: 'AI Error',
-        description: 'Could not identify game details from the image. Please try again.',
+        description: `Could not identify game details: ${errorMessage}`,
+        duration: 10000,
       });
     } finally {
       setIsLoading(false);
