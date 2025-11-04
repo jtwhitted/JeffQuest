@@ -36,10 +36,12 @@ export function GameScanDialog({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    async function getCameraPermission() {
-      if (!open || hasCameraPermission) return;
+    let stream: MediaStream | null = null;
+    async function setupCamera() {
+      if (!open) return;
+      setHasCameraPermission(undefined);
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' },
         });
         if (videoRef.current) {
@@ -49,17 +51,25 @@ export function GameScanDialog({
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings.',
+        });
       }
     }
-    getCameraPermission();
+
+    setupCamera();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
     };
-  }, [open, hasCameraPermission]);
+  }, [open, toast]);
 
   const handleCapture = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
@@ -81,17 +91,13 @@ export function GameScanDialog({
     try {
       const result = await getGameDetailsFromImage({ photoDataUri: capturedImage });
       onDetailsScanned(result);
-      toast({
-        title: 'Details Identified!',
-        description: `Found details for: ${result.title}`,
-      });
       handleClose();
     } catch (error) {
       console.error('Error identifying game details:', error);
       toast({
         variant: 'destructive',
         title: 'AI Error',
-        description: 'Could not identify game details from the image.',
+        description: 'Could not identify game details from the image. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -103,8 +109,15 @@ export function GameScanDialog({
     onOpenChange(false);
   }
 
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+        handleClose();
+    }
+    onOpenChange(isOpen);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Scan Game Box</DialogTitle>
@@ -114,34 +127,31 @@ export function GameScanDialog({
         </DialogHeader>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+          <video
+            ref={videoRef}
+            className={`h-full w-full object-cover ${capturedImage || !hasCameraPermission ? 'hidden' : 'block'}`}
+            autoPlay
+            playsInline
+            muted
+          />
+
           {hasCameraPermission === undefined && (
-            <div className="flex h-full flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
               <Loader2 className="mb-2 h-8 w-8 animate-spin" />
               <p>Requesting camera access...</p>
             </div>
           )}
 
           {hasCameraPermission === false && (
-            <div className="flex h-full flex-col items-center justify-center p-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Camera Access Denied</AlertTitle>
                 <AlertDescription>
-                  Please grant camera permissions in your browser settings to use
-                  this feature.
+                  Please grant camera permissions in your browser settings.
                 </AlertDescription>
               </Alert>
             </div>
-          )}
-
-          {hasCameraPermission && !capturedImage && (
-            <video
-              ref={videoRef}
-              className="h-full w-full object-cover"
-              autoPlay
-              playsInline
-              muted
-            />
           )}
 
           {capturedImage && (

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Camera, AlertTriangle, RefreshCw } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AvatarCaptureDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export function AvatarCaptureDialog({
   onOpenChange,
   onAvatarCaptured,
 }: AvatarCaptureDialogProps) {
+  const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
@@ -31,11 +33,12 @@ export function AvatarCaptureDialog({
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-    async function getCameraPermission() {
-      if (!open || hasCameraPermission === true) return;
+    async function setupCamera() {
+      if (!open) return;
+      setHasCameraPermission(undefined);
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' }, // Default to front camera for avatars
+          video: { facingMode: 'user' },
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -44,10 +47,15 @@ export function AvatarCaptureDialog({
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings.',
+        });
       }
     }
 
-    getCameraPermission();
+    setupCamera();
 
     return () => {
       if (stream) {
@@ -57,7 +65,7 @@ export function AvatarCaptureDialog({
         videoRef.current.srcObject = null;
       }
     };
-  }, [open, hasCameraPermission]);
+  }, [open, toast]);
 
   const handleCapture = useCallback(() => {
     if (videoRef.current && canvasRef.current) {
@@ -109,15 +117,23 @@ export function AvatarCaptureDialog({
         </DialogHeader>
 
         <div className="relative aspect-square w-full overflow-hidden rounded-md border bg-muted">
+          <video
+            ref={videoRef}
+            className={`h-full w-full object-cover scale-x-[-1] ${capturedImage || !hasCameraPermission ? 'hidden' : 'block'}`}
+            autoPlay
+            playsInline
+            muted
+          />
+
           {hasCameraPermission === undefined && (
-            <div className="flex h-full flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
               <Loader2 className="mb-2 h-8 w-8 animate-spin" />
               <p>Requesting camera access...</p>
             </div>
           )}
 
           {hasCameraPermission === false && (
-            <div className="flex h-full flex-col items-center justify-center p-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Camera Access Denied</AlertTitle>
@@ -126,16 +142,6 @@ export function AvatarCaptureDialog({
                 </AlertDescription>
               </Alert>
             </div>
-          )}
-
-          {hasCameraPermission && (
-             <video
-              ref={videoRef}
-              className={`h-full w-full object-cover scale-x-[-1] ${capturedImage ? 'hidden' : 'block'}`}
-              autoPlay
-              playsInline
-              muted
-            />
           )}
 
           {capturedImage && (
