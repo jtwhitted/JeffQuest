@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Swords } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -151,17 +151,6 @@ export default async function GameDetailPage({ params }: { params: { id: string 
                     <div className="flex items-center justify-between">
                         <span className="flex items-center text-muted-foreground"><Scale className="mr-2"/> Complexity</span>
                         <span className="font-medium">{formatComplexity(game.complexity)} / 5</span>
-                    </div>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle>Session Stats</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm">
-                    <div className="flex items-center justify-between">
-                        <span className="flex items-center text-muted-foreground"><Swords className="mr-2"/> Plays Logged</span>
-                        <span className="font-medium">{gameSessions.length}</span>
                     </div>
                 </CardContent>
             </Card>
