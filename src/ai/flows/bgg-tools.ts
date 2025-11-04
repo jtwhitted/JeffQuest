@@ -10,7 +10,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 // Helper to convert URL to data URI
-async function urlToDataUri(url: string) {
+async function urlToDataUri(url: string): Promise<string> {
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -18,8 +18,8 @@ async function urlToDataUri(url: string) {
             return url; // Fallback to original URL on failure
         }
         const blob = await response.blob();
+        const reader = new FileReader();
         return new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
             reader.onloadend = () => resolve(reader.result as string);
             reader.onerror = reject;
             reader.readAsDataURL(blob);
@@ -167,13 +167,21 @@ export const getBggGameDetails = ai.defineTool(
         const complexity = ratings ? parseFloat(getValue(ratings, 'averageweight') || '0') : 0;
         
         const originalImageUrl = getTagValue(itemXml, 'image');
-        const dataUri = originalImageUrl ? await urlToDataUri(originalImageUrl) : undefined;
+        let finalImageUrl: string | undefined = originalImageUrl || undefined;
+        if (originalImageUrl) {
+            const dataUri = await urlToDataUri(originalImageUrl);
+            // Check if conversion was successful before assigning
+            if (dataUri.startsWith('data:image')) {
+                finalImageUrl = dataUri;
+            }
+        }
+
 
         return {
             id: input.id,
             name,
             description: getTagValue(itemXml, 'description') || undefined,
-            imageUrl: dataUri,
+            imageUrl: finalImageUrl,
             yearPublished: yearPublished > 0 ? yearPublished : undefined,
             minPlayers: minPlayers > 0 ? minPlayers : undefined,
             maxPlayers: maxPlayers > 0 ? maxPlayers : undefined,

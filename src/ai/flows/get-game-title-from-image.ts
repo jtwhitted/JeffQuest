@@ -36,7 +36,7 @@ const GetGameDetailsOutputSchema = z.object({
   complexity: z.number().optional(),
   designers: z.array(z.string()).optional(),
   publishers: z.array(z.string()).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().optional(),
 });
 export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 
