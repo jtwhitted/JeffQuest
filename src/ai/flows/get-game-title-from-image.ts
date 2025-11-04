@@ -103,7 +103,7 @@ const getGameDetailsFlow = ai.defineFlow(
 
     // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
     const sortedResults = detailedStats
-      .filter(details => details !== null)
+      .filter(details => details !== null && details.id > 0)
       .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
 
     if (sortedResults.length === 0) {
