@@ -9,8 +9,8 @@ export interface Game {
   name: string;
   category: string;
   imageUrl: string;
-  minPlayers?: number;
-  maxPlayers?: number;
+  minPlayers: number;
+  maxPlayers: number;
   difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
   mechanics?: string[];
   yearPublished?: number;

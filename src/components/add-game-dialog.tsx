@@ -49,16 +49,16 @@ const formSchema = z.object({
   minPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
   maxPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
-  yearPublished: z.number().optional(),
+  yearPublished: z.coerce.number().optional(),
   description: z.string().optional(),
-  minPlaytime: z.number().optional(),
-  maxPlaytime: z.number().optional(),
-  rating: z.number().optional(),
-  ratingCount: z.number().optional(),
-  complexity: z.number().optional(),
+  minPlaytime: z.coerce.number().optional(),
+  maxPlaytime: z.coerce.number().optional(),
+  rating: z.coerce.number().optional(),
+  ratingCount: z.coerce.number().optional(),
+  complexity: z.coerce.number().optional(),
   designers: z.array(z.string()).optional(),
   publishers: z.array(z.string()).optional(),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().url().optional(),
 }).refine(data => data.maxPlayers >= data.minPlayers, {
     message: 'Max players must be greater than or equal to min players.',
     path: ['maxPlayers'],
@@ -84,6 +84,17 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
   const handleNewGameScanned = (details: GetGameDetailsOutput) => {
     form.reset({
         ...details,
+        // Ensure values that could be undefined are handled
+        yearPublished: details.yearPublished || undefined,
+        description: details.description || undefined,
+        minPlaytime: details.minPlaytime || undefined,
+        maxPlaytime: details.maxPlaytime || undefined,
+        rating: details.rating || undefined,
+        ratingCount: details.ratingCount || undefined,
+        complexity: details.complexity || undefined,
+        designers: details.designers || [],
+        publishers: details.publishers || [],
+        imageUrl: details.imageUrl || undefined,
     });
     toast({
         title: 'Game Details Scanned!',
