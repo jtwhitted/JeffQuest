@@ -2,12 +2,23 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { Session, Player } from '@/lib/types';
-import { ChartTooltipContent } from '@/components/ui/chart';
+import { ChartTooltipContent, ChartContainer, type ChartConfig } from '@/components/ui/chart';
 
 interface WinLossChartProps {
   sessions: Session[];
   players: Player[];
 }
+
+const chartConfig = {
+    wins: {
+      label: 'Wins',
+      color: 'hsl(var(--chart-1))',
+    },
+    losses: {
+      label: 'Losses',
+      color: 'hsl(var(--chart-2))',
+    },
+  } satisfies ChartConfig;
 
 export function WinLossChart({ sessions, players }: WinLossChartProps) {
   const data = players.map((player) => {
@@ -22,23 +33,25 @@ export function WinLossChart({ sessions, players }: WinLossChartProps) {
   });
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} layout="vertical" margin={{ left: 10 }}>
-        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-        <YAxis
-          type="category"
-          dataKey="name"
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={12}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} content={<ChartTooltipContent />} />
-        <Legend wrapperStyle={{fontSize: "14px"}} />
-        <Bar dataKey="wins" stackId="a" fill="hsl(var(--chart-1))" radius={[0, 4, 4, 0]} />
-        <Bar dataKey="losses" stackId="a" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
+    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+        <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={data} layout="vertical" margin={{ left: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis
+            type="category"
+            dataKey="name"
+            stroke="hsl(var(--muted-foreground))"
+            fontSize={12}
+            tickLine={false}
+            axisLine={false}
+            />
+            <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} content={<ChartTooltipContent />} />
+            <Legend wrapperStyle={{fontSize: "14px"}} />
+            <Bar dataKey="wins" stackId="a" fill="var(--color-wins)" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="losses" stackId="a" fill="var(--color-losses)" radius={[0, 4, 4, 0]} />
+        </BarChart>
+        </ResponsiveContainer>
+    </ChartContainer>
   );
 }
