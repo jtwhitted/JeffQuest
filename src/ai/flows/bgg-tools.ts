@@ -9,30 +9,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-// Helper to convert URL to data URI
-async function urlToDataUri(url: string): Promise<string> {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            console.error(`Failed to fetch image from ${url}. Status: ${response.status}`);
-            return url; // Fallback to original URL on failure
-        }
-        const blob = await response.blob();
-        
-        // Convert blob to a buffer to read as base64
-        const arrayBuffer = await blob.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const base64String = buffer.toString('base64');
-        
-        return `data:${blob.type};base64,${base64String}`;
-
-    } catch (error) {
-        console.error(`Error converting image to data URI: ${error}`);
-        return url; // Fallback to original URL on error
-    }
-}
-
-
 // Helper function to fetch and parse XML
 async function fetchAndParseXml(url: string) {
     const response = await fetch(url, { headers: { 'Accept': 'application/xml' } });
@@ -208,5 +184,3 @@ export const getBggGameDetails = ai.defineTool(
         };
     }
 );
-
-    
