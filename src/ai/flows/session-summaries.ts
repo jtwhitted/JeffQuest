@@ -23,8 +23,11 @@ const SessionSummaryInputSchema = z.object({
   gameDetails: GameDetailsSchema,
   datePlayed: z.string().describe('The date the game was played (YYYY-MM-DD).'),
   players: z.array(z.string()).describe('The names of the players in the session.'),
-  gameStats: z.record(z.any()).describe('Game-specific statistics and details. Can include winner, scores, or cooperative result.'),
+  winner: z.string().optional().describe('The name of the winning player.'),
+  cooperativeResult: z.enum(['win', 'loss']).optional().describe("The outcome if it was a cooperative game (e.g., 'win' or 'loss')."),
+  scores: z.any().optional().describe('Game-specific statistics and details. Can include scores.'),
   interestingEvents: z.string().optional().describe('Interesting or unusual events that happened during the game session.'),
+  summaryType: z.enum(['quick', 'detailed']).describe("The type of summary to generate: 'quick' for a brief overview, 'detailed' for a narrative report."),
 });
 
 export type SessionSummaryInput = z.infer<typeof SessionSummaryInputSchema>;
@@ -41,12 +44,18 @@ export async function generateSessionSummary(input: SessionSummaryInput): Promis
 
 const prompt = ai.definePrompt({
   name: 'sessionSummaryPrompt',
-  input: {schema: SessionSummaryInputSchema.extend({ gameStats: z.string() })},
+  input: {schema: SessionSummaryInputSchema.extend({ scores: z.string() })},
   output: {schema: SessionSummaryOutputSchema},
-  prompt: `You are a board game enthusiast who summarizes game sessions.
+  prompt: `You are a seasoned tabletop gamer, skilled at creating engaging session reports.
+  Your task is to generate a {{summaryType}} summary of the game session provided.
 
-  Given the following information about a board game session, generate a detailed summary, highlighting key moments, notable performances, and any interesting events. Use details about the game itself to add context.
-  If the game was cooperative, reflect that in the summary.
+  {{#if (eq summaryType 'quick')}}
+  Generate a brief, exciting summary, 2-3 sentences long, perfect for a quick update.
+  {{else}}
+  Generate a captivating and detailed narrative-style match report, designed to excite and inform friends who were unable to attend. Incorporate details about the game itself (like its category and complexity) to give more context. Include highlights of key moments, player achievements, and any unexpected twists.
+  {{/if}}
+  
+  If it was a cooperative game, describe the team's success or failure. If it was competitive, focus on the winner.
 
   Game Name: {{{gameName}}}
   Game Details:
@@ -57,10 +66,16 @@ const prompt = ai.definePrompt({
   Session Details:
   - Date Played: {{{datePlayed}}}
   - Players: {{#each players}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-  - Game Stats: {{{gameStats}}}
+  {{#if winner}}
+  - Winning Player: {{{winner}}}
+  {{/if}}
+  {{#if cooperativeResult}}
+  - Cooperative Result: {{#if (eq cooperativeResult 'win')}}The team won!{{else}}The team lost.{{/if}}
+  {{/if}}
+  - Scores: {{{scores}}}
   - Interesting Events: {{{interestingEvents}}}
 
-  Summary:`,
+  Generate the summary now.`,
 });
 
 const sessionSummaryFlow = ai.defineFlow(
@@ -72,7 +87,7 @@ const sessionSummaryFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt({
         ...input,
-        gameStats: JSON.stringify(input.gameStats, null, 2),
+        scores: JSON.stringify(input.scores, null, 2),
     });
     return output!;
   }

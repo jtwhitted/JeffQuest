@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import type { Session, Game, Player } from '@/lib/types';
-import { generateSessionSummary as generateQuickSummary } from '@/ai/flows/session-summaries';
-import { generateSessionSummary as generateDetailedReport } from '@/ai/flows/match-result-ai-assistant';
+import { generateSessionSummary } from '@/ai/flows/session-summaries';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -39,26 +38,33 @@ export default function SessionDetailsClient({ session, game, players, winner }:
     difficulty: game.difficulty,
   };
 
-  const handleGenerateQuickSummary = async () => {
-    setQuickSummaryState({ loading: true, error: null, summary: null });
+  const handleGenerateSummary = async (
+    summaryType: 'quick' | 'detailed',
+    setState: React.Dispatch<React.SetStateAction<AiStateType>>
+  ) => {
+    if (summaryType === 'detailed' && !winner && !session.cooperativeResult) {
+      toast({ variant: 'destructive', title: 'Cannot generate report without a winner or co-op result.' });
+      return;
+    }
+
+    setState({ loading: true, error: null, summary: null });
     try {
-      const result = await generateQuickSummary({
+      const result = await generateSessionSummary({
         gameName: game.name,
         gameDetails,
         datePlayed: session.date,
         players: players.map(p => p.name),
-        gameStats: {
-            winner: winner?.name,
-            cooperativeResult: session.cooperativeResult,
-            scores: session.scores,
-        },
-        interestingEvents: interestingEvents
+        winner: winner?.name,
+        cooperativeResult: session.cooperativeResult,
+        scores: session.scores,
+        interestingEvents: interestingEvents,
+        summaryType,
       });
-      setQuickSummaryState({ loading: false, error: null, summary: result.summary });
+      setState({ loading: false, error: null, summary: result.summary });
     } catch (error) {
       console.error(error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setQuickSummaryState({ loading: false, error: errorMessage, summary: null });
+      setState({ loading: false, error: errorMessage, summary: null });
       toast({
         variant: 'destructive',
         title: 'Error Generating Summary',
@@ -67,34 +73,6 @@ export default function SessionDetailsClient({ session, game, players, winner }:
     }
   };
 
-  const handleGenerateDetailedReport = async () => {
-    if (!winner && !session.cooperativeResult) {
-        toast({ variant: 'destructive', title: 'Cannot generate report without a winner or co-op result.'});
-        return;
-    }
-    setDetailedReportState({ loading: true, error: null, summary: null });
-    try {
-      const result = await generateDetailedReport({
-        gameName: game.name,
-        gameDetails,
-        datePlayed: session.date,
-        players: players.map(p => p.name),
-        winningPlayer: winner?.name,
-        cooperativeResult: session.cooperativeResult,
-        interestingEvents: interestingEvents
-      });
-      setDetailedReportState({ loading: false, error: null, summary: result.summary });
-    } catch (error) {
-        console.error(error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        setDetailedReportState({ loading: false, error: errorMessage, summary: null });
-        toast({
-            variant: 'destructive',
-            title: 'Error Generating Report',
-            description: errorMessage,
-        });
-    }
-  };
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -130,7 +108,7 @@ export default function SessionDetailsClient({ session, game, players, winner }:
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Quick Session Summary</h3>
-                <Button onClick={handleGenerateQuickSummary} disabled={quickSummaryState.loading} size="sm">
+                <Button onClick={() => handleGenerateSummary('quick', setQuickSummaryState)} disabled={quickSummaryState.loading} size="sm">
                   {quickSummaryState.loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                   Generate
                 </Button>
@@ -143,7 +121,7 @@ export default function SessionDetailsClient({ session, game, players, winner }:
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Detailed Match Report</h3>
-                <Button onClick={handleGenerateDetailedReport} disabled={detailedReportState.loading} size="sm">
+                <Button onClick={() => handleGenerateSummary('detailed', setDetailedReportState)} disabled={detailedReportState.loading} size="sm">
                   {detailedReportState.loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
                   Generate
                 </Button>
