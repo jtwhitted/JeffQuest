@@ -78,6 +78,7 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
       minPlayers: 1,
       maxPlayers: 4,
       difficulty: 'Intermediate',
+      imageUrl: '',
     },
   });
   
