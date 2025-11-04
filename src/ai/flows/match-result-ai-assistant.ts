@@ -10,8 +10,16 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const GameDetailsSchema = z.object({
+  category: z.string().describe('The category or genre of the game.'),
+  minPlayers: z.number().describe('The minimum number of players.'),
+  maxPlayers: z.number().describe('The maximum number of players.'),
+  difficulty: z.string().optional().describe('The difficulty of the game (e.g., Beginner, Intermediate).'),
+}).describe('Details about the board game that was played.');
+
 const SessionSummaryInputSchema = z.object({
   gameName: z.string().describe('The name of the game played.'),
+  gameDetails: GameDetailsSchema,
   datePlayed: z.string().describe('The date the game was played (ISO format).'),
   players: z.array(z.string()).describe('List of players who participated in the game.'),
   winningPlayer: z.string().describe('The player who won the game.'),
@@ -34,13 +42,20 @@ const prompt = ai.definePrompt({
   output: {schema: SessionSummaryOutputSchema},
   prompt: `You are a seasoned tabletop gamer, skilled at creating engaging session reports.
   Create a captivating summary of the game session provided, designed to excite and inform friends who were unable to attend.
+  Incorporate details about the game itself (like its category and complexity) to give more context.
   Include highlights of key moments, player achievements, and any unexpected twists.
 
   Game Name: {{{gameName}}}
-  Date Played: {{{datePlayed}}}
-  Players: {{#each players}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-  Winning Player: {{{winningPlayer}}}
-  Interesting Events: {{{interestingEvents}}}
+  Game Details:
+  - Category: {{{gameDetails.category}}}
+  - Player Count: {{{gameDetails.minPlayers}}} - {{{gameDetails.maxPlayers}}}
+  - Difficulty: {{{gameDetails.difficulty}}}
+
+  Session Details:
+  - Date Played: {{{datePlayed}}}
+  - Players: {{#each players}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+  - Winning Player: {{{winningPlayer}}}
+  - Interesting Events: {{{interestingEvents}}}
 
   Summary:`,
 });

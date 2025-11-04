@@ -32,11 +32,19 @@ export default function SessionDetailsClient({ session, game, players, winner }:
   const [quickSummaryState, setQuickSummaryState] = useState<AiStateType>({ loading: false, error: null, summary: null });
   const [detailedReportState, setDetailedReportState] = useState<AiStateType>({ loading: false, error: null, summary: null });
 
+  const gameDetails = {
+    category: game.category,
+    minPlayers: game.minPlayers || 1,
+    maxPlayers: game.maxPlayers || 1,
+    difficulty: game.difficulty,
+  };
+
   const handleGenerateQuickSummary = async () => {
     setQuickSummaryState({ loading: true, error: null, summary: null });
     try {
       const result = await generateQuickSummary({
         gameName: game.name,
+        gameDetails,
         datePlayed: session.date,
         players: players.map(p => p.name),
         gameStats: {
@@ -67,6 +75,7 @@ export default function SessionDetailsClient({ session, game, players, winner }:
     try {
       const result = await generateDetailedReport({
         gameName: game.name,
+        gameDetails,
         datePlayed: session.date,
         players: players.map(p => p.name),
         winningPlayer: winner.name,
