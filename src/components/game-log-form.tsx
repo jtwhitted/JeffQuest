@@ -30,12 +30,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Game, Player } from '@/lib/types';
-import { addSession } from '@/lib/actions';
+import { addSession, addGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan } from 'lucide-react';
 import { format } from 'date-fns';
+import { GameScanDialog } from './game-scan-dialog';
+import React from 'react';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -56,9 +58,12 @@ interface GameLogFormProps {
   players: Player[];
 }
 
-export default function GameLogForm({ games, players }: GameLogFormProps) {
+export default function GameLogForm({ games: initialGames, players }: GameLogFormProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [isScanDialogOpen, setScanDialogOpen] = React.useState(false);
+  const [games, setGames] = React.useState(initialGames);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -71,6 +76,26 @@ export default function GameLogForm({ games, players }: GameLogFormProps) {
 
   const selectedPlayerIds = form.watch('playerIds');
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
+
+  const handleNewGameScanned = async (title: string) => {
+    try {
+        const newGame = await addGame({ name: title });
+        if (newGame) {
+            setGames(prevGames => [...prevGames, newGame]);
+            form.setValue('gameId', newGame.id);
+            toast({
+                title: 'Game Added!',
+                description: `${newGame.name} has been added to your collection.`,
+            });
+        }
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error adding game",
+            description: "Could not save the new game.",
+        });
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -90,6 +115,12 @@ export default function GameLogForm({ games, players }: GameLogFormProps) {
   };
 
   return (
+    <>
+    <GameScanDialog
+        open={isScanDialogOpen}
+        onOpenChange={setScanDialogOpen}
+        onTitleScanned={handleNewGameScanned}
+    />
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
@@ -97,8 +128,14 @@ export default function GameLogForm({ games, players }: GameLogFormProps) {
           name="gameId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Game Played</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <div className="flex items-center justify-between">
+                <FormLabel>Game Played</FormLabel>
+                <Button type="button" variant="outline" size="sm" onClick={() => setScanDialogOpen(true)}>
+                    <Scan className="mr-2 h-4 w-4" />
+                    Scan Game Box
+                </Button>
+              </div>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a game..." />
@@ -295,5 +332,6 @@ export default function GameLogForm({ games, players }: GameLogFormProps) {
         </Button>
       </form>
     </Form>
+    </>
   );
 }
