@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI flow to extract board game details from an image.
+ * @fileOverview An AI flow to extract board game details from an image using BGG API.
  *
  * - getGameDetailsFromImage - A function that takes an image of a game box and returns its details.
  * - GetGameDetailsInput - The input type for the getGameDetailsFromImage function.
@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { searchBgg, getBggGameDetails } from './bgg-tools';
 
 const GetGameDetailsInputSchema = z.object({
   photoDataUri: z
@@ -32,18 +33,12 @@ export async function getGameDetailsFromImage(input: GetGameDetailsInput): Promi
   return getGameDetailsFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'getGameDetailsPrompt',
+const titlePrompt = ai.definePrompt({
+  name: 'getGameTitlePrompt',
   input: {schema: GetGameDetailsInputSchema},
-  output: {schema: GetGameDetailsOutputSchema},
+  output: {schema: z.object({ title: z.string() })},
   prompt: `You are an expert at identifying board games from images of their boxes.
-Analyze the provided image and extract the following details:
-- The main title of the board game.
-- The primary category or genre.
-- The minimum and maximum number of players.
-- The estimated difficulty level (Beginner, Intermediate, Advanced, or Expert).
-
-If a detail is not visible or cannot be determined, make a reasonable estimate based on the game's title and box art.
+Analyze the provided image and extract only the main title of the board game.
 
 Image: {{media url=photoDataUri}}`,
 });
@@ -53,9 +48,44 @@ const getGameDetailsFlow = ai.defineFlow(
     name: 'getGameDetailsFlow',
     inputSchema: GetGameDetailsInputSchema,
     outputSchema: GetGameDetailsOutputSchema,
+    tools: [searchBgg, getBggGameDetails],
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    // Step 1: Get the title from the image
+    const { output: titleOutput } = await titlePrompt(input);
+    if (!titleOutput?.title) {
+        throw new Error('Could not determine game title from image.');
+    }
+    const title = titleOutput.title;
+
+    // Step 2: Search BGG for the game ID
+    const searchResults = await searchBgg({ query: title });
+    if (!searchResults || searchResults.length === 0) {
+        throw new Error(`No results found on BoardGameGeek for "${title}".`);
+    }
+    const gameId = searchResults[0].id; // Assume the first result is the correct one
+
+    // Step 3: Get detailed game info from BGG
+    const gameDetails = await getBggGameDetails({ id: gameId });
+
+    // Step 4: Map BGG complexity to our difficulty enum
+    let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
+    if (gameDetails.complexity < 2) {
+        difficulty = 'Beginner';
+    } else if (gameDetails.complexity >= 2 && gameDetails.complexity < 3) {
+        difficulty = 'Intermediate';
+    } else if (gameDetails.complexity >= 3 && gameDetails.complexity < 4) {
+        difficulty = 'Advanced';
+    } else if (gameDetails.complexity >= 4) {
+        difficulty = 'Expert';
+    }
+
+    return {
+        title: gameDetails.name,
+        category: gameDetails.category,
+        minPlayers: gameDetails.minPlayers,
+        maxPlayers: gameDetails.maxPlayers,
+        difficulty: difficulty,
+    };
   }
 );
