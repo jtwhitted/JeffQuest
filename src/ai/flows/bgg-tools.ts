@@ -47,6 +47,11 @@ async function fetchAndParseXml(url: string) {
         const matches = [...xml.matchAll(itemRegex)];
         return matches.map(match => match[1]);
     };
+
+    const getItemXmls = (xml: string) => {
+        const itemRegex = /<item id="\d+" type="boardgame">[\s\S]*?<\/item>/g;
+        return [...xml.matchAll(itemRegex)].map(match => match[0]);
+    };
     
     const getLinks = (xml: string, type: string) => {
         const linkRegex = new RegExp(`<link type="${type}" id="[^"]*" value="([^"]*)"\\/>`, 'g');
@@ -72,7 +77,7 @@ async function fetchAndParseXml(url: string) {
         return match ? match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n') : null;
     };
 
-    return { getItems, getAttribute, getValue, getTagValue, getLinks, rawXml: xmlText };
+    return { getItems, getItemXmls, getAttribute, getValue, getTagValue, getLinks, rawXml: xmlText };
 }
 
 
@@ -89,29 +94,37 @@ const BggSearchResultSchema = z.array(
 export const searchBgg = ai.defineTool(
     {
         name: 'searchBgg',
-        description: 'Searches for a board game on BoardGameGeek (BGG) by its title.',
+        description: 'Searches for a board game on BoardGameGeek (BGG) by its title. Prioritizes exact matches.',
         inputSchema: z.object({
             query: z.string().describe('The title of the game to search for.'),
         }),
         outputSchema: BggSearchResultSchema,
     },
     async (input) => {
-        const url = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame`;
-        const { getItems } = await fetchAndParseXml(url);
-
-        const xml = await fetch(url).then(res => res.text());
-        const items = getItems(xml, 'item');
+        const exactMatchUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame&exact=1`;
+        let xml = await fetch(exactMatchUrl).then(res => res.text());
         
-        return items.slice(0, 5).map(itemXml => {
+        let { getItemXmls } = await fetchAndParseXml(exactMatchUrl);
+        let itemXmls = getItemXmls(xml);
+
+        // If no exact match, fall back to a regular search
+        if (!itemXmls || itemXmls.length === 0) {
+            const searchUrl = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame`;
+            xml = await fetch(searchUrl).then(res => res.text());
+            itemXmls = (await fetchAndParseXml(searchUrl)).getItemXmls(xml);
+        }
+        
+        return itemXmls.slice(0, 5).map(itemXml => {
             const idMatch = itemXml.match(/<item id="([^"]*)"/);
             const id = idMatch ? idMatch[1] : null;
 
-            const nameTagMatch = itemXml.match(/<name type="primary" value="([^"]*)"/);
-            let name = nameTagMatch ? nameTagMatch[1] : 'Unknown';
-
-            if (!nameTagMatch) {
-                const altNameTagMatch = itemXml.match(/<name value="([^"]*)"/);
-                if (altNameTagMatch) name = altNameTagMatch[1];
+            const primaryNameMatch = itemXml.match(/<name type="primary" value="([^"]*)"/);
+            let name = primaryNameMatch ? primaryNameMatch[1] : 'Unknown';
+            
+            // If primary name is not found, try to find any name tag
+            if (name === 'Unknown') {
+                const anyNameMatch = itemXml.match(/<name value="([^"]*)"/);
+                if (anyNameMatch) name = anyNameMatch[1];
             }
             
             const yearTagMatch = itemXml.match(/<yearpublished value="([^"]*)"/);
