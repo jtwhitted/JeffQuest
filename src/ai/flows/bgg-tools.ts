@@ -7,7 +7,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 // Helper to convert URL to data URI
 async function urlToDataUri(url: string): Promise<string> {
@@ -53,12 +53,12 @@ async function fetchAndParseXml(url: string) {
         return [...xml.matchAll(linkRegex)].map(match => match[1].replace(/&amp;/g, '&'));
     }
 
-    const getAttribute = (xml: string, tag: string, attribute: string) => {
-        const attrRegex = new RegExp(`<${tag}[^>]*${attribute}="([^"]*)"`);
-        const match = xml.match(attrRegex);
+    const getAttribute = (itemXml: string, attribute: string) => {
+        const attrRegex = new RegExp(` ${attribute}="([^"]*)"`);
+        const match = itemXml.match(attrRegex);
         return match ? match[1] : null;
     }
-
+    
     const getValue = (xml: string, tag: string) => {
         const valueRegex = new RegExp(`<${tag}[^>]*value="([^"]*)"`);
         const match = xml.match(valueRegex);
@@ -97,20 +97,30 @@ export const searchBgg = ai.defineTool(
     },
     async (input) => {
         const url = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame`;
-        const { getItems, getAttribute } = await fetchAndParseXml(url);
+        const { getItems } = await fetchAndParseXml(url);
 
         const xml = await fetch(url).then(res => res.text());
         const items = getItems(xml, 'item');
         
         return items.slice(0, 5).map(itemXml => {
-            const id = getAttribute(itemXml, 'item', 'id');
-            const nameTag = itemXml.match(/<name[^>]*value="([^"]*)"/);
-            const yearTag = itemXml.match(/<yearpublished[^>]*value="([^"]*)"/);
+            const idMatch = itemXml.match(/<item id="([^"]*)"/);
+            const id = idMatch ? idMatch[1] : null;
+
+            const nameTagMatch = itemXml.match(/<name type="primary" value="([^"]*)"/);
+            let name = nameTagMatch ? nameTagMatch[1] : 'Unknown';
+
+            if (!nameTagMatch) {
+                const altNameTagMatch = itemXml.match(/<name value="([^"]*)"/);
+                if (altNameTagMatch) name = altNameTagMatch[1];
+            }
+            
+            const yearTagMatch = itemXml.match(/<yearpublished value="([^"]*)"/);
+            const yearPublished = yearTagMatch ? yearTagMatch[1] : undefined;
 
             return {
                 id: id ? parseInt(id, 10) : 0,
-                name: nameTag ? nameTag[1] : 'Unknown',
-                yearPublished: yearTag ? parseInt(yearTag[1], 10) : undefined,
+                name: name.replace(/&amp;/g, '&').replace(/&quot;/g, '"'),
+                yearPublished: yearPublished ? parseInt(yearPublished, 10) : undefined,
             };
         }).filter(item => item.id > 0);
     }
@@ -151,7 +161,14 @@ export const getBggGameDetails = ai.defineTool(
         
         const itemXml = rawXml; // The whole response is for one "thing"
 
-        const name = getTagValue(itemXml, 'name') || 'Unknown';
+        const primaryNameMatch = itemXml.match(/<name type="primary" value="([^"]*)"/);
+        let name = primaryNameMatch ? primaryNameMatch[1] : 'Unknown';
+        if (name === 'Unknown') {
+            const nameMatch = itemXml.match(/<name value="([^"]*)"/);
+            if (nameMatch) name = nameMatch[1];
+        }
+        name = name.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+
         const minPlayers = parseInt(getValue(itemXml, 'minplayers') || '0', 10);
         const maxPlayers = parseInt(getValue(itemXml, 'maxplayers') || '0', 10);
         const minPlaytime = parseInt(getValue(itemXml, 'minplaytime') || '0', 10);
@@ -196,4 +213,5 @@ export const getBggGameDetails = ai.defineTool(
     }
 );
 
+    
     
