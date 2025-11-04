@@ -73,6 +73,16 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     return newGame;
 }
 
+export async function deleteGame(gameId: string) {
+    console.log(`Deleting game with id: ${gameId}`);
+    // In a real app, you would delete from the database here.
+    
+    // Revalidate paths to update the UI
+    revalidatePath('/games');
+    revalidatePath('/');
+    revalidatePath('/sessions');
+}
+
 const playerFormSchema = z.object({
     name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
 });
@@ -99,4 +109,14 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promi
     revalidatePath('/players');
 
     return newPlayer;
+}
+
+export async function deletePlayer(playerId: string) {
+    console.log(`Deleting player with id: ${playerId}`);
+    // In a real app, you would delete from the database here.
+    
+    // Revalidate paths to update the UI
+    revalidatePath('/players');
+    revalidatePath('/');
+    revalidatePath('/sessions');
 }
