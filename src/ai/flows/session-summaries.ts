@@ -33,7 +33,7 @@ export async function generateSessionSummary(input: SessionSummaryInput): Promis
 
 const prompt = ai.definePrompt({
   name: 'sessionSummaryPrompt',
-  input: {schema: SessionSummaryInputSchema},
+  input: {schema: SessionSummaryInputSchema.extend({ gameStats: z.string() })},
   output: {schema: SessionSummaryOutputSchema},
   prompt: `You are a board game enthusiast who summarizes game sessions.
 
@@ -42,7 +42,7 @@ const prompt = ai.definePrompt({
   Game Name: {{{gameName}}}
   Date Played: {{{datePlayed}}}
   Players: {{#each players}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-  Game Stats: {{{JSON.stringify gameStats}}}
+  Game Stats: {{{gameStats}}}
   Interesting Events: {{{interestingEvents}}}
 
   Summary:`,
@@ -55,7 +55,10 @@ const sessionSummaryFlow = ai.defineFlow(
     outputSchema: SessionSummaryOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt({
+        ...input,
+        gameStats: JSON.stringify(input.gameStats, null, 2),
+    });
     return output!;
   }
 );
