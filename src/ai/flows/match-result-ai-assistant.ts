@@ -57,7 +57,7 @@ const prompt = ai.definePrompt({
   - Winning Player: {{{winningPlayer}}}
   - Interesting Events: {{{interestingEvents}}}
 
-  Summary:`,
+  Generate a detailed, narrative-style match report based on the provided information. Make it exciting!`,
 });
 
 const generateSessionSummaryFlow = ai.defineFlow(
