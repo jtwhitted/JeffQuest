@@ -42,12 +42,6 @@ async function fetchAndParseXml(url: string) {
     const xmlText = await response.text();
     
     // Basic XML parsing without a library. This is fragile but sufficient for this API.
-    const getItems = (xml: string, tag: string) => {
-        const itemRegex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'g');
-        const matches = [...xml.matchAll(itemRegex)];
-        return matches.map(match => match[1]);
-    };
-
     const getItemXmls = (xml: string) => {
         const itemRegex = /<item id="\d+" type="boardgame">[\s\S]*?<\/item>/g;
         return [...xml.matchAll(itemRegex)].map(match => match[0]);
@@ -58,12 +52,6 @@ async function fetchAndParseXml(url: string) {
         return [...xml.matchAll(linkRegex)].map(match => match[1].replace(/&amp;/g, '&'));
     }
 
-    const getAttribute = (itemXml: string, attribute: string) => {
-        const attrRegex = new RegExp(` ${attribute}="([^"]*)"`);
-        const match = itemXml.match(attrRegex);
-        return match ? match[1] : null;
-    }
-    
     const getValue = (xml: string, tag: string) => {
         const valueRegex = new RegExp(`<${tag}[^>]*value="([^"]*)"`);
         const match = xml.match(valueRegex);
@@ -74,10 +62,10 @@ async function fetchAndParseXml(url: string) {
         const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
         const match = xml.match(regex);
         // Decode HTML entities
-        return match ? match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n') : null;
+        return match ? match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n').replace(/&rsquo;/g, "'") : null;
     };
 
-    return { getItems, getItemXmls, getAttribute, getValue, getTagValue, getLinks, rawXml: xmlText };
+    return { getItemXmls, getValue, getTagValue, getLinks, rawXml: xmlText };
 }
 
 
@@ -199,17 +187,12 @@ export const getBggGameDetails = ai.defineTool(
         const complexity = ratings ? parseFloat(getValue(ratings, 'averageweight') || '0') : 0;
         
         const originalImageUrl = getTagValue(itemXml, 'image');
-        let finalImageUrl: string | undefined = originalImageUrl || undefined;
-        if (originalImageUrl && !originalImageUrl.startsWith('data:')) {
-            finalImageUrl = await urlToDataUri(originalImageUrl);
-        }
-
 
         return {
             id: input.id,
             name,
             description: getTagValue(itemXml, 'description') || undefined,
-            imageUrl: finalImageUrl,
+            imageUrl: originalImageUrl || undefined,
             yearPublished: yearPublished > 0 ? yearPublished : undefined,
             minPlayers: minPlayers > 0 ? minPlayers : undefined,
             maxPlayers: maxPlayers > 0 ? maxPlayers : undefined,
@@ -225,3 +208,5 @@ export const getBggGameDetails = ai.defineTool(
         };
     }
 );
+
+    

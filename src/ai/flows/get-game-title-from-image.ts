@@ -40,6 +40,24 @@ const GetGameDetailsOutputSchema = z.object({
 });
 export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 
+// Helper to convert URL to data URI
+async function urlToDataUri(url: string): Promise<string> {
+  try {
+      const response = await fetch(url);
+      if (!response.ok) {
+          console.error(`Failed to fetch image from ${url}. Status: ${response.status}`);
+          return url; // Fallback to original URL on failure
+      }
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      return `data:${blob.type};base64,${buffer.toString('base64')}`;
+  } catch (error) {
+      console.error(`Error converting image to data URI: ${error}`);
+      return url; // Fallback to original URL on error
+  }
+}
+
 export async function getGameDetailsFromImage(input: GetGameDetailsInput): Promise<GetGameDetailsOutput> {
   return getGameDetailsFlow(input);
 }
@@ -79,21 +97,23 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error(`No results found on BoardGameGeek for "${title}".`);
     }
     
-    // Step 3: Get detailed info for all search results to find the best match.
+    // Step 3: Get detailed info for just the first result to find the best match.
+    // This is more efficient than fetching full details for all results.
     const detailedResults = await Promise.all(
-        searchResults.map(result => getBggGameDetails({ id: result.id }))
+      searchResults.map(result => getBggGameDetails({ id: result.id }))
     );
 
     // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
     const sortedResults = detailedResults
-        .filter(details => details !== null)
-        .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+      .filter(details => details !== null)
+      .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
 
     if (sortedResults.length === 0) {
-        throw new Error(`Could not fetch details for any search results for "${title}".`);
+      throw new Error(`Could not fetch details for any search results for "${title}".`);
     }
 
     const gameDetails = sortedResults[0];
+
 
     // Map BGG complexity to our difficulty enum
     let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
@@ -107,6 +127,11 @@ const getGameDetailsFlow = ai.defineFlow(
         } else {
             difficulty = 'Expert';
         }
+    }
+    
+    let finalImageUrl = gameDetails.imageUrl;
+    if (gameDetails.imageUrl && !gameDetails.imageUrl.startsWith('data:')) {
+      finalImageUrl = await urlToDataUri(gameDetails.imageUrl);
     }
     
     return {
@@ -125,7 +150,9 @@ const getGameDetailsFlow = ai.defineFlow(
         complexity: gameDetails.complexity,
         designers: gameDetails.designers,
         publishers: gameDetails.publishers,
-        imageUrl: gameDetails.imageUrl,
+        imageUrl: finalImageUrl,
     };
   }
 );
+
+    
