@@ -114,7 +114,7 @@ export default function GamesPage() {
                 <div className="flex-1">
                   <CardTitle>{game.name}</CardTitle>
                   <CardDescription>{game.category}</CardDescription>
-                  <div className="mt-2 flex flex-col items-start gap-1 text-sm text-muted-foreground">
+                  <div className="mt-2 flex flex-col items-start gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center">
                         <Swords className="mr-1.5 h-4 w-4" />
                         <span>{game.playCount} {game.playCount === 1 ? 'play' : 'plays'}</span>
@@ -131,6 +131,15 @@ export default function GamesPage() {
                         </div>
                         )}
                     </div>
+                     {game.mechanics && game.mechanics.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {game.mechanics.slice(0, 3).map(mechanic => (
+                          <Badge key={mechanic} variant="secondary" className="text-xs">
+                            {mechanic}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 shrink-0" onClick={() => setGameToDelete(game)}>

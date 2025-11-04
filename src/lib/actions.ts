@@ -6,10 +6,10 @@ import type { Game, Player } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const sessionFormSchema = z.object({
-  gameId: z.string(),
+  gameId: z.string().min(1, 'Please select a game.'),
   date: z.date(),
-  playerIds: z.array(z.string()),
-  winnerId: z.string(),
+  playerIds: z.array(z.string()).min(1, 'Please select at least one player.'),
+  winnerId: z.string().min(1, 'Please select a winner.'),
   scores: z.array(z.object({
       playerId: z.string(),
       score: z.number().optional(),
@@ -41,6 +41,7 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
     category: z.string().min(1, 'Category is required.'),
+    mechanics: z.array(z.string()).optional(),
     minPlayers: z.coerce.number().min(1),
     maxPlayers: z.coerce.number().min(1),
     difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
@@ -55,7 +56,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         return null;
     }
     
-    const { name, category, minPlayers, maxPlayers, difficulty } = validatedFields.data;
+    const { name, category, minPlayers, maxPlayers, difficulty, mechanics } = validatedFields.data;
     const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
 
     // In a real app, you would save this to your database and get a real ID
@@ -66,6 +67,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         minPlayers,
         maxPlayers,
         difficulty,
+        mechanics,
         imageUrl: randomImage.imageUrl,
     };
     

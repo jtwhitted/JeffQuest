@@ -45,6 +45,7 @@ interface AddGameDialogProps {
 const formSchema = z.object({
   name: z.string().min(1, 'Game name is required.').max(100, 'Name must be 100 characters or less.'),
   category: z.string().min(1, 'Category is required.'),
+  mechanics: z.array(z.string()).optional(),
   minPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
   maxPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
@@ -63,6 +64,7 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
     defaultValues: {
       name: '',
       category: 'Strategy',
+      mechanics: [],
       minPlayers: 1,
       maxPlayers: 4,
       difficulty: 'Intermediate',
@@ -73,6 +75,7 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
     form.reset({
         name: details.title,
         category: details.category,
+        mechanics: details.mechanics,
         minPlayers: details.minPlayers,
         maxPlayers: details.maxPlayers,
         difficulty: details.difficulty,

@@ -23,6 +23,7 @@ export type GetGameDetailsInput = z.infer<typeof GetGameDetailsInputSchema>;
 const GetGameDetailsOutputSchema = z.object({
   title: z.string().describe('The title of the board game identified in the image.'),
   category: z.string().describe('The main category or genre of the game (e.g., Strategy, Party, Family, RPG).'),
+  mechanics: z.array(z.string()).describe("A list of the game's mechanics (e.g., 'Worker Placement', 'Deck Building')."),
   minPlayers: z.number().describe('The minimum number of players for the game.'),
   maxPlayers: z.number().describe('The maximum number of players for the game.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).describe('The estimated difficulty of the game.'),
@@ -83,8 +84,9 @@ const getGameDetailsFlow = ai.defineFlow(
     return {
         title: gameDetails.name,
         category: gameDetails.category,
+        mechanics: gameDetails.mechanics,
         minPlayers: gameDetails.minPlayers,
-        maxPlayers: gameDetails.maxPlayers,
+        maxPlayers: game.maxPlayers,
         difficulty: difficulty,
     };
   }

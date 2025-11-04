@@ -12,6 +12,7 @@ export interface Game {
   minPlayers?: number;
   maxPlayers?: number;
   difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+  mechanics?: string[];
 }
 
 export interface Session {

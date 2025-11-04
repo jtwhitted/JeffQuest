@@ -23,6 +23,11 @@ async function fetchAndParseXml(url: string) {
         const matches = [...xml.matchAll(itemRegex)];
         return matches.map(match => match[1]);
     };
+    
+    const getLinks = (xml: string, type: string) => {
+        const linkRegex = new RegExp(`<link type="${type}" id="[^"]*" value="([^"]*)"\\/>`, 'g');
+        return [...xml.matchAll(linkRegex)].map(match => match[1]);
+    }
 
     const getAttribute = (xml: string, tag: string, attribute: string) => {
         const attrRegex = new RegExp(`<${tag}[^>]*${attribute}="([^"]*)"`);
@@ -43,7 +48,7 @@ async function fetchAndParseXml(url: string) {
     };
 
 
-    return { getItems, getAttribute, getValue, getTagValue, rawXml: xmlText };
+    return { getItems, getAttribute, getValue, getTagValue, getLinks, rawXml: xmlText };
 }
 
 
@@ -91,6 +96,7 @@ const BggGameDetailsSchema = z.object({
     id: z.number(),
     name: z.string(),
     category: z.string(),
+    mechanics: z.array(z.string()).describe("List of game mechanics (e.g., 'Worker Placement', 'Deck Building')."),
     minPlayers: z.number(),
     maxPlayers: z.number(),
     complexity: z.number().describe('The BGG weight/complexity rating, typically from 1 to 5.'),
@@ -106,7 +112,7 @@ export const getBggGameDetails = ai.defineTool(
     },
     async (input) => {
         const url = `https://boardgamegeek.com/xmlapi2/thing?id=${input.id}&stats=1`;
-        const { getAttribute, getValue, rawXml } = await fetchAndParseXml(url);
+        const { getAttribute, getValue, getLinks, rawXml } = await fetchAndParseXml(url);
         
         const itemXml = rawXml; // The whole response is for one "thing"
 
@@ -114,10 +120,9 @@ export const getBggGameDetails = ai.defineTool(
         const minPlayers = parseInt(getValue(itemXml, 'minplayers') || '1', 10);
         const maxPlayers = parseInt(getValue(itemXml, 'maxplayers') || '1', 10);
         
-        // Find the "boardgamecategory" link and get its value
-        const linkRegex = /<link type="boardgamecategory" id="[^"]*" value="([^"]*)"\/>/g;
-        const categoryMatch = linkRegex.exec(itemXml);
-        const category = categoryMatch ? categoryMatch[1] : 'Unknown';
+        const categories = getLinks(itemXml, 'boardgamecategory');
+        const mechanics = getLinks(itemXml, 'boardgamemechanic');
+        const category = categories.length > 0 ? categories[0] : 'Unknown';
 
         const complexity = parseFloat(getValue(itemXml, 'averageweight') || '0');
 
@@ -125,6 +130,7 @@ export const getBggGameDetails = ai.defineTool(
             id: input.id,
             name,
             category,
+            mechanics,
             minPlayers,
             maxPlayers,
             complexity,

@@ -10,11 +10,11 @@ const players: Player[] = [
 ];
 
 const games: Game[] = [
-  { id: 'g1', name: 'Catan', category: 'Strategy', imageUrl: PlaceHolderImages.find(img => img.id === 'game-1')?.imageUrl || '', minPlayers: 3, maxPlayers: 4, difficulty: 'Intermediate' },
-  { id: 'g2', name: 'Wingspan', category: 'Card', imageUrl: PlaceHolderImages.find(img => img.id === 'game-2')?.imageUrl || '', minPlayers: 1, maxPlayers: 5, difficulty: 'Intermediate' },
-  { id: 'g3', name: 'King of Tokyo', category: 'Dice', imageUrl: PlaceHolderImages.find(img => img.id === 'game-3')?.imageUrl || '', minPlayers: 2, maxPlayers: 6, difficulty: 'Beginner' },
-  { id: 'g4', name: 'Gloomhaven', category: 'RPG', imageUrl: PlaceHolderImages.find(img => img.id === 'game-4')?.imageUrl || '', minPlayers: 1, maxPlayers: 4, difficulty: 'Expert' },
-  { id: 'g5', name: 'Terraforming Mars', category: 'Sci-fi', imageUrl: PlaceHolderImages.find(img => img.id === 'game-5')?.imageUrl || '', minPlayers: 1, maxPlayers: 5, difficulty: 'Advanced' },
+  { id: 'g1', name: 'Catan', category: 'Strategy', imageUrl: PlaceHolderImages.find(img => img.id === 'game-1')?.imageUrl || '', minPlayers: 3, maxPlayers: 4, difficulty: 'Intermediate', mechanics: ['Trading', 'Route Building'] },
+  { id: 'g2', name: 'Wingspan', category: 'Card', imageUrl: PlaceHolderImages.find(img => img.id === 'game-2')?.imageUrl || '', minPlayers: 1, maxPlayers: 5, difficulty: 'Intermediate', mechanics: ['Engine Building', 'Card Drafting'] },
+  { id: 'g3', name: 'King of Tokyo', category: 'Dice', imageUrl: PlaceHolderImages.find(img => img.id === 'game-3')?.imageUrl || '', minPlayers: 2, maxPlayers: 6, difficulty: 'Beginner', mechanics: ['Dice Rolling', 'Player Elimination'] },
+  { id: 'g4', name: 'Gloomhaven', category: 'RPG', imageUrl: PlaceHolderImages.find(img => img.id === 'game-4')?.imageUrl || '', minPlayers: 1, maxPlayers: 4, difficulty: 'Expert', mechanics: ['Legacy', 'Campaign'] },
+  { id: 'g5', name: 'Terraforming Mars', category: 'Sci-fi', imageUrl: PlaceHolderImages.find(img => img.id === 'game-5')?.imageUrl || '', minPlayers: 1, maxPlayers: 5, difficulty: 'Advanced', mechanics: ['Hand Management', 'Tile Placement'] },
 ];
 
 const sessions: Session[] = [
