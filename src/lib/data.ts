@@ -14,7 +14,7 @@ const games: Game[] = [
     id: 'g1', 
     name: 'Catan', 
     category: 'Strategy', 
-    imageUrl: 'https://images.unsplash.com/photo-1616496336362-808c4fe3c837?q=80&w=1080',
+    imageUrl: 'https://cf.geekdo-images.com/wB2vor8tE2922e3kH1E1-A__imagepage/img/I3Y9J522j2n2e5z6w8w2j4w2Y2M=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic2419375.jpg',
     minPlayers: 3, 
     maxPlayers: 4, 
     difficulty: 'Intermediate', 
@@ -33,7 +33,7 @@ const games: Game[] = [
     id: 'g2', 
     name: 'Wingspan', 
     category: 'Card', 
-    imageUrl: 'https://images.unsplash.com/photo-1607538210344-955605f1710b?q=80&w=1080',
+    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/UXiXh5L6w4IO0PG15G3_h04qfso=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic4458123.jpg',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Intermediate', 
@@ -52,7 +52,7 @@ const games: Game[] = [
     id: 'g3', 
     name: 'King of Tokyo', 
     category: 'Dice', 
-    imageUrl: 'https://images.unsplash.com/photo-1593108422114-1f95f4e4e3a9?q=80&w=1080',
+    imageUrl: 'https://cf.geekdo-images.com/gBqTC0j2SoRg5_07Ea_4yQ__imagepage/img/1_T3p_5i3v2q2u-v2w8Y-1ZQ2I4=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic3043734.jpg',
     minPlayers: 2, maxPlayers: 6, 
     difficulty: 'Beginner', 
     mechanics: ['Dice Rolling', 'Player Elimination', 'King of the Hill'],
@@ -70,7 +70,7 @@ const games: Game[] = [
     id: 'g4', 
     name: 'Gloomhaven', 
     category: 'RPG', 
-    imageUrl: 'https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=1080',
+    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiVlAOP<strong>OO_w__imagepage/img/iGvJ-3a2Bv2T1oM0q_N2jVo_T5M=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic2437871.jpg',
     minPlayers: 1, 
     maxPlayers: 4, 
     difficulty: 'Expert', 
@@ -89,7 +89,7 @@ const games: Game[] = [
     id: 'g5', 
     name: 'Terraforming Mars', 
     category: 'Sci-fi', 
-    imageUrl: 'https://images.unsplash.com/photo-1563720239252-a8b2f0a20f93?q=80&w=1080',
+    imageUrl: 'https://cf.geekdo-images.com/wg9oOLcsFDgBZA9rtLvrzA__imagepage/img/Y0Qj5j-wZt0n4sZJzE_0jS4zQ0I=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic3536616.jpg',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Advanced', 
@@ -211,3 +211,5 @@ export async function getPlayerById(id: string): Promise<Player | undefined> {
     noStore();
     return Promise.resolve(players.find(p => p.id === id));
 }
+
+    
