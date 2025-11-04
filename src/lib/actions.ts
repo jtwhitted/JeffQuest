@@ -124,12 +124,12 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promi
     
     const { name, avatarUrl } = validatedFields.data;
 
-    const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+    const randomImage = PlaceHolderImages.find(p => p.imageHint.includes('portrait'));
 
     const newPlayer: Player = {
         id: `p${Math.floor(Math.random() * 1000) + 5}`, // semi-random ID for demo
         name,
-        avatarUrl: avatarUrl || randomImage.imageUrl,
+        avatarUrl: avatarUrl || randomImage?.imageUrl || '',
     };
 
     console.log('New player added:', newPlayer);

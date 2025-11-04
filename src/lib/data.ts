@@ -70,7 +70,7 @@ const games: Game[] = [
     id: 'g4', 
     name: 'Gloomhaven', 
     category: 'RPG', 
-    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiVlAOP<strong>OO_w__imagepage/img/iGvJ-3a2Bv2T1oM0q_N2jVo_T5M=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic2437871.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiVlAOP_OO_w__imagepage/img/iGvJ-3a2Bv2T1oM0q_N2jVo_T5M=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic2437871.jpg',
     minPlayers: 1, 
     maxPlayers: 4, 
     difficulty: 'Expert', 
