@@ -114,21 +114,23 @@ export default function GamesPage() {
                 <div className="flex-1">
                   <CardTitle>{game.name}</CardTitle>
                   <CardDescription>{game.category}</CardDescription>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                  <div className="mt-2 flex flex-col items-start gap-1 text-sm text-muted-foreground">
                     <div className="flex items-center">
                         <Swords className="mr-1.5 h-4 w-4" />
                         <span>{game.playCount} {game.playCount === 1 ? 'play' : 'plays'}</span>
                     </div>
-                    <div className="flex items-center">
-                        <Users className="mr-1.5 h-4 w-4" />
-                        <span>{game.minPlayers}-{game.maxPlayers} players</span>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <div className="flex items-center">
+                            <Users className="mr-1.5 h-4 w-4" />
+                            <span>{game.minPlayers}-{game.maxPlayers} players</span>
+                        </div>
+                        {game.difficulty && (
+                        <div className="flex items-center">
+                            <BarChart3 className="mr-1.5 h-4 w-4" />
+                            <span>{game.difficulty}</span>
+                        </div>
+                        )}
                     </div>
-                    {game.difficulty && (
-                    <div className="flex items-center">
-                        <BarChart3 className="mr-1.5 h-4 w-4" />
-                        <span>{game.difficulty}</span>
-                    </div>
-                    )}
                   </div>
                 </div>
                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 shrink-0" onClick={() => setGameToDelete(game)}>
