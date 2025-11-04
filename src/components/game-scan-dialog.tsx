@@ -90,6 +90,17 @@ export function GameScanDialog({
     setIsLoading(true);
     try {
       const result = await getGameDetailsFromImage({ photoDataUri: capturedImage });
+      
+      toast({
+        title: "API Result Received",
+        description: (
+            <pre className="mt-2 w-[340px] max-h-60 overflow-y-auto rounded-md bg-slate-950 p-4">
+                <code className="text-white">{JSON.stringify(result, null, 2)}</code>
+            </pre>
+        ),
+        duration: 20000, // Show for 20 seconds for debugging
+      });
+
       onDetailsScanned(result);
       handleClose();
     } catch (error) {
