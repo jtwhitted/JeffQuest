@@ -18,12 +18,14 @@ async function urlToDataUri(url: string): Promise<string> {
             return url; // Fallback to original URL on failure
         }
         const blob = await response.blob();
-        const reader = new FileReader();
-        return new Promise<string>((resolve, reject) => {
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
+        
+        // Convert blob to a buffer to read as base64
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const base64String = buffer.toString('base64');
+        
+        return `data:${blob.type};base64,${base64String}`;
+
     } catch (error) {
         console.error(`Error converting image to data URI: ${error}`);
         return url; // Fallback to original URL on error
@@ -169,11 +171,7 @@ export const getBggGameDetails = ai.defineTool(
         const originalImageUrl = getTagValue(itemXml, 'image');
         let finalImageUrl: string | undefined = originalImageUrl || undefined;
         if (originalImageUrl) {
-            const dataUri = await urlToDataUri(originalImageUrl);
-            // Check if conversion was successful before assigning
-            if (dataUri.startsWith('data:image')) {
-                finalImageUrl = dataUri;
-            }
+            finalImageUrl = await urlToDataUri(originalImageUrl);
         }
 
 
@@ -197,3 +195,5 @@ export const getBggGameDetails = ai.defineTool(
         };
     }
 );
+
+    
