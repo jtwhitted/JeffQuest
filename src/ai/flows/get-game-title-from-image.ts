@@ -43,9 +43,14 @@ export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 // Helper to convert URL to data URI
 async function urlToDataUri(url: string): Promise<string> {
   try {
-      const response = await fetch(url);
+      let fetchUrl = url;
+      // Handle protocol-relative URLs from BGG API
+      if (fetchUrl.startsWith('//')) {
+          fetchUrl = `https:${fetchUrl}`;
+      }
+      const response = await fetch(fetchUrl);
       if (!response.ok) {
-          console.error(`Failed to fetch image from ${url}. Status: ${response.status}`);
+          console.error(`Failed to fetch image from ${fetchUrl}. Status: ${response.status}`);
           return url; // Fallback to original URL on failure
       }
       const blob = await response.blob();
