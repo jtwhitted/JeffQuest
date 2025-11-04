@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Crown, Users, ShieldCheck, ShieldX } from 'lucide-react';
+import { Loader2, Sparkles, Crown, Users, ShieldCheck, ShieldX, Medal } from 'lucide-react';
 import React, { useState } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -89,6 +89,12 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     setBio(null);
     onOpenChange(false);
   }
+  
+  const getOrdinal = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -149,21 +155,43 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                                 </div>
                             </AccordionTrigger>
                             <AccordionContent>
-                                <ul className="space-y-3 pl-6">
-                                {sessions.map(session => (
-                                    <li key={session.id} className="text-xs">
-                                        <div className="font-medium">{format(new Date(session.date), 'MMM d, yyyy')}</div>
-                                        <div className="text-muted-foreground flex items-center">
-                                            <Users className="mr-1.5 h-3 w-3" />
-                                            {session.players.map(p => p.name).join(', ')}
-                                        </div>
-                                         <div className="text-muted-foreground flex items-center">
-                                            {session.cooperativeResult === 'win' && <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</>}
-                                            {session.cooperativeResult === 'loss' && <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
-                                            {session.winner && <><Crown className="mr-1.5 h-3 w-3 text-amber-400"/> {session.winner.name} won</>}
-                                         </div>
-                                    </li>
-                                ))}
+                                <ul className="space-y-3 pl-2">
+                                {sessions.map(session => {
+                                    const rankedPlayers = session.scores && session.scores.length > 0 
+                                    ? [...session.players].sort((a,b) => {
+                                        const scoreA = session.scores?.find(s => s.playerId === a.id)?.score ?? -1;
+                                        const scoreB = session.scores?.find(s => s.playerId === b.id)?.score ?? -1;
+                                        return scoreB - scoreA;
+                                    })
+                                    : session.players;
+
+                                    return (
+                                        <li key={session.id} className="text-xs border-l-2 pl-4">
+                                            <div className="font-medium">{format(new Date(session.date), 'MMM d, yyyy')}</div>
+                                            <div className="text-muted-foreground flex items-center">
+                                                {session.cooperativeResult === 'win' && <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</>}
+                                                {session.cooperativeResult === 'loss' && <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
+                                                {session.winner && !session.cooperativeResult && <><Crown className="mr-1.5 h-3 w-3 text-amber-400"/> {session.winner.name} won</>}
+                                            </div>
+                                             <div className="mt-1 space-y-1">
+                                                {rankedPlayers.map((p, index) => {
+                                                    const rank = session.scores && session.scores.length > 0 ? index + 1 : null;
+                                                    return (
+                                                        <div key={p.id} className="flex items-center gap-2 text-muted-foreground">
+                                                            {rank ? (
+                                                                <span className="flex items-center font-semibold w-8">
+                                                                <Medal className={`mr-1 h-3 w-3 ${rank === 1 ? 'text-amber-400' : rank === 2 ? 'text-slate-400' : rank === 3 ? 'text-amber-700' : 'text-muted-foreground'}`} />
+                                                                {getOrdinal(rank)}
+                                                                </span>
+                                                            ) : <Users className="h-3 w-3 mr-1" />}
+                                                            <span>{p.name}</span>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </li>
+                                    )
+                                })}
                                 </ul>
                             </AccordionContent>
                             </AccordionItem>
