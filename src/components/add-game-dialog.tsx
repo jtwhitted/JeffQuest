@@ -11,8 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Scan, Users, BarChart3 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { Loader2, Scan } from 'lucide-react';
+import React, { useState } from 'react';
 import { addGame } from '@/lib/actions';
 import type { Game } from '@/lib/types';
 import {
@@ -35,6 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
+import { Separator } from './ui/separator';
 
 interface AddGameDialogProps {
   open: boolean;
@@ -148,10 +149,21 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Enter the game details below or scan the box to auto-fill.
+                  Scan a game box to auto-fill the details, or enter them manually.
                 </DialogDescription>
               </DialogHeader>
+
+              <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isLoading}>
+                    <Scan className="mr-2 h-4 w-4" />
+                    Scan Box to Auto-Fill
+              </Button>
               
+              <div className="flex items-center gap-2">
+                <Separator className="flex-1" />
+                <span className="text-xs text-muted-foreground">OR</span>
+                <Separator className="flex-1" />
+              </div>
+
               <FormField
                 control={form.control}
                 name="name"
@@ -233,11 +245,8 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
                 )}
                 />
 
-              <DialogFooter className="grid grid-cols-2 gap-2 pt-4">
-                 <Button type="button" variant="outline" onClick={() => setScanDialogOpen(true)} disabled={isLoading}>
-                    <Scan className="mr-2 h-4 w-4" />
-                    Scan Box
-                </Button>
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="ghost" onClick={handleClose} disabled={isLoading}>Cancel</Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Game
