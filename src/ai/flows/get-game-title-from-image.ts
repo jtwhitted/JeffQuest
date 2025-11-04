@@ -44,8 +44,6 @@ export async function getGameDetailsFromImage(input: GetGameDetailsInput): Promi
   return getGameDetailsFlow(input);
 }
 
-
-// New, focused prompt to get only the game's title.
 const getGameTitlePrompt = ai.definePrompt({
     name: 'getGameTitlePrompt',
     input: { schema: GetGameDetailsInputSchema },
@@ -62,8 +60,10 @@ const getGameDetailsFlow = ai.defineFlow(
     name: 'getGameDetailsFlow',
     inputSchema: GetGameDetailsInputSchema,
     outputSchema: GetGameDetailsOutputSchema,
+    tools: [searchBgg, getBggGameDetails]
   },
   async (input) => {
+    
     // Step 1: Use AI to get the title from the image.
     const llmResponse = await getGameTitlePrompt(input);
     const title = llmResponse.output?.title;
@@ -74,28 +74,35 @@ const getGameDetailsFlow = ai.defineFlow(
     
     // Step 2: Use the title to search BGG with our tool.
     const searchResults = await searchBgg({ query: title });
+    
     if (!searchResults || searchResults.length === 0) {
         throw new Error(`No results found on BoardGameGeek for "${title}".`);
     }
     
-    // Assume the first result is the correct one.
-    const gameId = searchResults[0].id;
-    
-    // Step 3: Get detailed information for the game ID.
-    const gameDetails = await getBggGameDetails({ id: gameId });
-    
-    if (!gameDetails) {
-      throw new Error("Unable to get game details from the image.");
+    // Step 3: Get detailed info for all search results to find the best match.
+    const detailedResults = await Promise.all(
+        searchResults.map(result => getBggGameDetails({ id: result.id }))
+    );
+
+    // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
+    const sortedResults = detailedResults
+        .filter(details => details !== null)
+        .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+
+    if (sortedResults.length === 0) {
+        throw new Error(`Could not fetch details for any search results for "${title}".`);
     }
-    
+
+    const gameDetails = sortedResults[0];
+
     // Map BGG complexity to our difficulty enum
     let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
     if (gameDetails.complexity) {
-        if (gameDetails.complexity < 2) {
+        if (gameDetails.complexity < 2.0) {
             difficulty = 'Beginner';
-        } else if (gameDetails.complexity < 3) {
+        } else if (gameDetails.complexity < 3.0) {
             difficulty = 'Intermediate';
-        } else if (gameDetails.complexity < 4) {
+        } else if (gameDetails.complexity < 4.0) {
             difficulty = 'Advanced';
         } else {
             difficulty = 'Expert';
@@ -122,3 +129,5 @@ const getGameDetailsFlow = ai.defineFlow(
     };
   }
 );
+
+    

@@ -200,7 +200,7 @@ export const getBggGameDetails = ai.defineTool(
         
         const originalImageUrl = getTagValue(itemXml, 'image');
         let finalImageUrl: string | undefined = originalImageUrl || undefined;
-        if (originalImageUrl) {
+        if (originalImageUrl && !originalImageUrl.startsWith('data:')) {
             finalImageUrl = await urlToDataUri(originalImageUrl);
         }
 
@@ -225,4 +225,6 @@ export const getBggGameDetails = ai.defineTool(
         };
     }
 );
+    
+
     
