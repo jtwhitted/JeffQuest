@@ -9,6 +9,28 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
+// Helper to convert URL to data URI
+async function urlToDataUri(url: string) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error(`Failed to fetch image from ${url}. Status: ${response.status}`);
+            return url; // Fallback to original URL on failure
+        }
+        const blob = await response.blob();
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error(`Error converting image to data URI: ${error}`);
+        return url; // Fallback to original URL on error
+    }
+}
+
+
 // Helper function to fetch and parse XML
 async function fetchAndParseXml(url: string) {
     const response = await fetch(url, { headers: { 'Accept': 'application/xml' } });
@@ -98,7 +120,7 @@ const BggGameDetailsSchema = z.object({
     id: z.number(),
     name: z.string(),
     description: z.string().optional(),
-    imageUrl: z.string().url().optional(),
+    imageUrl: z.string().optional(),
     yearPublished: z.number().optional(),
     minPlayers: z.number().optional(),
     maxPlayers: z.number().optional(),
@@ -143,12 +165,15 @@ export const getBggGameDetails = ai.defineTool(
         const average = ratings ? parseFloat(getValue(ratings, 'average') || '0') : 0;
         const ratingCount = ratings ? parseInt(getValue(ratings, 'usersrated') || '0', 10) : 0;
         const complexity = ratings ? parseFloat(getValue(ratings, 'averageweight') || '0') : 0;
+        
+        const originalImageUrl = getTagValue(itemXml, 'image');
+        const dataUri = originalImageUrl ? await urlToDataUri(originalImageUrl) : undefined;
 
         return {
             id: input.id,
             name,
             description: getTagValue(itemXml, 'description') || undefined,
-            imageUrl: getTagValue(itemXml, 'image') || undefined,
+            imageUrl: dataUri,
             yearPublished: yearPublished > 0 ? yearPublished : undefined,
             minPlayers: minPlayers > 0 ? minPlayers : undefined,
             maxPlayers: maxPlayers > 0 ? maxPlayers : undefined,
