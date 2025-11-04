@@ -11,13 +11,13 @@ import { z } from 'genkit';
 
 // Helper function to fetch and parse XML
 async function fetchAndParseXml(url: string) {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: { 'Accept': 'application/xml' } });
     if (!response.ok) {
         throw new Error(`Failed to fetch from BGG API: ${response.statusText}`);
     }
     const xmlText = await response.text();
     
-    // Basic XML parsing without a library. This is fragile.
+    // Basic XML parsing without a library. This is fragile but sufficient for this API.
     const getItems = (xml: string, tag: string) => {
         const itemRegex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'g');
         const matches = [...xml.matchAll(itemRegex)];
@@ -26,7 +26,7 @@ async function fetchAndParseXml(url: string) {
     
     const getLinks = (xml: string, type: string) => {
         const linkRegex = new RegExp(`<link type="${type}" id="[^"]*" value="([^"]*)"\\/>`, 'g');
-        return [...xml.matchAll(linkRegex)].map(match => match[1]);
+        return [...xml.matchAll(linkRegex)].map(match => match[1].replace(/&amp;/g, '&'));
     }
 
     const getAttribute = (xml: string, tag: string, attribute: string) => {
@@ -42,11 +42,11 @@ async function fetchAndParseXml(url: string) {
     }
     
     const getTagValue = (xml: string, tag: string): string | null => {
-        const regex = new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`);
+        const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
         const match = xml.match(regex);
-        return match ? match[1] : null;
+        // Decode HTML entities
+        return match ? match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#10;/g, '\n') : null;
     };
-
 
     return { getItems, getAttribute, getValue, getTagValue, getLinks, rawXml: xmlText };
 }
@@ -73,17 +73,19 @@ export const searchBgg = ai.defineTool(
     },
     async (input) => {
         const url = `https://boardgamegeek.com/xmlapi2/search?query=${encodeURIComponent(input.query)}&type=boardgame`;
-        const { getItems, getAttribute, getValue } = await fetchAndParseXml(url);
+        const { getItems, getAttribute } = await fetchAndParseXml(url);
 
-        const items = getItems(await fetch(url).then(res => res.text()), 'item');
+        const xml = await fetch(url).then(res => res.text());
+        const items = getItems(xml, 'item');
         
-        return items.map(itemXml => {
-            const nameTag = [...itemXml.matchAll(/<name[^>]*value="([^"]*)"/g)];
+        return items.slice(0, 5).map(itemXml => {
+            const id = getAttribute(itemXml, 'item', 'id');
+            const nameTag = itemXml.match(/<name[^>]*value="([^"]*)"/);
             const yearTag = itemXml.match(/<yearpublished[^>]*value="([^"]*)"/);
 
             return {
-                id: parseInt(getAttribute(itemXml, 'item', 'id') || '0', 10),
-                name: nameTag.length > 0 ? nameTag[0][1] : 'Unknown',
+                id: id ? parseInt(id, 10) : 0,
+                name: nameTag ? nameTag[1] : 'Unknown',
                 yearPublished: yearTag ? parseInt(yearTag[1], 10) : undefined,
             };
         }).filter(item => item.id > 0);
@@ -95,11 +97,20 @@ export const searchBgg = ai.defineTool(
 const BggGameDetailsSchema = z.object({
     id: z.number(),
     name: z.string(),
-    category: z.string(),
-    mechanics: z.array(z.string()).describe("List of game mechanics (e.g., 'Worker Placement', 'Deck Building')."),
-    minPlayers: z.number(),
-    maxPlayers: z.number(),
-    complexity: z.number().describe('The BGG weight/complexity rating, typically from 1 to 5.'),
+    description: z.string().optional(),
+    imageUrl: z.string().url().optional(),
+    yearPublished: z.number().optional(),
+    minPlayers: z.number().optional(),
+    maxPlayers: z.number().optional(),
+    minPlaytime: z.number().optional(),
+    maxPlaytime: z.number().optional(),
+    category: z.string().optional(),
+    mechanics: z.array(z.string()).optional(),
+    designers: z.array(z.string()).optional(),
+    publishers: z.array(z.string()).optional(),
+    rating: z.number().optional(),
+    ratingCount: z.number().optional(),
+    complexity: z.number().optional(),
 });
 
 // Tool to get game details
@@ -112,27 +123,43 @@ export const getBggGameDetails = ai.defineTool(
     },
     async (input) => {
         const url = `https://boardgamegeek.com/xmlapi2/thing?id=${input.id}&stats=1`;
-        const { getAttribute, getValue, getLinks, rawXml } = await fetchAndParseXml(url);
+        const { getValue, getTagValue, getLinks, rawXml } = await fetchAndParseXml(url);
         
         const itemXml = rawXml; // The whole response is for one "thing"
 
-        const name = getAttribute(itemXml, 'name', 'value') || 'Unknown';
-        const minPlayers = parseInt(getValue(itemXml, 'minplayers') || '1', 10);
-        const maxPlayers = parseInt(getValue(itemXml, 'maxplayers') || '1', 10);
-        
+        const name = getTagValue(itemXml, 'name') || 'Unknown';
+        const minPlayers = parseInt(getValue(itemXml, 'minplayers') || '0', 10);
+        const maxPlayers = parseInt(getValue(itemXml, 'maxplayers') || '0', 10);
+        const minPlaytime = parseInt(getValue(itemXml, 'minplaytime') || '0', 10);
+        const maxPlaytime = parseInt(getValue(itemXml, 'maxplaytime') || '0', 10);
+        const yearPublished = parseInt(getValue(itemXml, 'yearpublished') || '0', 10);
+
         const categories = getLinks(itemXml, 'boardgamecategory');
         const mechanics = getLinks(itemXml, 'boardgamemechanic');
-        const category = categories.length > 0 ? categories[0] : 'Unknown';
-
-        const complexity = parseFloat(getValue(itemXml, 'averageweight') || '0');
+        const designers = getLinks(itemXml, 'boardgamedesigner');
+        const publishers = getLinks(itemXml, 'boardgamepublisher');
+        
+        const ratings = getTagValue(itemXml, 'ratings');
+        const average = ratings ? parseFloat(getValue(ratings, 'average') || '0') : 0;
+        const ratingCount = ratings ? parseInt(getValue(ratings, 'usersrated') || '0', 10) : 0;
+        const complexity = ratings ? parseFloat(getValue(ratings, 'averageweight') || '0') : 0;
 
         return {
             id: input.id,
             name,
-            category,
+            description: getTagValue(itemXml, 'description') || undefined,
+            imageUrl: getTagValue(itemXml, 'image') || undefined,
+            yearPublished: yearPublished > 0 ? yearPublished : undefined,
+            minPlayers: minPlayers > 0 ? minPlayers : undefined,
+            maxPlayers: maxPlayers > 0 ? maxPlayers : undefined,
+            minPlaytime: minPlaytime > 0 ? minPlaytime : undefined,
+            maxPlaytime: maxPlaytime > 0 ? maxPlaytime : undefined,
+            category: categories.length > 0 ? categories[0] : undefined,
             mechanics,
-            minPlayers,
-            maxPlayers,
+            designers,
+            publishers,
+            rating: average,
+            ratingCount,
             complexity,
         };
     }

@@ -49,6 +49,16 @@ const formSchema = z.object({
   minPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
   maxPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
+  yearPublished: z.number().optional(),
+  description: z.string().optional(),
+  minPlaytime: z.number().optional(),
+  maxPlaytime: z.number().optional(),
+  rating: z.number().optional(),
+  ratingCount: z.number().optional(),
+  complexity: z.number().optional(),
+  designers: z.array(z.string()).optional(),
+  publishers: z.array(z.string()).optional(),
+  imageUrl: z.string().optional(),
 }).refine(data => data.maxPlayers >= data.minPlayers, {
     message: 'Max players must be greater than or equal to min players.',
     path: ['maxPlayers'],
@@ -73,12 +83,7 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
   
   const handleNewGameScanned = (details: GetGameDetailsOutput) => {
     form.reset({
-        name: details.title,
-        category: details.category,
-        mechanics: details.mechanics,
-        minPlayers: details.minPlayers,
-        maxPlayers: details.maxPlayers,
-        difficulty: details.difficulty,
+        ...details,
     });
     toast({
         title: 'Game Details Scanned!',

@@ -21,12 +21,22 @@ const GetGameDetailsInputSchema = z.object({
 export type GetGameDetailsInput = z.infer<typeof GetGameDetailsInputSchema>;
 
 const GetGameDetailsOutputSchema = z.object({
-  title: z.string().describe('The title of the board game identified in the image.'),
+  name: z.string().describe('The title of the board game identified in the image.'),
   category: z.string().describe('The main category or genre of the game (e.g., Strategy, Party, Family, RPG).'),
   mechanics: z.array(z.string()).describe("A list of the game's mechanics (e.g., 'Worker Placement', 'Deck Building')."),
   minPlayers: z.number().describe('The minimum number of players for the game.'),
   maxPlayers: z.number().describe('The maximum number of players for the game.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).describe('The estimated difficulty of the game.'),
+  yearPublished: z.number().optional(),
+  description: z.string().optional(),
+  minPlaytime: z.number().optional(),
+  maxPlaytime: z.number().optional(),
+  rating: z.number().optional(),
+  ratingCount: z.number().optional(),
+  complexity: z.number().optional(),
+  designers: z.array(z.string()).optional(),
+  publishers: z.array(z.string()).optional(),
+  imageUrl: z.string().url().optional(),
 });
 export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 
@@ -71,23 +81,35 @@ const getGameDetailsFlow = ai.defineFlow(
 
     // Step 4: Map BGG complexity to our difficulty enum
     let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
-    if (gameDetails.complexity < 2) {
-        difficulty = 'Beginner';
-    } else if (gameDetails.complexity >= 2 && gameDetails.complexity < 3) {
-        difficulty = 'Intermediate';
-    } else if (gameDetails.complexity >= 3 && gameDetails.complexity < 4) {
-        difficulty = 'Advanced';
-    } else if (gameDetails.complexity >= 4) {
-        difficulty = 'Expert';
+    if (gameDetails.complexity) {
+        if (gameDetails.complexity < 2) {
+            difficulty = 'Beginner';
+        } else if (gameDetails.complexity < 3) {
+            difficulty = 'Intermediate';
+        } else if (gameDetails.complexity < 4) {
+            difficulty = 'Advanced';
+        } else {
+            difficulty = 'Expert';
+        }
     }
-
+    
     return {
-        title: gameDetails.name,
-        category: gameDetails.category,
-        mechanics: gameDetails.mechanics,
-        minPlayers: gameDetails.minPlayers,
-        maxPlayers: game.maxPlayers,
+        name: gameDetails.name,
+        category: gameDetails.category || 'Unknown',
+        mechanics: gameDetails.mechanics || [],
+        minPlayers: gameDetails.minPlayers || 1,
+        maxPlayers: gameDetails.maxPlayers || 1,
         difficulty: difficulty,
+        yearPublished: gameDetails.yearPublished,
+        description: gameDetails.description,
+        minPlaytime: gameDetails.minPlaytime,
+        maxPlaytime: gameDetails.maxPlaytime,
+        rating: gameDetails.rating,
+        ratingCount: gameDetails.ratingCount,
+        complexity: gameDetails.complexity,
+        designers: gameDetails.designers,
+        publishers: gameDetails.publishers,
+        imageUrl: gameDetails.imageUrl,
     };
   }
 );

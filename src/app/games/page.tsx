@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3 } from 'lucide-react';
-import type { Metadata } from 'next';
 import { useState, useEffect } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -14,11 +13,7 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 import { deleteGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
-
-// export const metadata: Metadata = {
-//     title: 'Games | Tabletop Tracker',
-//     description: 'Statistics for every game you have played.',
-// };
+import Link from 'next/link';
 
 export default function GamesPage() {
   const { toast } = useToast();
@@ -108,73 +103,71 @@ export default function GamesPage() {
       {gamesWithStats.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {gamesWithStats.map(game => (
-            <Card key={game.id} className="flex flex-col">
-              <CardHeader className="relative flex flex-row items-start gap-4">
-                <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} />
-                <div className="flex-1">
-                  <CardTitle>{game.name}</CardTitle>
-                  <CardDescription>{game.category}</CardDescription>
-                  <div className="mt-2 flex flex-col items-start gap-2 text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                        <Swords className="mr-1.5 h-4 w-4" />
-                        <span>{game.playCount} {game.playCount === 1 ? 'play' : 'plays'}</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Link key={game.id} href={`/games/${game.id}`} className="flex">
+              <Card className="flex flex-col w-full transition-shadow hover:shadow-lg">
+                <CardHeader className="relative flex flex-row items-start gap-4">
+                  <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} />
+                  <div className="flex-1">
+                    <CardTitle>{game.name}</CardTitle>
+                    <CardDescription>{game.category}</CardDescription>
+                     <div className="mt-2 flex flex-col items-start gap-2 text-sm text-muted-foreground">
                         <div className="flex items-center">
-                            <Users className="mr-1.5 h-4 w-4" />
-                            <span>{game.minPlayers}-{game.maxPlayers} players</span>
+                            <Swords className="mr-1.5 h-4 w-4" />
+                            <span>{game.playCount} {game.playCount === 1 ? 'play' : 'plays'}</span>
                         </div>
-                        {game.difficulty && (
-                        <div className="flex items-center">
-                            <BarChart3 className="mr-1.5 h-4 w-4" />
-                            <span>{game.difficulty}</span>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <div className="flex items-center">
+                                <Users className="mr-1.5 h-4 w-4" />
+                                <span>{game.minPlayers}-{game.maxPlayers} players</span>
+                            </div>
+                            {game.difficulty && (
+                            <div className="flex items-center">
+                                <BarChart3 className="mr-1.5 h-4 w-4" />
+                                <span>{game.difficulty}</span>
+                            </div>
+                            )}
                         </div>
+                         {game.mechanics && game.mechanics.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            {game.mechanics.slice(0, 3).map(mechanic => (
+                              <Badge key={mechanic} variant="secondary" className="text-xs">
+                                {mechanic}
+                              </Badge>
+                            ))}
+                          </div>
                         )}
-                    </div>
-                     {game.mechanics && game.mechanics.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        {game.mechanics.slice(0, 3).map(mechanic => (
-                          <Badge key={mechanic} variant="secondary" className="text-xs">
-                            {mechanic}
-                          </Badge>
-                        ))}
                       </div>
-                    )}
                   </div>
-                </div>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 shrink-0" onClick={() => setGameToDelete(game)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground transition-colors hover:text-destructive" />
-                    <span className="sr-only">Delete game</span>
-                </Button>
-              </CardHeader>
-              <CardContent className="flex-1">
-                {game.playerRankings.length > 0 ? (
-                    <div>
-                        <h4 className="mb-2 font-semibold">Top Players</h4>
-                        <ul className="space-y-2">
-                        {game.playerRankings.slice(0, 3).map((rank, index) => {
-                            const player = players.find(p => p.name === rank.name);
-                            return (
-                                <li key={rank.name} className="flex items-center justify-between text-sm">
-                                    <div className="flex items-center gap-2">
-                                        {index === 0 && <Crown className="h-4 w-4 text-amber-400" />}
-                                        <Avatar className="h-6 w-6">
-                                            <AvatarImage src={player?.avatarUrl} alt={player?.name} />
-                                            <AvatarFallback>{rank.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <span>{rank.name}</span>
-                                    </div>
-                                    <span className="font-medium">{rank.wins} {rank.wins === 1 ? 'win' : 'wins'}</span>
-                                </li>
-                            );
-                        })}
-                        </ul>
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground">No wins recorded for this game yet.</p>
-                )}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  {game.playerRankings.length > 0 ? (
+                      <div>
+                          <h4 className="mb-2 font-semibold">Top Players</h4>
+                          <ul className="space-y-2">
+                          {game.playerRankings.slice(0, 3).map((rank, index) => {
+                              const player = players.find(p => p.name === rank.name);
+                              return (
+                                  <li key={rank.name} className="flex items-center justify-between text-sm">
+                                      <div className="flex items-center gap-2">
+                                          {index === 0 && <Crown className="h-4 w-4 text-amber-400" />}
+                                          <Avatar className="h-6 w-6">
+                                              <AvatarImage src={player?.avatarUrl} alt={player?.name} />
+                                              <AvatarFallback>{rank.name.charAt(0)}</AvatarFallback>
+                                          </Avatar>
+                                          <span>{rank.name}</span>
+                                      </div>
+                                      <span className="font-medium">{rank.wins} {rank.wins === 1 ? 'win' : 'wins'}</span>
+                                  </li>
+                              );
+                          })}
+                          </ul>
+                      </div>
+                  ) : (
+                      <p className="text-sm text-muted-foreground">No wins recorded for this game yet.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       ) : (

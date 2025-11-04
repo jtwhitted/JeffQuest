@@ -45,6 +45,16 @@ const gameFormSchema = z.object({
     minPlayers: z.coerce.number().min(1),
     maxPlayers: z.coerce.number().min(1),
     difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
+    yearPublished: z.number().optional(),
+    description: z.string().optional(),
+    minPlaytime: z.number().optional(),
+    maxPlaytime: z.number().optional(),
+    rating: z.number().optional(),
+    ratingCount: z.number().optional(),
+    complexity: z.number().optional(),
+    designers: z.array(z.string()).optional(),
+    publishers: z.array(z.string()).optional(),
+    imageUrl: z.string().optional(),
 });
 
 export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game | null> {
@@ -56,19 +66,15 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         return null;
     }
     
-    const { name, category, minPlayers, maxPlayers, difficulty, mechanics } = validatedFields.data;
+    const { name, imageUrl, ...rest } = validatedFields.data;
     const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
 
     // In a real app, you would save this to your database and get a real ID
     const newGame: Game = {
         id: `g${Math.floor(Math.random() * 1000) + 6}`, // semi-random ID for demo
         name,
-        category,
-        minPlayers,
-        maxPlayers,
-        difficulty,
-        mechanics,
-        imageUrl: randomImage.imageUrl,
+        imageUrl: imageUrl || randomImage.imageUrl,
+        ...rest
     };
     
     console.log('New game added:', newGame);
@@ -89,6 +95,7 @@ export async function deleteGame(gameId: string) {
     
     // Revalidate paths to update the UI
     revalidatePath('/games');
+    revalidatePath(`/games/${gameId}`);
     revalidatePath('/');
     revalidatePath('/sessions');
 }

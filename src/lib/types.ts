@@ -13,6 +13,15 @@ export interface Game {
   maxPlayers?: number;
   difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
   mechanics?: string[];
+  yearPublished?: number;
+  description?: string;
+  minPlaytime?: number;
+  maxPlaytime?: number;
+  rating?: number;
+  ratingCount?: number;
+  complexity?: number;
+  designers?: string[];
+  publishers?: string[];
 }
 
 export interface Session {
