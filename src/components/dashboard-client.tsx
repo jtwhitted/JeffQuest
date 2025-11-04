@@ -6,6 +6,7 @@ import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
 import { WinLossChart } from '@/components/charts/win-loss-chart';
 import { DataExporter } from './data-exporter';
 import { Swords, Users, Dices, Crown } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface DashboardClientProps {
   sessions: Session[];
@@ -19,7 +20,9 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
   const totalGames = games.length;
   
   const winsByPlayer = sessions.reduce((acc, session) => {
-    acc[session.winnerId] = (acc[session.winnerId] || 0) + 1;
+    if (session.winnerId) {
+      acc[session.winnerId] = (acc[session.winnerId] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
@@ -66,11 +69,29 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Top Player</CardTitle>
-            <Crown className="h-4 w-4 text-muted-foreground" />
+             <Crown className="h-4 w-4 text-amber-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{topPlayer?.name || 'N/A'}</div>
-            <p className="text-xs text-muted-foreground">Most wins</p>
+             {topPlayer ? (
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={topPlayer.avatarUrl} alt={topPlayer.name} />
+                    <AvatarFallback>{topPlayer.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <Crown className="absolute -top-2 -right-2 h-5 w-5 text-amber-400 transform -rotate-12" />
+                </div>
+                <div>
+                    <div className="text-xl font-bold">{topPlayer.name}</div>
+                    <p className="text-xs text-muted-foreground">{winsByPlayer[topPlayer.id] || 0} wins</p>
+                </div>
+              </div>
+            ) : (
+                <>
+                    <div className="text-2xl font-bold">N/A</div>
+                    <p className="text-xs text-muted-foreground">No wins recorded yet</p>
+                </>
+            )}
           </CardContent>
         </Card>
       </div>
