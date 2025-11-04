@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI flow to generate a humorous player biography.
+ * @fileOverview An AI flow to generate a player biography.
  *
  * - generatePlayerBio - A function that takes player details and generates a bio.
  * - GeneratePlayerBioInput - The input type for the generatePlayerBio function.
@@ -24,7 +24,7 @@ const GeneratePlayerBioInputSchema = z.object({
 export type GeneratePlayerBioInput = z.infer<typeof GeneratePlayerBioInputSchema>;
 
 const GeneratePlayerBioOutputSchema = z.object({
-  bio: z.string().describe('A short, humorous biography of the player.'),
+  bio: z.string().describe('A short biography of the player.'),
 });
 export type GeneratePlayerBioOutput = z.infer<typeof GeneratePlayerBioOutputSchema>;
 
@@ -36,10 +36,9 @@ const prompt = ai.definePrompt({
   name: 'generatePlayerBioPrompt',
   input: { schema: GeneratePlayerBioInputSchema },
   output: { schema: GeneratePlayerBioOutputSchema },
-  prompt: `You are a witty and sarcastic sports commentator, but for board games.
-Your task is to write a short, humorous player bio for a tabletop gamer named {{{name}}}.
-Use their photo and game stats to create a funny narrative. Don't just list the stats; build a character around them.
-Be creative, a little sassy, and gently roast them if their stats are low, or build them up as a mythical figure if they are high.
+  prompt: `You are a creative writer who specializes in tabletop gaming.
+Your task is to write a short player bio for a tabletop gamer named {{{name}}}.
+Use their photo and game stats to create an interesting narrative. Don't just list the stats; build a character around them.
 Analyze their expression in the photo for inspiration.
 
 **Player Name:** {{{name}}}

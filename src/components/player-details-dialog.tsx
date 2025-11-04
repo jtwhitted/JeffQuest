@@ -194,8 +194,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                                             </div>
                                             {session.cooperativeResult && (
                                                 <div className="text-muted-foreground flex items-center mt-1">
-                                                    {session.cooperativeResult === 'win' && <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</>}
-                                                    {session.cooperativeResult === 'loss' && <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
+                                                    {session.cooperativeResult === 'win' ? <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</> : <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
                                                 </div>
                                             )}
                                         </li>
@@ -213,7 +212,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 
                 <div>
                     <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">Humorous AI Bio</h3>
+                        <h3 className="font-semibold">Player Bio</h3>
                         <Button size="sm" onClick={handleGenerateBio} disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2" /> : <Sparkles className="mr-2" />}
                             Generate
