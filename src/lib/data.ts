@@ -3,10 +3,10 @@ import type { Player, Game, Session } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const players: Player[] = [
-  { id: 'p1', name: 'Alex', avatarUrl: PlaceHolderImages.find(img => img.id === 'player-1')?.imageUrl || '' },
-  { id: 'p2', name: 'Ben', avatarUrl: PlaceHolderImages.find(img => img.id === 'player-2')?.imageUrl || '' },
-  { id: 'p3', name: 'Chris', avatarUrl: PlaceHolderImages.find(img => img.id === 'player-3')?.imageUrl || '' },
-  { id: 'p4', name: 'Dana', avatarUrl: PlaceHolderImages.find(img => img.id === 'player-4')?.imageUrl || '' },
+  { id: 'p1', name: 'Alex', avatarUrl: 'https://picsum.photos/seed/p1/200/200' },
+  { id: 'p2', name: 'Ben', avatarUrl: 'https://picsum.photos/seed/p2/200/200' },
+  { id: 'p3', name: 'Chris', avatarUrl: 'https://picsum.photos/seed/p3/200/200' },
+  { id: 'p4', name: 'Dana', avatarUrl: 'https://picsum.photos/seed/p4/200/200' },
 ];
 
 const games: Game[] = [
@@ -14,7 +14,7 @@ const games: Game[] = [
     id: 'g1', 
     name: 'Catan', 
     category: 'Strategy', 
-    imageUrl: 'https://cf.geekdo-images.com/wB2vor8tE2922e3kH1E1-A__imagepage/img/I3Y9J522j2n2e5z6w8w2j4w2Y2M=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic2419375.jpg',
+    imageUrl: 'https://picsum.photos/seed/g1/400/400',
     minPlayers: 3, 
     maxPlayers: 4, 
     difficulty: 'Intermediate', 
@@ -33,7 +33,7 @@ const games: Game[] = [
     id: 'g2', 
     name: 'Wingspan', 
     category: 'Card', 
-    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/UXiXh5L6w4IO0PG15G3_h04qfso=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic4458123.jpg',
+    imageUrl: 'https://picsum.photos/seed/g2/400/400',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Intermediate', 
@@ -52,7 +52,7 @@ const games: Game[] = [
     id: 'g3', 
     name: 'King of Tokyo', 
     category: 'Dice', 
-    imageUrl: 'https://cf.geekdo-images.com/gBqTC0j2SoRg5_07Ea_4yQ__imagepage/img/1_T3p_5i3v2q2u-v2w8Y-1ZQ2I4=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic3043734.jpg',
+    imageUrl: 'https://picsum.photos/seed/g3/400/400',
     minPlayers: 2, maxPlayers: 6, 
     difficulty: 'Beginner', 
     mechanics: ['Dice Rolling', 'Player Elimination', 'King of the Hill'],
@@ -70,7 +70,7 @@ const games: Game[] = [
     id: 'g4', 
     name: 'Gloomhaven', 
     category: 'RPG', 
-    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiVlAOP_OO_w__imagepage/img/iGvJ-3a2Bv2T1oM0q_N2jVo_T5M=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic2437871.jpg',
+    imageUrl: 'https://picsum.photos/seed/g4/400/400',
     minPlayers: 1, 
     maxPlayers: 4, 
     difficulty: 'Expert', 
@@ -89,7 +89,7 @@ const games: Game[] = [
     id: 'g5', 
     name: 'Terraforming Mars', 
     category: 'Sci-fi', 
-    imageUrl: 'https://cf.geekdo-images.com/wg9oOLcsFDgBZA9rtLvrzA__imagepage/img/Y0Qj5j-wZt0n4sZJzE_0jS4zQ0I=/fit-in/1024x1024/filters:no_upscale():strip_icc()/pic3536616.jpg',
+    imageUrl: 'https://picsum.photos/seed/g5/400/400',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Advanced', 
