@@ -41,6 +41,7 @@ import React, { useEffect, useState } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
+import { Label } from "./ui/label"
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -58,7 +59,11 @@ const formSchema = z.object({
     if (data.isCooperative) {
         return !!data.cooperativeResult;
     }
-    return !!data.winnerId;
+    // For competitive games, a winner is required if there are players selected
+    if (data.playerIds.length > 0) {
+        return !!data.winnerId;
+    }
+    return true;
 }, {
     message: "A winner or a cooperative result must be selected.",
     path: ['winnerId'], // Show error on one of the fields
@@ -87,7 +92,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      date: undefined,
+      date: new Date(),
       playerIds: [],
       isCooperative: false,
       scores: [],
@@ -95,36 +100,48 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     },
   });
 
-  useEffect(() => {
-    // Set the date only on the client-side after initial mount
-    if (isClient) {
-      form.reset({
-        ...form.getValues(),
-        date: new Date(),
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient]);
-
   const selectedPlayerIds = form.watch('playerIds');
-  const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
   const scores = form.watch('scores');
   const isCooperative = form.watch('isCooperative');
+  
+  const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
 
+  // This effect synchronizes the scores array with the selected players
   useEffect(() => {
-    if (scores && scores.length > 0) {
-      const winner = scores.reduce((prev, current) => {
-        if (!prev.score || (current.score && current.score > prev.score)) {
-          return current;
-        }
-        return prev;
-      }, scores[0]);
+    const existingScores = form.getValues('scores') || [];
+    const newScores = selectedPlayerIds.map(playerId => {
+        const existing = existingScores.find(s => s.playerId === playerId);
+        return existing || { playerId, score: undefined };
+    });
+    form.setValue('scores', newScores, { shouldValidate: true });
+    
+    // If a player is deselected, remove them from winner selection if they were the winner
+    const winnerId = form.getValues('winnerId');
+    if (winnerId && !selectedPlayerIds.includes(winnerId)) {
+      form.setValue('winnerId', undefined);
+    }
+    
+  // We only want to run this when selectedPlayerIds changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlayerIds.toString(), form.setValue]);
 
+
+  // This effect automatically determines the winner from scores
+  useEffect(() => {
+    if (isCooperative) return;
+  
+    const validScores = scores?.filter(s => typeof s.score === 'number' && !isNaN(s.score));
+  
+    if (validScores && validScores.length > 0) {
+      const winner = validScores.reduce((prev, current) => {
+        return (prev.score! > current.score!) ? prev : current;
+      });
+  
       if (winner && winner.playerId) {
         form.setValue('winnerId', winner.playerId, { shouldValidate: true });
       }
     }
-  }, [scores, form]);
+  }, [scores, isCooperative, form]);
 
 
   const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
@@ -396,48 +413,31 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
             <Controller
                 control={form.control}
                 name="scores"
-                render={() => (
+                render={({ field }) => (
                     <FormItem>
                         <FormLabel>Scores (Optional)</FormLabel>
                         <div className="space-y-2">
                         {selectedPlayers.map((player, index) => (
-                             <FormField
-                                key={player.id}
-                                control={form.control}
-                                name={`scores.${index}.playerId`}
-                                render={() => (
-                                    <FormItem className="flex items-center gap-4">
-                                        <FormLabel className="w-24 shrink-0">{player.name}</FormLabel>
-                                        <FormControl>
-                                            <Input 
-                                                type="number" 
-                                                placeholder="Enter score"
-                                                {...form.register(`scores.${index}.score`)}
-                                                onChange={(e) => {
-                                                    const currentScores = form.getValues('scores') || [];
-                                                    const playerIndex = currentScores.findIndex(s => s.playerId === player.id);
-                                                    
-                                                    // Ensure playerIds are part of the scores
-                                                    if(playerIndex === -1){
-                                                        currentScores.push({playerId: player.id, score: undefined});
-                                                    }
-                                                    
-                                                    // Create a new scores array with the updated value
-                                                    const newScores = selectedPlayers.map(p => {
-                                                        const existing = form.getValues('scores')?.find(s => s.playerId === p.id);
-                                                        if (p.id === player.id) {
-                                                            return { playerId: p.id, score: e.target.valueAsNumber };
-                                                        }
-                                                        return existing || { playerId: p.id, score: undefined };
-                                                    });
-
-                                                    form.setValue('scores', newScores, { shouldValidate: true, shouldDirty: true });
-                                                }}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                             />
+                            <div key={player.id} className="flex items-center gap-4">
+                                <Label htmlFor={`scores.${index}.score`} className="w-24 shrink-0">{player.name}</Label>
+                                <Input 
+                                    id={`scores.${index}.score`}
+                                    type="number"
+                                    placeholder="Enter score"
+                                    value={field.value?.find(s => s.playerId === player.id)?.score ?? ''}
+                                    onChange={(e) => {
+                                        const newScores = [...(field.value || [])];
+                                        const playerIndex = newScores.findIndex(s => s.playerId === player.id);
+                                        const scoreValue = e.target.valueAsNumber;
+                                        if (playerIndex > -1) {
+                                            newScores[playerIndex] = { ...newScores[playerIndex], score: isNaN(scoreValue) ? undefined : scoreValue };
+                                        } else {
+                                            newScores.push({ playerId: player.id, score: isNaN(scoreValue) ? undefined : scoreValue });
+                                        }
+                                        field.onChange(newScores);
+                                    }}
+                                />
+                            </div>
                         ))}
                         </div>
                     </FormItem>
@@ -474,3 +474,5 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     </>
   );
 }
+
+    
