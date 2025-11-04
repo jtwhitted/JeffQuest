@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game } from './types';
+import type { Game, Player } from './types';
 
 const sessionFormSchema = z.object({
   gameId: z.string(),
@@ -68,4 +68,30 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     revalidatePath('/games');
     
     return newGame;
+}
+
+const playerFormSchema = z.object({
+    name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
+});
+
+export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promise<Player | null> {
+    const validatedFields = playerFormSchema.safeParse(values);
+
+    if (!validatedFields.success) {
+        console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
+        return null;
+    }
+
+    const newPlayer: Player = {
+        id: `p${Math.floor(Math.random() * 1000) + 5}`, // semi-random ID for demo
+        name: validatedFields.data.name,
+        avatarUrl: `https://picsum.photos/seed/${validatedFields.data.name}/100/100`, // Placeholder image
+    };
+
+    console.log('New player added:', newPlayer);
+    
+    revalidatePath('/sessions/new');
+    revalidatePath('/players');
+
+    return newPlayer;
 }

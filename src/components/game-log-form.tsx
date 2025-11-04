@@ -34,10 +34,11 @@ import { addSession, addGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Scan } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React from 'react';
+import { AddPlayerDialog } from './add-player-dialog';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -58,11 +59,13 @@ interface GameLogFormProps {
   players: Player[];
 }
 
-export default function GameLogForm({ games: initialGames, players }: GameLogFormProps) {
+export default function GameLogForm({ games: initialGames, players: initialPlayers }: GameLogFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isScanDialogOpen, setScanDialogOpen] = React.useState(false);
+  const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = React.useState(false);
   const [games, setGames] = React.useState(initialGames);
+  const [players, setPlayers] = React.useState(initialPlayers);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -97,6 +100,13 @@ export default function GameLogForm({ games: initialGames, players }: GameLogFor
     }
   };
 
+  const handlePlayerAdded = (newPlayer: Player) => {
+    setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
+    // Automatically select the new player
+    const currentPlayerIds = form.getValues('playerIds');
+    form.setValue('playerIds', [...currentPlayerIds, newPlayer.id]);
+  };
+
   const onSubmit = async (values: FormValues) => {
     try {
         await addSession(values);
@@ -120,6 +130,11 @@ export default function GameLogForm({ games: initialGames, players }: GameLogFor
         open={isScanDialogOpen}
         onOpenChange={setScanDialogOpen}
         onTitleScanned={handleNewGameScanned}
+    />
+    <AddPlayerDialog
+        open={isAddPlayerDialogOpen}
+        onOpenChange={setAddPlayerDialogOpen}
+        onPlayerAdded={handlePlayerAdded}
     />
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -201,7 +216,13 @@ export default function GameLogForm({ games: initialGames, players }: GameLogFor
           name="playerIds"
           render={() => (
             <FormItem>
-              <FormLabel>Players</FormLabel>
+                <div className="flex items-center justify-between">
+                    <FormLabel>Players</FormLabel>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setAddPlayerDialogOpen(true)}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Player
+                    </Button>
+                </div>
               <div className="space-y-2 rounded-md border p-4">
               {players.map((player) => (
                 <FormField
