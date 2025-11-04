@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Session, Game, Player } from '@/lib/types';
 import { format } from 'date-fns';
-import { Crown, ArrowRight } from 'lucide-react';
+import { Crown, ArrowRight, Users, ShieldCheck, ShieldX } from 'lucide-react';
 
 interface SessionCardProps {
   session: Session;
@@ -16,6 +16,39 @@ interface SessionCardProps {
 }
 
 export default function SessionCard({ session, game, players, winner }: SessionCardProps) {
+  const isCooperative = session.cooperativeResult;
+
+  const renderWinner = () => {
+    if (isCooperative) {
+      if (session.cooperativeResult === 'win') {
+        return (
+          <div className="mt-4 flex items-center text-green-400">
+            <ShieldCheck className="mr-2 h-5 w-5" />
+            <span className="font-semibold">All players won!</span>
+          </div>
+        );
+      } else {
+        return (
+          <div className="mt-4 flex items-center text-red-400">
+            <ShieldX className="mr-2 h-5 w-5" />
+            <span className="font-semibold">All players lost</span>
+          </div>
+        );
+      }
+    }
+
+    if (winner) {
+      return (
+        <div className="mt-4 flex items-center">
+            <Crown className="mr-2 h-5 w-5 text-amber-400" />
+            <span className="font-semibold">{winner.name} won!</span>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
       <CardHeader className="relative h-40 p-0">
@@ -41,12 +74,7 @@ export default function SessionCard({ session, game, players, winner }: SessionC
             </Avatar>
           ))}
         </div>
-        {winner && (
-            <div className="mt-4 flex items-center">
-                <Crown className="mr-2 h-5 w-5 text-amber-400" />
-                <span className="font-semibold">{winner.name} won!</span>
-            </div>
-        )}
+        {renderWinner()}
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <Button asChild variant="outline" className="w-full">

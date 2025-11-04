@@ -170,6 +170,14 @@ const sessions: Session[] = [
       { playerId: 'p4', score: 6 },
     ],
     notes: 'Alex managed to snatch Longest Road at the very end.'
+  },
+  {
+    id: 's6',
+    gameId: 'g4',
+    date: '2024-07-28T14:00:00.000Z',
+    playerIds: ['p1', 'p2', 'p3', 'p4'],
+    cooperativeResult: 'win',
+    notes: 'A close call, but we finally beat the scenario! Dana delivered the final blow.'
   }
 ];
 

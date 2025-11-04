@@ -22,7 +22,8 @@ const SessionSummaryInputSchema = z.object({
   gameDetails: GameDetailsSchema,
   datePlayed: z.string().describe('The date the game was played (ISO format).'),
   players: z.array(z.string()).describe('List of players who participated in the game.'),
-  winningPlayer: z.string().describe('The player who won the game.'),
+  winningPlayer: z.string().optional().describe('The player who won the game (if not a cooperative game).'),
+  cooperativeResult: z.enum(['win', 'loss']).optional().describe("The outcome if it was a cooperative game (e.g., 'win' or 'loss')."),
   interestingEvents: z.string().describe('A detailed description of interesting or notable events during the game session.'),
 });
 export type SessionSummaryInput = z.infer<typeof SessionSummaryInputSchema>;
@@ -44,6 +45,8 @@ const prompt = ai.definePrompt({
   Create a captivating summary of the game session provided, designed to excite and inform friends who were unable to attend.
   Incorporate details about the game itself (like its category and complexity) to give more context.
   Include highlights of key moments, player achievements, and any unexpected twists.
+  
+  If it was a cooperative game, describe the team's success or failure. If it was competitive, focus on the winner.
 
   Game Name: {{{gameName}}}
   Game Details:
@@ -54,7 +57,12 @@ const prompt = ai.definePrompt({
   Session Details:
   - Date Played: {{{datePlayed}}}
   - Players: {{#each players}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+  {{#if winningPlayer}}
   - Winning Player: {{{winningPlayer}}}
+  {{/if}}
+  {{#if cooperativeResult}}
+  - Cooperative Result: {{#if (eq cooperativeResult 'win')}}The team won!{{else}}The team lost.{{/if}}
+  {{/if}}
   - Interesting Events: {{{interestingEvents}}}
 
   Generate a detailed, narrative-style match report based on the provided information. Make it exciting!`,

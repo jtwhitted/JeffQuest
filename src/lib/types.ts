@@ -29,7 +29,8 @@ export interface Session {
   gameId: string;
   date: string; // ISO 8601 format
   playerIds: string[];
-  winnerId: string;
+  winnerId?: string; // Optional for co-op games
+  cooperativeResult?: 'win' | 'loss'; // For co-op games
   scores?: { playerId: string; score: number }[];
   notes?: string;
 }

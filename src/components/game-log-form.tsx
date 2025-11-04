@@ -34,23 +34,34 @@ import { addSession, addGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan, UserPlus, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
+import { Switch } from './ui/switch';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
   date: z.date({ required_error: 'Please select a date.' }),
   playerIds: z.array(z.string()).min(1, 'Please select at least one player.'),
-  winnerId: z.string().min(1, 'Please select a winner.'),
+  isCooperative: z.boolean(),
+  winnerId: z.string().optional(),
+  cooperativeResult: z.enum(['win', 'loss']).optional(),
   scores: z.array(z.object({
       playerId: z.string(),
       score: z.coerce.number().optional(),
   })).optional(),
   notes: z.string().optional(),
+}).refine(data => {
+    if (data.isCooperative) {
+        return !!data.cooperativeResult;
+    }
+    return !!data.winnerId;
+}, {
+    message: "A winner or a cooperative result must be selected.",
+    path: ['winnerId'], // Show error on one of the fields
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,6 +89,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     defaultValues: {
       date: undefined,
       playerIds: [],
+      isCooperative: false,
       scores: [],
       notes: '',
     },
@@ -97,6 +109,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
   const selectedPlayerIds = form.watch('playerIds');
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
   const scores = form.watch('scores');
+  const isCooperative = form.watch('isCooperative');
 
   useEffect(() => {
     if (scores && scores.length > 0) {
@@ -297,34 +310,86 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
           )}
         />
         
+        <FormField
+          control={form.control}
+          name="isCooperative"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Cooperative Game?</FormLabel>
+                <FormDescription>
+                  Select if all players win or lose as a team.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      form.setValue('winnerId', undefined);
+                    } else {
+                      form.setValue('cooperativeResult', undefined);
+                    }
+                  }}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
         {selectedPlayers.length > 0 && (
-             <FormField
-                control={form.control}
-                name="winnerId"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Winner</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select the winner..." />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        {selectedPlayers.map((player) => (
-                            <SelectItem key={player.id} value={player.id}>
-                            {player.name}
-                            </SelectItem>
-                        ))}
-                        </SelectContent>
-                    </Select>
-                    <FormDescription>
-                        The winner is automatically selected if scores are entered.
-                    </FormDescription>
-                    <FormMessage />
-                    </FormItem>
-                )}
+          isCooperative ? (
+            <FormField
+              control={form.control}
+              name="cooperativeResult"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Game Outcome</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select co-op result..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="win">All Players Won</SelectItem>
+                      <SelectItem value="loss">All Players Lost</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
+          ) : (
+            <FormField
+              control={form.control}
+              name="winnerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Winner</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select the winner..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {selectedPlayers.map((player) => (
+                        <SelectItem key={player.id} value={player.id}>
+                          {player.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    The winner is automatically selected if scores are entered.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )
         )}
 
         {selectedPlayers.length > 0 && (
@@ -409,5 +474,3 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     </>
   );
 }
-
-    

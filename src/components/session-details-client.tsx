@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Crown, Loader2, Sparkles, Trophy } from 'lucide-react';
+import { Bot, Crown, Loader2, ShieldCheck, ShieldX, Sparkles, Trophy, Users } from 'lucide-react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 
@@ -48,7 +48,8 @@ export default function SessionDetailsClient({ session, game, players, winner }:
         datePlayed: session.date,
         players: players.map(p => p.name),
         gameStats: {
-            winner: winner?.name || 'N/A',
+            winner: winner?.name,
+            cooperativeResult: session.cooperativeResult,
             scores: session.scores,
         },
         interestingEvents: interestingEvents
@@ -67,8 +68,8 @@ export default function SessionDetailsClient({ session, game, players, winner }:
   };
 
   const handleGenerateDetailedReport = async () => {
-    if (!winner) {
-        toast({ variant: 'destructive', title: 'Cannot generate report without a winner.'});
+    if (!winner && !session.cooperativeResult) {
+        toast({ variant: 'destructive', title: 'Cannot generate report without a winner or co-op result.'});
         return;
     }
     setDetailedReportState({ loading: true, error: null, summary: null });
@@ -78,7 +79,8 @@ export default function SessionDetailsClient({ session, game, players, winner }:
         gameDetails,
         datePlayed: session.date,
         players: players.map(p => p.name),
-        winningPlayer: winner.name,
+        winningPlayer: winner?.name,
+        cooperativeResult: session.cooperativeResult,
         interestingEvents: interestingEvents
       });
       setDetailedReportState({ loading: false, error: null, summary: result.summary });
@@ -157,6 +159,12 @@ export default function SessionDetailsClient({ session, game, players, winner }:
         <Card>
           <CardHeader>
             <CardTitle>Players & Scores</CardTitle>
+            {session.cooperativeResult && (
+                <CardDescription className="flex items-center">
+                    {session.cooperativeResult === 'win' ? <ShieldCheck className="mr-2 h-4 w-4 text-green-500" /> : <ShieldX className="mr-2 h-4 w-4 text-red-500" />}
+                    Cooperative {session.cooperativeResult === 'win' ? 'Win' : 'Loss'}
+                </CardDescription>
+            )}
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">

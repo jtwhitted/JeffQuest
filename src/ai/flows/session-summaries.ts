@@ -23,7 +23,7 @@ const SessionSummaryInputSchema = z.object({
   gameDetails: GameDetailsSchema,
   datePlayed: z.string().describe('The date the game was played (YYYY-MM-DD).'),
   players: z.array(z.string()).describe('The names of the players in the session.'),
-  gameStats: z.record(z.any()).describe('Game-specific statistics and details.'),
+  gameStats: z.record(z.any()).describe('Game-specific statistics and details. Can include winner, scores, or cooperative result.'),
   interestingEvents: z.string().optional().describe('Interesting or unusual events that happened during the game session.'),
 });
 
@@ -46,11 +46,12 @@ const prompt = ai.definePrompt({
   prompt: `You are a board game enthusiast who summarizes game sessions.
 
   Given the following information about a board game session, generate a detailed summary, highlighting key moments, notable performances, and any interesting events. Use details about the game itself to add context.
+  If the game was cooperative, reflect that in the summary.
 
   Game Name: {{{gameName}}}
   Game Details:
   - Category: {{{gameDetails.category}}}
-  - Player Count: {{{gameDetails.minPlayers}}} - {{{gameDetails.isHealthy.maxPlayers}}}
+  - Player Count: {{{gameDetails.minPlayers}}} - {{{gameDetails.maxPlayers}}}
   - Difficulty: {{{gameDetails.difficulty}}}
 
   Session Details:

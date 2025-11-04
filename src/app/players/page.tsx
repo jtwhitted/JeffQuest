@@ -63,7 +63,8 @@ export default function PlayersPage() {
 
   const playersWithStats = players.map(player => {
     const gamesPlayed = sessions.filter(s => s.playerIds.includes(player.id)).length;
-    const wins = sessions.filter(s => s.winnerId === player.id).length;
+    // A win is either being the winnerId or participating in a cooperative win
+    const wins = sessions.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
     const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
 
     return {

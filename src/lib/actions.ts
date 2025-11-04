@@ -9,13 +9,24 @@ const sessionFormSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
   date: z.date(),
   playerIds: z.array(z.string()).min(1, 'Please select at least one player.'),
-  winnerId: z.string().min(1, 'Please select a winner.'),
+  isCooperative: z.boolean(),
+  winnerId: z.string().optional(),
+  cooperativeResult: z.enum(['win', 'loss']).optional(),
   scores: z.array(z.object({
       playerId: z.string(),
       score: z.number().optional(),
   })).optional(),
   notes: z.string().optional(),
+}).refine(data => {
+    if (data.isCooperative) {
+        return !!data.cooperativeResult;
+    }
+    return !!data.winnerId;
+}, {
+    message: "A winner or a cooperative result must be selected.",
+    path: ['winnerId'], // Show error on one of the fields
 });
+
 
 export async function addSession(values: z.infer<typeof sessionFormSchema>) {
   const validatedFields = sessionFormSchema.safeParse(values);
@@ -67,13 +78,11 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     const { name, imageUrl, ...rest } = validatedFields.data;
-    const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
-
-    // In a real app, you would save this to your database and get a real ID
+    
     const newGame: Game = {
         id: `g${Math.floor(Math.random() * 1000) + 6}`, // semi-random ID for demo
         name,
-        imageUrl: imageUrl || randomImage.imageUrl,
+        imageUrl: imageUrl || PlaceHolderImages.find(img => img.id === 'game-1')?.imageUrl || '',
         ...rest
     };
     
