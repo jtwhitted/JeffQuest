@@ -1,3 +1,4 @@
+
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Player, Game, Session } from './types';
 import { PlaceHolderImages } from './placeholder-images';
@@ -14,7 +15,7 @@ const games: Game[] = [
     id: 'g1', 
     name: 'Catan', 
     category: 'Strategy', 
-    imageUrl: 'https://picsum.photos/seed/Catan/400/400',
+    imageUrl: 'https://cf.geekdo-images.com/W3_MgieX6AR2V2Byi0s5sw__imagepage/img/M4wHHw_M3-2XvIe9KkY_g2uTf_g=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2419375.jpg',
     minPlayers: 3, 
     maxPlayers: 4, 
     difficulty: 'Intermediate', 
@@ -33,7 +34,7 @@ const games: Game[] = [
     id: 'g2', 
     name: 'Wingspan', 
     category: 'Card', 
-    imageUrl: 'https://picsum.photos/seed/Wingspan/400/400',
+    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/uIjeoKgHMcRucikDtJtD9lCvwcE=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4458123.jpg',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Intermediate', 
@@ -52,7 +53,7 @@ const games: Game[] = [
     id: 'g3', 
     name: 'King of Tokyo', 
     category: 'Dice', 
-    imageUrl: 'https://picsum.photos/seed/King-of-Tokyo/400/400',
+    imageUrl: 'https://cf.geekdo-images.com/m_RzXpHURC0_xLkvRj-t_g__imagepage/img/3o22113D-t3Z120U52L192iV2n4=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3043734.jpg',
     minPlayers: 2, maxPlayers: 6, 
     difficulty: 'Beginner', 
     mechanics: ['Dice Rolling', 'Player Elimination', 'King of the Hill'],
@@ -70,7 +71,7 @@ const games: Game[] = [
     id: 'g4', 
     name: 'Gloomhaven', 
     category: 'RPG', 
-    imageUrl: 'https://picsum.photos/seed/Gloomhaven/400/400',
+    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiJGStVyd4A__imagepage/img/jB9bS_319e-Gu2g22L2g4g4S53Y=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2437871.jpg',
     minPlayers: 1, 
     maxPlayers: 4, 
     difficulty: 'Expert', 
@@ -89,7 +90,7 @@ const games: Game[] = [
     id: 'g5', 
     name: 'Terraforming Mars', 
     category: 'Sci-fi', 
-    imageUrl: 'https://picsum.photos/seed/Terraforming-Mars/400/400',
+    imageUrl: 'https://cf.geekdo-images.com/wg9oOLcsKvDesSUdZQ4rxw__imagepage/img/C3_H2oZf1L_1y0b2302cfn70sJw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3536616.jpg',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Advanced', 
@@ -211,5 +212,7 @@ export async function getPlayerById(id: string): Promise<Player | undefined> {
     noStore();
     return Promise.resolve(players.find(p => p.id === id));
 }
+
+    
 
     

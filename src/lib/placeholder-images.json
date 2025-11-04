@@ -2,33 +2,33 @@
   "placeholderImages": [
     {
       "id": "game-1",
-      "description": "Abstract strategy game",
-      "imageUrl": "https://images.unsplash.com/photo-1703785902230-5b8b1796c76b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMHN0cmF0ZWd5fGVufDB8fHx8MTc2MjE4NDUxNHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "abstract strategy"
+      "description": "Catan box art",
+      "imageUrl": "https://cf.geekdo-images.com/W3_MgieX6AR2V2Byi0s5sw__imagepage/img/M4wHHw_M3-2XvIe9KkY_g2uTf_g=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2419375.jpg",
+      "imageHint": "strategy game"
     },
     {
       "id": "game-2",
-      "description": "Deck building card game",
-      "imageUrl": "https://images.unsplash.com/photo-1607637508975-bf0090d7a0b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwbGF5aW5nJTIwY2FyZHN8ZW58MHx8fHwxNzYyMTY3MzcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "playing cards"
+      "description": "Wingspan box art",
+      "imageUrl": "https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/uIjeoKgHMcRucikDtJtD9lCvwcE=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4458123.jpg",
+      "imageHint": "bird card game"
     },
     {
       "id": "game-3",
-      "description": "Dice rolling game",
-      "imageUrl": "https://images.unsplash.com/photo-1559480423-85de1db621ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxnYW1lJTIwZGljZXxlbnwwfHx8fDE3NjIyMjE3MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "game dice"
+      "description": "King of Tokyo box art",
+      "imageUrl": "https://cf.geekdo-images.com/m_RzXpHURC0_xLkvRj-t_g__imagepage/img/3o22113D-t3Z120U52L192iV2n4=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3043734.jpg",
+      "imageHint": "monster dice game"
     },
     {
       "id": "game-4",
-      "description": "Fantasy adventure game",
-      "imageUrl": "https://images.unsplash.com/photo-1593410733607-4fe72c8f3f73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYW50YXN5JTIwbGFuZHNjYXBlfGVufDB8fHx8MTc2MjE5NTAwMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fantasy landscape"
+      "description": "Gloomhaven box art",
+      "imageUrl": "https://cf.geekdo-images.com/sZYp_3BTxCSRiJGStVyd4A__imagepage/img/jB9bS_319e-Gu2g22L2g4g4S53Y=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2437871.jpg",
+      "imageHint": "fantasy campaign game"
     },
     {
       "id": "game-5",
-      "description": "Sci-fi exploration game",
-      "imageUrl": "https://images.unsplash.com/photo-1462332420958-a05d1e002413?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzcGFjZSUyMG5lYnVsYXxlbnwwfHx8fDE3NjIyMDg0NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "space nebula"
+      "description": "Terraforming Mars box art",
+      "imageUrl": "https://cf.geekdo-images.com/wg9oOLcsKvDesSUdZQ4rxw__imagepage/img/C3_H2oZf1L_1y0b2302cfn70sJw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3536616.jpg",
+      "imageHint": "sci-fi exploration game"
     },
     {
       "id": "player-1",
