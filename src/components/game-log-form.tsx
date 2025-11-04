@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
@@ -80,6 +80,23 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
 
   const selectedPlayerIds = form.watch('playerIds');
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
+  const scores = form.watch('scores');
+
+  useEffect(() => {
+    if (scores && scores.length > 0) {
+      const winner = scores.reduce((prev, current) => {
+        if (!prev.score || (current.score && current.score > prev.score)) {
+          return current;
+        }
+        return prev;
+      }, scores[0]);
+
+      if (winner && winner.playerId) {
+        form.setValue('winnerId', winner.playerId, { shouldValidate: true });
+      }
+    }
+  }, [scores, form]);
+
 
   const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
     try {
@@ -271,7 +288,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Winner</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Select the winner..." />
@@ -285,6 +302,9 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
                         ))}
                         </SelectContent>
                     </Select>
+                    <FormDescription>
+                        The winner is automatically selected if scores are entered.
+                    </FormDescription>
                     <FormMessage />
                     </FormItem>
                 )}
@@ -303,7 +323,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
                              <FormField
                                 key={player.id}
                                 control={form.control}
-                                name={`scores.${index}`}
+                                name={`scores.${index}.playerId`}
                                 render={() => (
                                     <FormItem className="flex items-center gap-4">
                                         <FormLabel className="w-24 shrink-0">{player.name}</FormLabel>
@@ -313,8 +333,24 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
                                                 placeholder="Enter score"
                                                 {...form.register(`scores.${index}.score`)}
                                                 onChange={(e) => {
-                                                    form.setValue(`scores.${index}.playerId`, player.id);
-                                                    form.setValue(`scores.${index}.score`, e.target.valueAsNumber);
+                                                    const currentScores = form.getValues('scores') || [];
+                                                    const playerIndex = currentScores.findIndex(s => s.playerId === player.id);
+                                                    
+                                                    // Ensure playerIds are part of the scores
+                                                    if(playerIndex === -1){
+                                                        currentScores.push({playerId: player.id, score: undefined});
+                                                    }
+                                                    
+                                                    // Create a new scores array with the updated value
+                                                    const newScores = selectedPlayers.map(p => {
+                                                        const existing = form.getValues('scores')?.find(s => s.playerId === p.id);
+                                                        if (p.id === player.id) {
+                                                            return { playerId: p.id, score: e.target.valueAsNumber };
+                                                        }
+                                                        return existing || { playerId: p.id, score: undefined };
+                                                    });
+
+                                                    form.setValue('scores', newScores, { shouldValidate: true, shouldDirty: true });
                                                 }}
                                             />
                                         </FormControl>
@@ -357,3 +393,5 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     </>
   );
 }
+
+    
