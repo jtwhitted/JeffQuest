@@ -9,24 +9,31 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Star } from 'lucide-react';
+import { Loader2, Sparkles, Crown, Users, ShieldCheck, ShieldX } from 'lucide-react';
 import React, { useState } from 'react';
-import type { Game, Player } from '@/lib/types';
+import type { Game, Player, Session } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
 import { generatePlayerBio } from '@/ai/flows/generate-player-bio';
-import { Card, CardContent } from './ui/card';
+import { Card } from './ui/card';
 import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { format } from 'date-fns';
 
-type PlayerWithFullStats = Player & {
+type GameHistoryItem = {
+    game: Game;
+    sessions: (Session & { players: Player[]; winner?: Player })[];
+};
+
+export type PlayerWithFullStats = Player & {
   gamesPlayed: number;
   wins: number;
   winRate: number;
   favoriteGame?: Game;
-  gameHistory: Game[];
+  gameHistory: GameHistoryItem[];
 };
 
 interface PlayerDetailsDialogProps {
@@ -97,71 +104,93 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-            <div className="text-sm">
-                <div className="flex justify-between mb-1">
-                    <span className="font-medium">Win Rate</span>
-                    <span className="text-muted-foreground">{player.winRate}%</span>
+        <ScrollArea className="max-h-[70vh] pr-6">
+            <div className="space-y-6 py-4">
+                <div className="text-sm">
+                    <div className="flex justify-between mb-1">
+                        <span className="font-medium">Win Rate</span>
+                        <span className="text-muted-foreground">{player.winRate}%</span>
+                    </div>
+                    <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
                 </div>
-                <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
-            </div>
 
-            {player.favoriteGame && (
-              <div>
-                  <h3 className="mb-2 text-sm font-semibold text-center text-muted-foreground">Favorite Game</h3>
-                  <Link href={`/games/${player.favoriteGame.id}`} className="group">
-                    <Card className="overflow-hidden">
-                      <div className="relative h-24">
-                        <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} fill className="object-cover" />
-                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-2">
-                           <h4 className="font-bold text-white text-lg">{player.favoriteGame.name}</h4>
-                         </div>
-                      </div>
-                    </Card>
-                  </Link>
-              </div>
-            )}
-
-            <div>
-              <h3 className="mb-2 text-sm font-semibold text-center text-muted-foreground">Game History</h3>
-              <ScrollArea className="h-40 w-full rounded-md border">
-                <div className="p-4">
-                  {player.gameHistory.length > 0 ? (
-                    player.gameHistory.map((game, index) => (
-                      <React.Fragment key={game.id}>
-                        <div className="flex items-center gap-3">
-                           <Avatar className="h-8 w-8">
-                                <AvatarImage src={game.imageUrl} alt={game.name} />
-                                <AvatarFallback>{game.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                          <span className="text-sm font-medium">{game.name}</span>
+                {player.favoriteGame && (
+                <div>
+                    <h3 className="mb-2 text-sm font-semibold text-center text-muted-foreground">Favorite Game</h3>
+                    <Link href={`/games/${player.favoriteGame.id}`} className="group">
+                        <Card className="overflow-hidden">
+                        <div className="relative h-24">
+                            <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} fill className="object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-2">
+                            <h4 className="font-bold text-white text-lg">{player.favoriteGame.name}</h4>
+                            </div>
                         </div>
-                        {index < player.gameHistory.length - 1 && <Separator className="my-3" />}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <p className="text-sm text-center text-muted-foreground">No games played yet.</p>
-                  )}
+                        </Card>
+                    </Link>
                 </div>
-              </ScrollArea>
-            </div>
-            
-            <div>
-                <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">Humorous AI Bio</h3>
-                    <Button size="sm" onClick={handleGenerateBio} disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2" /> : <Sparkles className="mr-2" />}
-                        Generate
-                    </Button>
-                </div>
+                )}
 
-                <Card className="mt-2 min-h-[80px] flex items-center justify-center p-4 bg-secondary/50">
-                    {isLoading && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
-                    {!isLoading && !bio && <p className="text-sm text-muted-foreground">Click generate to create a bio!</p>}
-                    {bio && <p className="text-center text-sm prose prose-sm dark:prose-invert">{bio}</p>}
-                </Card>
+                <div>
+                <h3 className="mb-2 text-sm font-semibold text-center text-muted-foreground">Game History</h3>
+                    {player.gameHistory.length > 0 ? (
+                        <Accordion type="single" collapsible className="w-full">
+                        {player.gameHistory.map(({ game, sessions }) => (
+                            <AccordionItem key={game.id} value={game.id}>
+                            <AccordionTrigger>
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={game.imageUrl} alt={game.name} />
+                                        <AvatarFallback>{game.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-semibold">{game.name}</div>
+                                        <div className="text-xs text-muted-foreground">{sessions.length} plays</div>
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                                <ul className="space-y-3 pl-6">
+                                {sessions.map(session => (
+                                    <li key={session.id} className="text-xs">
+                                        <div className="font-medium">{format(new Date(session.date), 'MMM d, yyyy')}</div>
+                                        <div className="text-muted-foreground flex items-center">
+                                            <Users className="mr-1.5 h-3 w-3" />
+                                            {session.players.map(p => p.name).join(', ')}
+                                        </div>
+                                         <div className="text-muted-foreground flex items-center">
+                                            {session.cooperativeResult === 'win' && <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</>}
+                                            {session.cooperativeResult === 'loss' && <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
+                                            {session.winner && <><Crown className="mr-1.5 h-3 w-3 text-amber-400"/> {session.winner.name} won</>}
+                                         </div>
+                                    </li>
+                                ))}
+                                </ul>
+                            </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                        </Accordion>
+                    ) : (
+                        <p className="text-sm text-center text-muted-foreground">No games played yet.</p>
+                    )}
+                </div>
+                
+                <div>
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">Humorous AI Bio</h3>
+                        <Button size="sm" onClick={handleGenerateBio} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="mr-2" /> : <Sparkles className="mr-2" />}
+                            Generate
+                        </Button>
+                    </div>
+
+                    <Card className="mt-2 min-h-[80px] flex items-center justify-center p-4 bg-secondary/50">
+                        {isLoading && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
+                        {!isLoading && !bio && <p className="text-sm text-muted-foreground">Click generate to create a bio!</p>}
+                        {bio && <p className="text-center text-sm prose prose-sm dark:prose-invert">{bio}</p>}
+                    </Card>
+                </div>
             </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

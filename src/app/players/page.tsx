@@ -13,16 +13,7 @@ import { AddPlayerDialog } from '@/components/add-player-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { deletePlayer } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { PlayerDetailsDialog } from '@/components/player-details-dialog';
-
-type PlayerWithFullStats = Player & {
-  gamesPlayed: number;
-  wins: number;
-  winRate: number;
-  favoriteGame?: Game;
-  gameHistory: Game[];
-};
-
+import { PlayerDetailsDialog, type PlayerWithFullStats } from '@/components/player-details-dialog';
 
 export default function PlayersPage() {
   const { toast } = useToast();
@@ -81,8 +72,26 @@ export default function PlayersPage() {
     const favoriteGameId = Object.entries(playsByGame).sort(([,a],[,b]) => b - a)[0]?.[0];
     const favoriteGame = games.find(g => g.id === favoriteGameId);
 
-    const gameHistoryIds = [...new Set(playerSessions.map(s => s.gameId))];
-    const gameHistory = games.filter(g => gameHistoryIds.includes(g.id));
+    const gameHistory = Object.keys(playsByGame)
+      .map(gameId => {
+        const game = games.find(g => g.id === gameId);
+        if (!game) return null;
+
+        const gameSessions = playerSessions
+          .filter(s => s.gameId === gameId)
+          .map(session => ({
+            ...session,
+            players: session.playerIds.map(pid => players.find(p => p.id === pid)).filter(Boolean) as Player[],
+            winner: players.find(p => p.id === session.winnerId),
+          }))
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        return {
+          game,
+          sessions: gameSessions,
+        };
+      })
+      .filter(Boolean) as PlayerWithFullStats['gameHistory'];
 
 
     return {
