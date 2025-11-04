@@ -13,6 +13,7 @@ import { AddPlayerDialog } from '@/components/add-player-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { deletePlayer } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { PlayerDetailsDialog } from '@/components/player-details-dialog';
 
 // export const metadata: Metadata = {
 //     title: 'Players | Tabletop Tracker',
@@ -25,6 +26,7 @@ export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isAddPlayerOpen, setAddPlayerOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player & { gamesPlayed: number; wins: number; winRate: number} | null>(null);
 
 
   useEffect(() => {
@@ -82,6 +84,13 @@ export default function PlayersPage() {
         title="Delete Player"
         description={`Are you sure you want to delete ${playerToDelete?.name}? All associated session data will also be affected.`}
       />
+      {selectedPlayer && (
+        <PlayerDetailsDialog
+          open={!!selectedPlayer}
+          onOpenChange={() => setSelectedPlayer(null)}
+          player={selectedPlayer}
+        />
+      )}
       <div className="space-y-8">
         <PageHeader
           title="Player Rankings"
@@ -95,7 +104,11 @@ export default function PlayersPage() {
         {playersWithStats.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {playersWithStats.map(player => (
-              <Card key={player.id} className="group/card relative">
+              <Card 
+                key={player.id} 
+                className="group/card relative cursor-pointer transition-shadow hover:shadow-lg"
+                onClick={() => setSelectedPlayer(player)}
+              >
                 <CardHeader className="flex flex-row items-center gap-4">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={player.avatarUrl} alt={player.name} />
@@ -124,7 +137,7 @@ export default function PlayersPage() {
                       <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
                   </div>
                 </CardContent>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={() => setPlayerToDelete(player)}>
+                <Button variant="ghost" size="icon" className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); setPlayerToDelete(player); }}>
                   <Trash2 className="h-4 w-4" />
                   <span className="sr-only">Delete player</span>
                 </Button>
