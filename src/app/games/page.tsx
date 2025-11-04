@@ -118,7 +118,7 @@ export default function GamesPage() {
                     <span>Played {game.playCount} {game.playCount === 1 ? 'time' : 'times'}</span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={() => setGameToDelete(game)}>
+                <Button variant="ghost" size="icon" className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 hover:bg-destructive/10 transition-opacity" onClick={() => setGameToDelete(game)}>
                   <Trash2 className="h-4 w-4" />
                   <span className="sr-only">Delete game</span>
                 </Button>
