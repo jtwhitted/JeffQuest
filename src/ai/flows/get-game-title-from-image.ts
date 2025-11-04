@@ -3,7 +3,7 @@
  * @fileOverview An AI flow to extract board game details from an image using BGG API.
  *
  * - getGameDetailsFromImage - A function that takes an image of a game box and returns its details.
- * - GetGameDetailsInput - The input type for the getGameDetailsFromImage function.
+ * - GetGameDetailsInput - The input type for the getGameDetailsFromimage function.
  * - GetGameDetailsOutput - The return type for the getGameDetailsFromImage function.
  */
 
@@ -27,16 +27,16 @@ const GetGameDetailsOutputSchema = z.object({
   minPlayers: z.number().describe('The minimum number of players for the game.'),
   maxPlayers: z.number().describe('The maximum number of players for the game.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).describe('The estimated difficulty of the game.'),
-  yearPublished: z.number().optional(),
-  description: z.string().optional(),
-  minPlaytime: z.number().optional(),
-  maxPlaytime: z.number().optional(),
-  rating: z.number().optional(),
-  ratingCount: z.number().optional(),
-  complexity: z.number().optional(),
-  designers: z.array(z.string()).optional(),
-  publishers: z.array(z.string()).optional(),
-  imageUrl: z.string().optional(),
+  yearPublished: z.number().optional().describe('The year the game was published.'),
+  description: z.string().optional().describe('A brief description of the game.'),
+  minPlaytime: z.number().optional().describe('The minimum playtime in minutes.'),
+  maxPlaytime: z.number().optional().describe('The maximum playtime in minutes.'),
+  rating: z.number().optional().describe('The average user rating from BGG (1-10).'),
+  ratingCount: z.number().optional().describe('The number of ratings on BGG.'),
+  complexity: z.number().optional().describe('The complexity or "weight" rating from BGG (1-5).'),
+  designers: z.array(z.string()).optional().describe('The designers of the game.'),
+  publishers: z.array(z.string()).optional().describe('The publishers of the game.'),
+  imageUrl: z.string().optional().describe('A URL to the game\'s box art image.'),
 });
 export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 
@@ -49,28 +49,26 @@ const getGameDetailsFlow = ai.defineFlow(
     name: 'getGameDetailsFlow',
     inputSchema: GetGameDetailsInputSchema,
     outputSchema: GetGameDetailsOutputSchema,
-    tools: [searchBgg, getBggGameDetails],
-    prompt: `You are an expert board game assistant. Your goal is to identify a board game from an image of its box and return detailed information about it.
-
-    1.  First, analyze the provided image to determine the title of the board game.
-    2.  Use the 'searchBgg' tool to find the game on BoardGameGeek. You might need to try variations of the title if the first search fails.
-    3.  Once you have a valid game ID from the search results, use the 'getBggGameDetails' tool to fetch the detailed information.
-    4.  From the detailed information, determine the game's difficulty based on its 'complexity' rating (weight):
-        - Less than 2: 'Beginner'
-        - 2 to 3: 'Intermediate'
-        - 3 to 4: 'Advanced'
-        - 4 or more: 'Expert'
-    5.  Finally, format and return all the required details as your final output.
-
-    Image of the game box is below.
-    Image: {{media url=photoDataUri}}
-    `,
   },
   async (input) => {
     
     const llmResponse = await ai.generate({
-        prompt: `Identify the game in the image and provide its details.`,
-        model: 'googleai/gemini-2.5-flash',
+        prompt: `You are an expert board game assistant. Your goal is to identify a board game from an image of its box and return detailed information about it.
+
+1.  First, analyze the provided image to determine the title of the board game.
+2.  Use the 'searchBgg' tool to find the game on BoardGameGeek. You might need to try variations of the title if the first search fails.
+3.  Once you have a valid game ID from the search results, use the 'getBggGameDetails' tool to fetch the detailed information.
+4.  From the detailed information, determine the game's difficulty based on its 'complexity' rating (weight):
+    - Less than 2: 'Beginner'
+    - 2 to 3: 'Intermediate'
+    - 3 to 4: 'Advanced'
+    - 4 or more: 'Expert'
+5.  Finally, format and return all the required details as your final output.
+
+Image of the game box is below.
+Image: {{media url=photoDataUri}}
+`,
+        model: 'googleai/gemini-pro-vision',
         tools: [searchBgg, getBggGameDetails],
         output: {
             schema: GetGameDetailsOutputSchema
@@ -96,8 +94,10 @@ const getGameDetailsFlow = ai.defineFlow(
             difficulty = 'Expert';
         }
     }
-    output.difficulty = difficulty;
-
-    return output;
+    
+    return {
+        ...output,
+        difficulty
+    };
   }
 );
