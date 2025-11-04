@@ -44,72 +44,60 @@ export async function getGameDetailsFromImage(input: GetGameDetailsInput): Promi
   return getGameDetailsFlow(input);
 }
 
-const titlePrompt = ai.definePrompt({
-  name: 'getGameTitlePrompt',
-  input: {schema: GetGameDetailsInputSchema},
-  output: {schema: z.object({ title: z.string() })},
-  prompt: `You are an expert at identifying board games from images of their boxes.
-Analyze the provided image and extract only the main title of the board game.
-
-Image: {{media url=photoDataUri}}`,
-});
-
 const getGameDetailsFlow = ai.defineFlow(
   {
     name: 'getGameDetailsFlow',
     inputSchema: GetGameDetailsInputSchema,
     outputSchema: GetGameDetailsOutputSchema,
     tools: [searchBgg, getBggGameDetails],
+    prompt: `You are an expert board game assistant. Your goal is to identify a board game from an image of its box and return detailed information about it.
+
+    1.  First, analyze the provided image to determine the title of the board game.
+    2.  Use the 'searchBgg' tool to find the game on BoardGameGeek. You might need to try variations of the title if the first search fails.
+    3.  Once you have a valid game ID from the search results, use the 'getBggGameDetails' tool to fetch the detailed information.
+    4.  From the detailed information, determine the game's difficulty based on its 'complexity' rating (weight):
+        - Less than 2: 'Beginner'
+        - 2 to 3: 'Intermediate'
+        - 3 to 4: 'Advanced'
+        - 4 or more: 'Expert'
+    5.  Finally, format and return all the required details as your final output.
+
+    Image of the game box is below.
+    Image: {{media url=photoDataUri}}
+    `,
   },
-  async input => {
-    // Step 1: Get the title from the image
-    const { output: titleOutput } = await titlePrompt(input);
-    if (!titleOutput?.title) {
-        throw new Error('Could not determine game title from image.');
+  async (input) => {
+    
+    const llmResponse = await ai.generate({
+        prompt: `Identify the game in the image and provide its details.`,
+        model: 'googleai/gemini-2.5-flash',
+        tools: [searchBgg, getBggGameDetails],
+        output: {
+            schema: GetGameDetailsOutputSchema
+        }
+    });
+
+    const output = llmResponse.output();
+
+    if (!output) {
+      throw new Error("Unable to get game details from the image.");
     }
-    const title = titleOutput.title;
-
-    // Step 2: Search BGG for the game ID
-    const searchResults = await searchBgg({ query: title });
-    if (!searchResults || searchResults.length === 0) {
-        throw new Error(`No results found on BoardGameGeek for "${title}".`);
-    }
-    const gameId = searchResults[0].id; // Assume the first result is the correct one
-
-    // Step 3: Get detailed game info from BGG
-    const gameDetails = await getBggGameDetails({ id: gameId });
-
-    // Step 4: Map BGG complexity to our difficulty enum
+    
+    // Map BGG complexity to our difficulty enum
     let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
-    if (gameDetails.complexity) {
-        if (gameDetails.complexity < 2) {
+    if (output.complexity) {
+        if (output.complexity < 2) {
             difficulty = 'Beginner';
-        } else if (gameDetails.complexity < 3) {
+        } else if (output.complexity < 3) {
             difficulty = 'Intermediate';
-        } else if (gameDetails.complexity < 4) {
+        } else if (output.complexity < 4) {
             difficulty = 'Advanced';
         } else {
             difficulty = 'Expert';
         }
     }
-    
-    return {
-        name: gameDetails.name,
-        category: gameDetails.category || 'Unknown',
-        mechanics: gameDetails.mechanics || [],
-        minPlayers: gameDetails.minPlayers || 1,
-        maxPlayers: gameDetails.maxPlayers || 1,
-        difficulty: difficulty,
-        yearPublished: gameDetails.yearPublished,
-        description: gameDetails.description,
-        minPlaytime: gameDetails.minPlaytime,
-        maxPlaytime: gameDetails.maxPlaytime,
-        rating: gameDetails.rating,
-        ratingCount: gameDetails.ratingCount,
-        complexity: gameDetails.complexity,
-        designers: gameDetails.designers,
-        publishers: gameDetails.publishers,
-        imageUrl: gameDetails.imageUrl,
-    };
+    output.difficulty = difficulty;
+
+    return output;
   }
 );
