@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Camera, AlertTriangle } from 'lucide-react';
+import { Loader2, Camera, AlertTriangle, RefreshCw } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameDetailsFromImage, type GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
@@ -97,8 +97,8 @@ export function GameScanDialog({
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       toast({
         variant: 'destructive',
-        title: 'AI Error',
-        description: `Could not identify game details: ${errorMessage}`,
+        title: 'Error Identifying Game',
+        description: `Could not get game details: ${errorMessage}`,
         duration: 10000,
       });
     } finally {
@@ -116,6 +116,33 @@ export function GameScanDialog({
         handleClose();
     }
     onOpenChange(isOpen);
+  }
+
+  const renderVideoState = () => {
+    if (hasCameraPermission === undefined) {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <Loader2 className="mb-2 h-8 w-8 animate-spin" />
+          <p>Requesting camera access...</p>
+        </div>
+      );
+    }
+
+    if (hasCameraPermission === false) {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Camera Access Denied</AlertTitle>
+            <AlertDescription>
+              Please grant camera permissions in your browser settings.
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+    
+    return null;
   }
 
   return (
@@ -137,24 +164,7 @@ export function GameScanDialog({
             muted
           />
 
-          {hasCameraPermission === undefined && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <Loader2 className="mb-2 h-8 w-8 animate-spin" />
-              <p>Requesting camera access...</p>
-            </div>
-          )}
-
-          {hasCameraPermission === false && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Camera Access Denied</AlertTitle>
-                <AlertDescription>
-                  Please grant camera permissions in your browser settings.
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
+          {renderVideoState()}
 
           {capturedImage && (
             <img src={capturedImage} alt="Captured game box" className="h-full w-full object-cover" />
@@ -180,6 +190,7 @@ export function GameScanDialog({
                 onClick={() => setCapturedImage(null)}
                 disabled={isLoading}
               >
+                 <RefreshCw className="mr-2 h-4 w-4" />
                 Retake
               </Button>
               <Button onClick={handleConfirm} disabled={isLoading} className="flex-1">
