@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
@@ -63,20 +63,36 @@ interface GameLogFormProps {
 export default function GameLogForm({ games: initialGames, players: initialPlayers }: GameLogFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [isScanDialogOpen, setScanDialogOpen] = React.useState(false);
-  const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = React.useState(false);
-  const [games, setGames] = React.useState(initialGames);
-  const [players, setPlayers] = React.useState(initialPlayers);
+  const [isScanDialogOpen, setScanDialogOpen] = useState(false);
+  const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
+  const [games, setGames] = useState(initialGames);
+  const [players, setPlayers] = useState(initialPlayers);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      date: new Date(),
+      date: undefined,
       playerIds: [],
       scores: [],
       notes: '',
     },
   });
+
+  useEffect(() => {
+    // Set the date only on the client-side after initial mount
+    if (isClient) {
+      form.reset({
+        ...form.getValues(),
+        date: new Date(),
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient]);
 
   const selectedPlayerIds = form.watch('playerIds');
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
@@ -384,7 +400,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
             )}
         />
 
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !isClient}>
             {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Log Session
         </Button>
