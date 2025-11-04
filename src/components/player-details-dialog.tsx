@@ -164,31 +164,40 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                                         return scoreB - scoreA;
                                     })
                                     : session.players;
+                                    
+                                    const playerResult = rankedPlayers.findIndex(p => p.id === player.id);
+                                    const rank = session.scores && session.scores.length > 0 ? playerResult + 1 : null;
+                                    const score = session.scores?.find(s => s.playerId === player.id)?.score;
 
                                     return (
                                         <li key={session.id} className="text-xs border-l-2 pl-4">
                                             <div className="font-medium">{format(new Date(session.date), 'MMM d, yyyy')}</div>
-                                            <div className="text-muted-foreground flex items-center">
-                                                {session.cooperativeResult === 'win' && <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</>}
-                                                {session.cooperativeResult === 'loss' && <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
-                                                {session.winner && !session.cooperativeResult && <><Crown className="mr-1.5 h-3 w-3 text-amber-400"/> {session.winner.name} won</>}
-                                            </div>
                                              <div className="mt-1 space-y-1">
                                                 {rankedPlayers.map((p, index) => {
                                                     const rank = session.scores && session.scores.length > 0 ? index + 1 : null;
+                                                    const pScore = session.scores?.find(s => s.playerId === p.id)?.score;
                                                     return (
-                                                        <div key={p.id} className="flex items-center gap-2 text-muted-foreground">
-                                                            {rank ? (
-                                                                <span className="flex items-center font-semibold w-8">
-                                                                <Medal className={`mr-1 h-3 w-3 ${rank === 1 ? 'text-amber-400' : rank === 2 ? 'text-slate-400' : rank === 3 ? 'text-amber-700' : 'text-muted-foreground'}`} />
-                                                                {getOrdinal(rank)}
-                                                                </span>
-                                                            ) : <Users className="h-3 w-3 mr-1" />}
-                                                            <span>{p.name}</span>
+                                                        <div key={p.id} className="flex items-center justify-between text-muted-foreground">
+                                                          <div className="flex items-center gap-2">
+                                                              {rank ? (
+                                                                  <span className="flex items-center font-semibold w-8">
+                                                                  <Medal className={`mr-1 h-3 w-3 ${rank === 1 ? 'text-amber-400' : rank === 2 ? 'text-slate-400' : rank === 3 ? 'text-amber-700' : 'text-muted-foreground'}`} />
+                                                                  {getOrdinal(rank)}
+                                                                  </span>
+                                                              ) : <Users className="h-3 w-3 mr-1" />}
+                                                              <span>{p.name}</span>
+                                                          </div>
+                                                          {pScore !== undefined && <span className="font-semibold text-foreground">{pScore}</span>}
                                                         </div>
                                                     )
                                                 })}
                                             </div>
+                                            {session.cooperativeResult && (
+                                                <div className="text-muted-foreground flex items-center mt-1">
+                                                    {session.cooperativeResult === 'win' && <><ShieldCheck className="mr-1.5 h-3 w-3 text-green-500"/> Co-op Win</>}
+                                                    {session.cooperativeResult === 'loss' && <><ShieldX className="mr-1.5 h-3 w-3 text-red-500"/> Co-op Loss</>}
+                                                </div>
+                                            )}
                                         </li>
                                     )
                                 })}
