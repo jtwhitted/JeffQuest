@@ -1,5 +1,5 @@
 'use client';
-import { getSessions, getPlayers } from '@/lib/data';
+import { getSessions, getPlayers, getGames } from '@/lib/data';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Swords, Trophy, PlusCircle, Trash2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { useState, useEffect } from 'react';
-import type { Player, Session } from '@/lib/types';
+import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddPlayerDialog } from '@/components/add-player-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
@@ -15,24 +15,30 @@ import { deletePlayer } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { PlayerDetailsDialog } from '@/components/player-details-dialog';
 
-// export const metadata: Metadata = {
-//     title: 'Players | Tabletop Tracker',
-//     description: 'View stats and rankings for all players.',
-// };
+type PlayerWithFullStats = Player & {
+  gamesPlayed: number;
+  wins: number;
+  winRate: number;
+  favoriteGame?: Game;
+  gameHistory: Game[];
+};
+
 
 export default function PlayersPage() {
   const { toast } = useToast();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [games, setGames] = useState<Game[]>([]);
   const [isAddPlayerOpen, setAddPlayerOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
-  const [selectedPlayer, setSelectedPlayer] = useState<Player & { gamesPlayed: number; wins: number; winRate: number} | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithFullStats | null>(null);
 
 
   useEffect(() => {
     async function fetchData() {
       setSessions(await getSessions());
       setPlayers(await getPlayers());
+      setGames(await getGames());
     }
     fetchData();
   }, []);
@@ -61,17 +67,31 @@ export default function PlayersPage() {
     }
   }
 
-  const playersWithStats = players.map(player => {
-    const gamesPlayed = sessions.filter(s => s.playerIds.includes(player.id)).length;
-    // A win is either being the winnerId or participating in a cooperative win
+  const playersWithStats: PlayerWithFullStats[] = players.map(player => {
+    const playerSessions = sessions.filter(s => s.playerIds.includes(player.id));
+    const gamesPlayed = playerSessions.length;
     const wins = sessions.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
     const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
+
+    const playsByGame = playerSessions.reduce((acc, session) => {
+      acc[session.gameId] = (acc[session.gameId] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const favoriteGameId = Object.entries(playsByGame).sort(([,a],[,b]) => b - a)[0]?.[0];
+    const favoriteGame = games.find(g => g.id === favoriteGameId);
+
+    const gameHistoryIds = [...new Set(playerSessions.map(s => s.gameId))];
+    const gameHistory = games.filter(g => gameHistoryIds.includes(g.id));
+
 
     return {
       ...player,
       gamesPlayed,
       wins,
-      winRate
+      winRate,
+      favoriteGame,
+      gameHistory,
     };
   }).sort((a,b) => b.winRate - a.winRate || b.wins - a.wins);
 

@@ -9,18 +9,30 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Star } from 'lucide-react';
 import React, { useState } from 'react';
-import type { Player } from '@/lib/types';
+import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
 import { generatePlayerBio } from '@/ai/flows/generate-player-bio';
 import { Card, CardContent } from './ui/card';
+import { Separator } from './ui/separator';
+import { ScrollArea } from './ui/scroll-area';
+import Image from 'next/image';
+import Link from 'next/link';
+
+type PlayerWithFullStats = Player & {
+  gamesPlayed: number;
+  wins: number;
+  winRate: number;
+  favoriteGame?: Game;
+  gameHistory: Game[];
+};
 
 interface PlayerDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  player: Player & { gamesPlayed: number; wins: number; winRate: number };
+  player: PlayerWithFullStats;
 }
 
 // Helper to convert image URL to data URI
@@ -85,7 +97,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="space-y-6 py-4">
             <div className="text-sm">
                 <div className="flex justify-between mb-1">
                     <span className="font-medium">Win Rate</span>
@@ -94,7 +106,47 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
             </div>
 
-            <div className="mt-6">
+            {player.favoriteGame && (
+              <div>
+                  <h3 className="mb-2 text-sm font-semibold text-center text-muted-foreground">Favorite Game</h3>
+                  <Link href={`/games/${player.favoriteGame.id}`} className="group">
+                    <Card className="overflow-hidden">
+                      <div className="relative h-24">
+                        <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} fill className="object-cover" />
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-2">
+                           <h4 className="font-bold text-white text-lg">{player.favoriteGame.name}</h4>
+                         </div>
+                      </div>
+                    </Card>
+                  </Link>
+              </div>
+            )}
+
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-center text-muted-foreground">Game History</h3>
+              <ScrollArea className="h-40 w-full rounded-md border">
+                <div className="p-4">
+                  {player.gameHistory.length > 0 ? (
+                    player.gameHistory.map((game, index) => (
+                      <React.Fragment key={game.id}>
+                        <div className="flex items-center gap-3">
+                           <Avatar className="h-8 w-8">
+                                <AvatarImage src={game.imageUrl} alt={game.name} />
+                                <AvatarFallback>{game.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          <span className="text-sm font-medium">{game.name}</span>
+                        </div>
+                        {index < player.gameHistory.length - 1 && <Separator className="my-3" />}
+                      </React.Fragment>
+                    ))
+                  ) : (
+                    <p className="text-sm text-center text-muted-foreground">No games played yet.</p>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+            
+            <div>
                 <div className="flex items-center justify-between">
                     <h3 className="font-semibold">Humorous AI Bio</h3>
                     <Button size="sm" onClick={handleGenerateBio} disabled={isLoading}>
@@ -110,7 +162,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 </Card>
             </div>
         </div>
-
       </DialogContent>
     </Dialog>
   );
