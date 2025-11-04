@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { Game, Player } from './types';
+import { PlaceHolderImages } from './placeholder-images';
 
 const sessionFormSchema = z.object({
   gameId: z.string(),
@@ -50,12 +51,14 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         return null;
     }
 
+    const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+
     // In a real app, you would save this to your database and get a real ID
     const newGame: Game = {
         id: `g${Math.floor(Math.random() * 1000) + 6}`, // semi-random ID for demo
         name: validatedFields.data.name,
         category: 'Uncategorized', // Default category
-        imageUrl: `https://picsum.photos/seed/${Math.random()}/600/400`, // Placeholder image
+        imageUrl: randomImage.imageUrl,
     };
     
     console.log('New game added:', newGame);
@@ -82,10 +85,12 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promi
         return null;
     }
 
+    const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+
     const newPlayer: Player = {
         id: `p${Math.floor(Math.random() * 1000) + 5}`, // semi-random ID for demo
         name: validatedFields.data.name,
-        avatarUrl: `https://picsum.photos/seed/${validatedFields.data.name}/100/100`, // Placeholder image
+        avatarUrl: randomImage.imageUrl,
     };
 
     console.log('New player added:', newPlayer);

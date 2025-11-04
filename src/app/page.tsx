@@ -1,6 +1,7 @@
 import { getSessions, getPlayers, getGames } from '@/lib/data';
 import DashboardClient from '@/components/dashboard-client';
 import type { Metadata } from 'next';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export const metadata: Metadata = {
   title: 'Dashboard | Tabletop Tracker',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
+  noStore();
   const sessions = await getSessions();
   const players = await getPlayers();
   const games = await getGames();

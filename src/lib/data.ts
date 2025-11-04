@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache';
 import type { Player, Game, Session } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -85,25 +86,31 @@ const sessions: Session[] = [
 
 // Simulate API calls
 export async function getPlayers(): Promise<Player[]> {
+  noStore();
   return Promise.resolve(players);
 }
 
 export async function getGames(): Promise<Game[]> {
+  noStore();
   return Promise.resolve(games);
 }
 
 export async function getSessions(): Promise<Session[]> {
+  noStore();
   return Promise.resolve(sessions);
 }
 
 export async function getSessionById(id: string): Promise<Session | undefined> {
+    noStore();
     return Promise.resolve(sessions.find(s => s.id === id));
 }
 
 export async function getGameById(id: string): Promise<Game | undefined> {
+    noStore();
     return Promise.resolve(games.find(g => g.id === id));
 }
 
 export async function getPlayerById(id: string): Promise<Player | undefined> {
+    noStore();
     return Promise.resolve(players.find(p => p.id === id));
 }
