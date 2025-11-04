@@ -33,7 +33,7 @@ const games: Game[] = [
     id: 'g2', 
     name: 'Wingspan', 
     category: 'Card', 
-    imageUrl: 'https://picsum.photos/seed/Wingspan/400/400',
+    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/l_21vOHwR2_Sg-26wW1s8GARvE=/fit-in/400x400/filters:no_upscale():strip_icc()/pic4458123.jpg',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Intermediate', 
