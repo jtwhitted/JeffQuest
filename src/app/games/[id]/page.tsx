@@ -1,16 +1,16 @@
-import { getGameById, getSessions } from '@/lib/data';
+import { getGameById, getSessions, getPlayers } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2, Users, Clock, Calendar, BarChart3, Star, Scale, Trophy, Swords, BrainCircuit, BookUser, Building } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Swords } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { DeleteGameButton } from './_components/delete-game-button';
+import { GameSessionHistory } from './_components/game-session-history';
 
 type Props = {
   params: { id: string };
@@ -38,8 +38,9 @@ export default async function GameDetailPage({ params }: { params: { id: string 
     notFound();
   }
 
-  const sessions = await getSessions();
-  const gameSessions = sessions.filter(s => s.gameId === game.id);
+  const allSessions = await getSessions();
+  const allPlayers = await getPlayers();
+  const gameSessions = allSessions.filter(s => s.gameId === game.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const formatRating = (rating?: number) => rating ? rating.toFixed(1) : 'N/A';
   const formatComplexity = (complexity?: number) => complexity ? complexity.toFixed(2) : 'N/A';
@@ -166,6 +167,7 @@ export default async function GameDetailPage({ params }: { params: { id: string 
             </Card>
         </div>
       </div>
+      <GameSessionHistory sessions={gameSessions} allPlayers={allPlayers} />
     </div>
   );
 }
