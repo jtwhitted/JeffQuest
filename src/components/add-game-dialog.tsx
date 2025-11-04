@@ -11,8 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Scan } from 'lucide-react';
-import React, { useState } from 'react';
+import { Loader2, Scan, Users, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { addGame } from '@/lib/actions';
 import type { Game } from '@/lib/types';
 import {
@@ -23,10 +23,18 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from '@/components/ui/select';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
+import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
 interface AddGameDialogProps {
   open: boolean;
@@ -36,6 +44,13 @@ interface AddGameDialogProps {
 
 const formSchema = z.object({
   name: z.string().min(1, 'Game name is required.').max(100, 'Name must be 100 characters or less.'),
+  category: z.string().min(1, 'Category is required.'),
+  minPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
+  maxPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
+  difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
+}).refine(data => data.maxPlayers >= data.minPlayers, {
+    message: 'Max players must be greater than or equal to min players.',
+    path: ['maxPlayers'],
 });
 
 export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialogProps) {
@@ -47,22 +62,31 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      category: 'Strategy',
+      minPlayers: 1,
+      maxPlayers: 4,
+      difficulty: 'Intermediate',
     },
   });
   
-  const handleNewGameScanned = async (title: string) => {
-    form.setValue('name', title);
-    // You could even submit the form directly if you want
+  const handleNewGameScanned = (details: GetGameDetailsOutput) => {
+    form.reset({
+        name: details.title,
+        category: details.category,
+        minPlayers: details.minPlayers,
+        maxPlayers: details.maxPlayers,
+        difficulty: details.difficulty,
+    });
     toast({
-        title: 'Game Title Scanned!',
-        description: 'The game name has been filled in. Click "Save Game" to add it.',
+        title: 'Game Details Scanned!',
+        description: 'The game details have been filled in. Review and save.',
     });
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const newGame = await addGame({ name: values.name });
+      const newGame = await addGame(values);
       if (newGame) {
         onGameAdded(newGame);
         toast({
@@ -95,36 +119,101 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
       <GameScanDialog
           open={isScanDialogOpen}
           onOpenChange={setScanDialogOpen}
-          onTitleScanned={handleNewGameScanned}
+          onDetailsScanned={handleNewGameScanned}
       />
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Enter the name of the new game or scan the box.
+                  Enter the game details below or scan the box to auto-fill.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
+              
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Game Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="name" className="text-right">
-                        Game Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input id="name" {...field} className="col-span-3" />
-                      </FormControl>
-                      <FormMessage />
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                        <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
                     </FormItem>
-                  )}
+                )}
+               />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="minPlayers"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Min Players</FormLabel>
+                        <FormControl>
+                            <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="maxPlayers"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Max Players</FormLabel>
+                        <FormControl>
+                            <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
                 />
               </div>
-              <DialogFooter className="grid grid-cols-2 gap-2">
+
+               <FormField
+                control={form.control}
+                name="difficulty"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Difficulty</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select difficulty..." />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            <SelectItem value="Beginner">Beginner</SelectItem>
+                            <SelectItem value="Intermediate">Intermediate</SelectItem>
+                            <SelectItem value="Advanced">Advanced</SelectItem>
+                            <SelectItem value="Expert">Expert</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+
+              <DialogFooter className="grid grid-cols-2 gap-2 pt-4">
                  <Button type="button" variant="outline" onClick={() => setScanDialogOpen(true)} disabled={isLoading}>
                     <Scan className="mr-2 h-4 w-4" />
                     Scan Box

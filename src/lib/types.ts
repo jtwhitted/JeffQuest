@@ -9,6 +9,9 @@ export interface Game {
   name: string;
   category: string;
   imageUrl: string;
+  minPlayers?: number;
+  maxPlayers?: number;
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 }
 
 export interface Session {

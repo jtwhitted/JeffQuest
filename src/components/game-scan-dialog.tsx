@@ -13,18 +13,18 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
+import { getGameDetailsFromImage, type GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
 interface GameScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTitleScanned: (title: string) => void;
+  onDetailsScanned: (details: GetGameDetailsOutput) => void;
 }
 
 export function GameScanDialog({
   open,
   onOpenChange,
-  onTitleScanned,
+  onDetailsScanned,
 }: GameScanDialogProps) {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -79,19 +79,19 @@ export function GameScanDialog({
 
     setIsLoading(true);
     try {
-      const result = await getGameTitleFromImage({ photoDataUri: capturedImage });
-      onTitleScanned(result.title);
+      const result = await getGameDetailsFromImage({ photoDataUri: capturedImage });
+      onDetailsScanned(result);
       toast({
-        title: 'Title Identified!',
-        description: `Found title: ${result.title}`,
+        title: 'Details Identified!',
+        description: `Found details for: ${result.title}`,
       });
       handleClose();
     } catch (error) {
-      console.error('Error identifying game title:', error);
+      console.error('Error identifying game details:', error);
       toast({
         variant: 'destructive',
         title: 'AI Error',
-        description: 'Could not identify a game title from the image.',
+        description: 'Could not identify game details from the image.',
       });
     } finally {
       setIsLoading(false);
@@ -174,7 +174,7 @@ export function GameScanDialog({
                 {isLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Confirm Title
+                Confirm Details
               </Button>
             </>
           )}

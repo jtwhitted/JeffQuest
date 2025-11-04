@@ -39,6 +39,7 @@ import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
+import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -80,9 +81,9 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
   const selectedPlayerIds = form.watch('playerIds');
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
 
-  const handleNewGameScanned = async (title: string) => {
+  const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
     try {
-        const newGame = await addGame({ name: title });
+        const newGame = await addGame(details);
         if (newGame) {
             setGames(prevGames => [...prevGames, newGame]);
             form.setValue('gameId', newGame.id);
@@ -129,7 +130,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     <GameScanDialog
         open={isScanDialogOpen}
         onOpenChange={setScanDialogOpen}
-        onTitleScanned={handleNewGameScanned}
+        onDetailsScanned={handleNewGameScanned}
     />
     <AddPlayerDialog
         open={isAddPlayerDialogOpen}

@@ -40,6 +40,10 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
 
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
+    category: z.string().min(1, 'Category is required.'),
+    minPlayers: z.coerce.number().min(1),
+    maxPlayers: z.coerce.number().min(1),
+    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
 });
 
 export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game | null> {
@@ -50,14 +54,18 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
         return null;
     }
-
+    
+    const { name, category, minPlayers, maxPlayers, difficulty } = validatedFields.data;
     const randomImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
 
     // In a real app, you would save this to your database and get a real ID
     const newGame: Game = {
         id: `g${Math.floor(Math.random() * 1000) + 6}`, // semi-random ID for demo
-        name: validatedFields.data.name,
-        category: 'Uncategorized', // Default category
+        name,
+        category,
+        minPlayers,
+        maxPlayers,
+        difficulty,
         imageUrl: randomImage.imageUrl,
     };
     

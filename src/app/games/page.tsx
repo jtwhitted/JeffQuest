@@ -4,7 +4,7 @@ import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { Crown, Swords, PlusCircle, Trash2 } from 'lucide-react';
+import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3 } from 'lucide-react';
 import type { Metadata } from 'next';
 import { useState, useEffect } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
@@ -13,6 +13,7 @@ import { AddGameDialog } from '@/components/add-game-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { deleteGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 // export const metadata: Metadata = {
 //     title: 'Games | Tabletop Tracker',
@@ -113,14 +114,26 @@ export default function GamesPage() {
                 <div className="flex-1">
                   <CardTitle>{game.name}</CardTitle>
                   <CardDescription>{game.category}</CardDescription>
-                  <div className="mt-2 flex items-center text-sm text-muted-foreground">
-                    <Swords className="mr-2 h-4 w-4" />
-                    <span>Played {game.playCount} {game.playCount === 1 ? 'time' : 'times'}</span>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                        <Swords className="mr-1.5 h-4 w-4" />
+                        <span>{game.playCount} {game.playCount === 1 ? 'play' : 'plays'}</span>
+                    </div>
+                    <div className="flex items-center">
+                        <Users className="mr-1.5 h-4 w-4" />
+                        <span>{game.minPlayers}-{game.maxPlayers} players</span>
+                    </div>
+                    {game.difficulty && (
+                    <div className="flex items-center">
+                        <BarChart3 className="mr-1.5 h-4 w-4" />
+                        <span>{game.difficulty}</span>
+                    </div>
+                    )}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 hover:bg-destructive/10" onClick={() => setGameToDelete(game)}>
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete game</span>
+                <Button variant="ghost" size="icon" className="absolute top-2 right-2 shrink-0" onClick={() => setGameToDelete(game)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground transition-colors hover:text-destructive" />
+                    <span className="sr-only">Delete game</span>
                 </Button>
               </CardHeader>
               <CardContent className="flex-1">
