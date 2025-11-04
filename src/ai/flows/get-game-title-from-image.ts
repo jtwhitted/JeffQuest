@@ -40,29 +40,6 @@ const GetGameDetailsOutputSchema = z.object({
 });
 export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 
-// Helper to convert URL to data URI
-async function urlToDataUri(url: string): Promise<string> {
-  try {
-      let fetchUrl = url;
-      // Handle protocol-relative URLs from BGG API
-      if (fetchUrl.startsWith('//')) {
-          fetchUrl = `https:${fetchUrl}`;
-      }
-      const response = await fetch(fetchUrl);
-      if (!response.ok) {
-          console.error(`Failed to fetch image from ${fetchUrl}. Status: ${response.status}`);
-          return url; // Fallback to original URL on failure
-      }
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      return `data:${blob.type};base64,${buffer.toString('base64')}`;
-  } catch (error) {
-      console.error(`Error converting image to data URI: ${error}`);
-      return url; // Fallback to original URL on error
-  }
-}
-
 export async function getGameDetailsFromImage(input: GetGameDetailsInput): Promise<GetGameDetailsOutput> {
   return getGameDetailsFlow(input);
 }
@@ -132,11 +109,10 @@ const getGameDetailsFlow = ai.defineFlow(
         }
     }
     
-    // Step 5: Convert the final image URL to a Data URI.
-    // This is the only slow operation and we do it once at the end.
+    // Step 5: Ensure the image URL has a protocol.
     let finalImageUrl = gameDetails.imageUrl;
-    if (gameDetails.imageUrl && !gameDetails.imageUrl.startsWith('data:')) {
-      finalImageUrl = await urlToDataUri(gameDetails.imageUrl);
+    if (finalImageUrl && finalImageUrl.startsWith('//')) {
+      finalImageUrl = `https:${finalImageUrl}`;
     }
     
     return {
