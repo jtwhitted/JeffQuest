@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cf.geekdo-images.com',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
   experimental: {
