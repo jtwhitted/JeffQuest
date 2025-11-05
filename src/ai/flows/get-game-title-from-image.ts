@@ -35,7 +35,7 @@ const GetGameDetailsOutputSchema = z.object({
   complexity: z.number().optional().describe('The complexity or "weight" rating from BGG (1-5).'),
   designers: z.array(z.string()).optional().describe('The designers of the game.'),
   publishers: z.array(z.string()).optional().describe('The publishers of the game.'),
-  imageUrl: z.string().optional().describe('A URL to the game\'s box art image.'),
+  imageUrl: z.string().optional().describe("A URL to the game's box art image."),
 });
 export type GetGameDetailsOutput = z.infer<typeof GetGameDetailsOutputSchema>;
 
@@ -55,7 +55,7 @@ const getGameTitlePrompt = ai.definePrompt({
 const getDetailsFromTitlePrompt = ai.definePrompt({
     name: 'getDetailsFromTitlePrompt',
     input: { schema: z.object({ name: z.string() }) },
-    output: { schema: GetGameDetailsOutputSchema.omit({ name: true, imageUrl: true }) },
+    output: { schema: GetGameDetailsOutputSchema.omit({ name: true }) },
     prompt: `You are a board game expert. Based on the game title "{{name}}", provide a best-guess approximation for the following details.
     
     - category: A single, primary category.
@@ -64,6 +64,7 @@ const getDetailsFromTitlePrompt = ai.definePrompt({
     - maxPlayers: A reasonable maximum number of players.
     - difficulty: Your best estimate of the difficulty.
     - description: A short, one-paragraph description of the game.
+    - imageUrl: Find a publicly accessible URL for the game's box art.
     
     Do not invent wild details. Base your answer on general knowledge of popular board games.
     If you do not know the game, provide very generic details (e.g., "Strategy", 2-4 players, "Intermediate").`
@@ -108,7 +109,7 @@ const getGameDetailsFlow = ai.defineFlow(
         complexity: output.complexity,
         designers: output.designers,
         publishers: output.publishers,
-        imageUrl: '', // We will let the server action assign a placeholder
+        imageUrl: output.imageUrl || '',
     };
   }
 );
