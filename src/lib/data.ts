@@ -5,7 +5,7 @@ import type { Player, Game, Session } from './types';
 
 let players: Player[] = [
   { id: 'p1', name: 'Alex', avatarUrl: 'https://images.unsplash.com/photo-1535643302794-19c3804b874b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzYyMjgwNTQ5fDA&ixlib=rb-4.1.0&q=80&w=200' },
-  { id: 'p2', name: 'Ben', avatarUrl: 'https://images.unsplash.com/photo-1592621385612-4d7129426394?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjI0NDMxOHww&ixlib=rb-4.1.0&q=80&w=200' },
+  { id: 'p2', name: 'Ben', avatarUrl: 'https://images.unsplash.com/photo-1592621385612-4d7129426394?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8fDE3NjIyNDQzMTh8MA&ixlib=rb-4.1.0&q=80&w=200' },
   { id: 'p3', name: 'Chris', avatarUrl: 'https://images.unsplash.com/photo-1607031542107-f6f46b5d54e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjIyMjQ5MzB8MA&ixlib=rb-4.1.0&q=80&w=200' },
   { id: 'p4', name: 'Dana', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2MjI4NTc0OHww&ixlib=rb-4.1.0&q=80&w=200' },
 ];
@@ -194,16 +194,16 @@ export function getInitialData() {
 
 // Functions to modify the mock database
 export function addGameToDB(game: Game) {
-    games.push(game);
+    games = [...games, game];
 }
 
 export function addSessionToDB(session: Session) {
-    sessions.push(session);
+    sessions = [...sessions, session];
     return session;
 }
 
 export function addPlayerToDB(player: Player) {
-    players.push(player);
+    players = [...players, player];
 }
 
 export function deleteGameFromDB(gameId: string) {
