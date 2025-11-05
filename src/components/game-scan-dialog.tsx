@@ -98,7 +98,7 @@ export function GameScanDialog({
       toast({
         variant: 'destructive',
         title: 'Error Identifying Game',
-        description: `Could not get game details: ${errorMessage}`,
+        description: `Could not get game details. This may be due to API rate limits. ${errorMessage}`,
         duration: 10000,
       });
     } finally {
