@@ -27,7 +27,8 @@ async function fetchAndParseXml(url: string) {
             await new Promise(resolve => setTimeout(resolve, 2000));
             const retryResponse = await fetch(url, { headers });
             if (!retryResponse.ok) {
-                 throw new Error(`BGG API request failed after retry with status ${retryResponse.status}: ${retryResponse.statusText} for URL: ${url}`);
+                 const errorBody = await retryResponse.text();
+                 throw new Error(`BGG API request failed after retry with status ${retryResponse.status}: ${retryResponse.statusText} for URL: ${url}. Body: ${errorBody}`);
             }
             const xmlText = await retryResponse.text();
             return parseXml(xmlText);
