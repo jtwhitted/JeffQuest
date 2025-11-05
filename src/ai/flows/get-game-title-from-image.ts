@@ -53,6 +53,23 @@ const getGameTitlePrompt = ai.definePrompt({
   Image: {{media url=photoDataUri}}`,
 });
 
+const getDetailsFromTitlePrompt = ai.definePrompt({
+    name: 'getDetailsFromTitlePrompt',
+    input: { schema: z.object({ name: z.string() }) },
+    output: { schema: GetGameDetailsOutputSchema.omit({ name: true, imageUrl: true }) },
+    prompt: `You are a board game expert. Based on the game title "{{name}}", provide a best-guess approximation for the following details.
+    
+    - category: A single, primary category.
+    - mechanics: A list of 2-3 core mechanics.
+    - minPlayers: A reasonable minimum number of players.
+    - maxPlayers: A reasonable maximum number of players.
+    - difficulty: Your best estimate of the difficulty.
+    - description: A short, one-paragraph description of the game.
+    
+    Do not invent wild details. Base your answer on general knowledge of popular board games.
+    If you do not know the game, provide very generic details (e.g., "Strategy", 2-4 players, "Intermediate").`
+});
+
 
 const getGameDetailsFlow = ai.defineFlow(
   {
@@ -93,20 +110,26 @@ const getGameDetailsFlow = ai.defineFlow(
             }
         }
     } catch (error) {
-        console.error(`BGG lookup failed for "${title}". Proceeding with AI-identified title only. Error:`, error);
-        // Do not throw; we will proceed with default data.
+        console.error(`BGG lookup failed for "${title}". Proceeding with AI-generated details. Error:`, error);
+        // Do not throw; we will proceed to the AI fallback.
     }
     
-    // If BGG lookup failed, we create a default object.
+    // Step 5: If BGG lookup failed, use another AI prompt to generate default data from the title.
     if (!gameDetails) {
+        const { output } = await getDetailsFromTitlePrompt({ name: title });
+        if (!output) {
+            throw new Error('AI fallback for details failed.');
+        }
         return {
             name: title,
-            category: 'Uncategorized',
-            mechanics: [],
-            minPlayers: 1,
-            maxPlayers: 1,
-            difficulty: 'Intermediate',
-            imageUrl: '',
+            category: output.category,
+            mechanics: output.mechanics,
+            minPlayers: output.minPlayers,
+            maxPlayers: output.maxPlayers,
+            difficulty: output.difficulty,
+            yearPublished: output.yearPublished,
+            description: output.description,
+            imageUrl: '', // No image if BGG fails
         };
     }
 
@@ -124,7 +147,7 @@ const getGameDetailsFlow = ai.defineFlow(
         }
     }
     
-    // Step 5: Ensure the image URL has a protocol.
+    // Step 6: Ensure the image URL has a protocol.
     let finalImageUrl = gameDetails.imageUrl || '';
     if (finalImageUrl && finalImageUrl.startsWith('//')) {
       finalImageUrl = `https:${finalImageUrl}`;
