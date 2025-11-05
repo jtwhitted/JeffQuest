@@ -49,7 +49,6 @@ export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
       />
       <Button
         variant="destructive"
-        outline
         onClick={() => setDeleteDialogOpen(true)}
       >
         <Trash2 className="mr-2" />
