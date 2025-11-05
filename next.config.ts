@@ -34,9 +34,6 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {},
-    turbo: {
-      forceSwcTransforms: false
-    }
   },
 };
 
