@@ -1,3 +1,4 @@
+
 'use client';
 
 import { z } from 'zod';
@@ -77,7 +78,7 @@ export default function GameLogForm() {
   const router = useRouter();
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
-  const { games, addGame, refetchGames } = useGames();
+  const { games, addGame } = useGames();
   const [players, setPlayers] = useState<Player[]>([]);
   const [isClient, setIsClient] = useState(false);
 
@@ -148,10 +149,8 @@ export default function GameLogForm() {
   const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
     try {
         await addGame(details);
-        // The context will refetch, so the new game will be in the `games` state
-        await refetchGames(); // Force a refetch to get the ID
-        const updatedGames = await games;
-        const newGame = updatedGames.find(g => g.name === details.name);
+        // The context will update the games list, and the new game will be available
+        const newGame = games.find(g => g.name === details.name);
         if (newGame) {
             form.setValue('gameId', newGame.id);
         }
@@ -367,7 +366,7 @@ export default function GameLogForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Game Outcome</FormLabel>
-                  <Select onValuechange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select co-op result..." />

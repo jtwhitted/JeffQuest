@@ -140,7 +140,7 @@ const gameFormSchema = z.object({
     imageUrl: z.string().optional(),
 });
 
-export async function addGame(values: z.infer<typeof gameFormSchema>) {
+export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
     const validatedFields = gameFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
@@ -161,6 +161,8 @@ export async function addGame(values: z.infer<typeof gameFormSchema>) {
     
     revalidatePath('/games');
     revalidatePath('/sessions/new');
+    
+    return newGame;
 }
 
 export async function deleteGame(gameId: string) {

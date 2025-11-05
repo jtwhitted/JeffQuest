@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
@@ -36,9 +37,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [refetchGames]);
 
   const addGame = useCallback(async (gameData: GetGameDetailsOutput) => {
-    await addGameAction(gameData);
-    await refetchGames(); // Refetch to get the latest list from the "server"
-  }, [refetchGames]);
+    const newGame = await addGameAction(gameData);
+    setGames(prevGames => [...prevGames, newGame]);
+  }, []);
 
   return (
     <GameContext.Provider value={{ games, addGame, isLoading, refetchGames }}>
