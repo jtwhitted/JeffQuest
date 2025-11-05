@@ -149,9 +149,8 @@ export default function GameLogForm() {
     try {
         await addGame(details);
         // The context will refetch, so the new game will be in the `games` state
-        // Find the newly added game to set its ID in the form.
-        // This is a bit of a hack, assuming the last added game is the one.
-        const updatedGames = await getGames(); // A bit inefficient, but ensures we have the ID
+        await refetchGames(); // Force a refetch to get the ID
+        const updatedGames = await games;
         const newGame = updatedGames.find(g => g.name === details.name);
         if (newGame) {
             form.setValue('gameId', newGame.id);
@@ -440,7 +439,7 @@ export default function GameLogForm() {
                                             newScores.push({ playerId: player.id, score: isNaN(scoreValue) ? undefined : scoreValue });
                                         }
                                         field.onChange(newScores);
-ax                                    }}
+                                    }}
                                 />
                             </div>
                         ))}
