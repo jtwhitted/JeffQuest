@@ -67,21 +67,10 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
 
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
-    category: z.string().min(1, 'Category is required.'),
-    mechanics: z.array(z.string()).optional(),
-    minPlayers: z.coerce.number().min(1),
-    maxPlayers: z.coerce.number().min(1),
-    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
-    yearPublished: z.coerce.number().optional(),
-    description: z.string().optional(),
-    minPlaytime: z.coerce.number().optional(),
-    maxPlaytime: z.coerce.number().optional(),
-    rating: z.coerce.number().optional(),
-    ratingCount: z.coerce.number().optional(),
-    complexity: z.coerce.number().optional(),
-    designers: z.array(z.string()).optional(),
-    publishers: z.array(z.string()).optional(),
-    imageUrl: z.string().optional(),
+    category: z.string().optional(),
+    minPlayers: z.coerce.number().optional(),
+    maxPlayers: z.coerce.number().optional(),
+    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).optional(),
 });
 
 export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -93,25 +82,33 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     const gameData = validatedFields.data;
+    
+    // Fetch details from BGG
+    const bggId = await searchBgg(gameData.name);
+    let bggDetails = null;
+    if (bggId) {
+        bggDetails = await getBggGameDetails(bggId);
+    }
 
     const newGame: Game = {
         id: `g${Date.now().toString()}`,
         name: gameData.name,
-        category: gameData.category,
-        mechanics: gameData.mechanics,
-        minPlayers: gameData.minPlayers,
-        maxPlayers: gameData.maxPlayers,
-        difficulty: gameData.difficulty,
-        yearPublished: gameData.yearPublished,
-        description: gameData.description,
-        minPlaytime: gameData.minPlaytime,
-        maxPlaytime: gameData.maxPlaytime,
-        rating: gameData.rating,
-        ratingCount: gameData.ratingCount,
-        complexity: gameData.complexity,
-        designers: gameData.designers,
-        publishers: gameData.publishers,
-        imageUrl: gameData.imageUrl || '',
+        // Use BGG details if available, otherwise use form fallbacks
+        category: bggDetails?.category || gameData.category || 'Unknown',
+        mechanics: bggDetails?.mechanics || [],
+        minPlayers: bggDetails?.minPlayers || gameData.minPlayers || 1,
+        maxPlayers: bggDetails?.maxPlayers || gameData.maxPlayers || 1,
+        difficulty: gameData.difficulty || bggDetails?.difficulty || 'Intermediate',
+        yearPublished: bggDetails?.yearPublished,
+        description: bggDetails?.description,
+        minPlaytime: bggDetails?.minPlaytime,
+        maxPlaytime: bggDetails?.maxPlaytime,
+        rating: bggDetails?.rating,
+        ratingCount: bggDetails?.ratingCount,
+        complexity: bggDetails?.complexity,
+        designers: bggDetails?.designers || [],
+        publishers: bggDetails?.publishers || [],
+        imageUrl: bggDetails?.imageUrl || '',
     };
     
     addGameToDB(newGame);

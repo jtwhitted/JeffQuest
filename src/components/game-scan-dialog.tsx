@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -13,12 +14,12 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle, RefreshCw } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getGameDetailsFromImage, type GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
+import { getGameTitleFromImage, type GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 
 interface GameScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDetailsScanned: (details: GetGameDetailsOutput) => void;
+  onDetailsScanned: (details: GetGameTitleOutput) => void;
 }
 
 export function GameScanDialog({
@@ -89,15 +90,15 @@ export function GameScanDialog({
 
     setIsLoading(true);
     try {
-      const result = await getGameDetailsFromImage({ photoDataUri: capturedImage });
+      const result = await getGameTitleFromImage({ photoDataUri: capturedImage });
       onDetailsScanned(result);
       handleClose();
     } catch (error) {
-      console.error('Error identifying game details:', error);
+      console.error('Error identifying game title:', error);
       toast({
         variant: 'destructive',
         title: 'Error Identifying Game',
-        description: 'Could not get game details from BoardGameGeek. The AI or BGG service may be temporarily unavailable. Please wait a moment and try again, or enter the details manually.',
+        description: 'Could not get game title from the image. The AI service may be temporarily unavailable. Please wait a moment and try again, or enter the title manually.',
         duration: 10000,
       });
     } finally {
@@ -196,7 +197,7 @@ export function GameScanDialog({
                 {isLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Confirm Details
+                Confirm Title
               </Button>
             </>
           )}

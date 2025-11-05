@@ -4,13 +4,13 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction } from '@/lib/actions';
-import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
+import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 
 interface GameContextType {
   games: Game[];
   players: Player[];
   sessions: Session[];
-  addGame: (gameData: GetGameDetailsOutput) => Promise<Game>;
+  addGame: (gameData: { name: string }) => Promise<Game>;
   addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   isLoading: boolean;
@@ -33,7 +33,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addGame = useCallback(async (gameData: GetGameDetailsOutput) => {
+  const addGame = useCallback(async (gameData: { name: string }) => {
     setIsLoading(true);
     try {
       const newGame = await addGameAction(gameData);

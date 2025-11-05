@@ -39,7 +39,7 @@ import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
-import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
+import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
 import { Label } from "./ui/label"
 import { useGames } from '@/context/game-context';
@@ -139,13 +139,23 @@ export default function GameLogForm() {
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
 
-  const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
+  const handleNewGameScanned = async (details: GetGameTitleOutput) => {
     try {
-        const newGame = await addGame(details);
+        const existingGame = games.find(g => g.name.toLowerCase() === details.title.toLowerCase());
+        if(existingGame) {
+          form.setValue('gameId', existingGame.id);
+          toast({
+            title: 'Game Found!',
+            description: `${existingGame.name} has been selected.`,
+          });
+          return;
+        }
+
+        const newGame = await addGame({name: details.title});
         form.setValue('gameId', newGame.id);
         toast({
             title: 'Game Added!',
-            description: `${details.name} has been added to your collection.`,
+            description: `${newGame.name} has been added and selected.`,
         });
     } catch (error) {
         toast({
@@ -202,7 +212,7 @@ export default function GameLogForm() {
                 <FormLabel>Game Played</FormLabel>
                 <Button type="button" variant="outline" size="sm" onClick={() => setScanDialogOpen(true)}>
                     <Scan className="mr-2 h-4 w-4" />
-                    Scan Game Box
+                    Scan/Add Game
                 </Button>
               </div>
               <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>

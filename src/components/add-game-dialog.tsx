@@ -22,18 +22,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from '@/components/ui/select';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
-import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
+import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
 
@@ -44,29 +37,6 @@ interface AddGameDialogProps {
 
 const formSchema = z.object({
   name: z.string().min(1, 'Game name is required.').max(100, 'Name must be 100 characters or less.'),
-  category: z.string().min(1, 'Category is required.'),
-  mechanics: z.array(z.string()).optional(),
-  minPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
-  maxPlayers: z.coerce.number().min(1, 'Must have at least 1 player.'),
-  difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
-  yearPublished: z.coerce.number().optional(),
-  description: z.string().optional(),
-  minPlaytime: z.coerce.number().optional(),
-  maxPlaytime: z.coerce.number().optional(),
-  rating: z.coerce.number().optional(),
-  ratingCount: z.coerce.number().optional(),
-  complexity: z.coerce.number().optional(),
-  designers: z.array(z.string()).optional(),
-  publishers: z.array(z.string()).optional(),
-  imageUrl: z.string().optional(),
-}).refine(data => {
-    if (data.minPlayers && data.maxPlayers) {
-        return data.maxPlayers >= data.minPlayers;
-    }
-    return true;
-}, {
-    message: 'Max players must be greater than or equal to min players.',
-    path: ['maxPlayers'],
 });
 
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
@@ -79,43 +49,25 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      category: 'Strategy',
-      mechanics: [],
-      minPlayers: 1,
-      maxPlayers: 4,
-      difficulty: 'Intermediate',
-      imageUrl: '',
     },
   });
   
-  const handleNewGameScanned = (details: GetGameDetailsOutput) => {
-    form.reset({
-        ...details,
-        // Ensure values that could be undefined are handled
-        yearPublished: details.yearPublished || undefined,
-        description: details.description || undefined,
-        minPlaytime: details.minPlaytime || undefined,
-        maxPlaytime: details.maxPlaytime || undefined,
-        rating: details.rating || undefined,
-        ratingCount: details.ratingCount || undefined,
-        complexity: details.complexity || undefined,
-        designers: details.designers || [],
-        publishers: details.publishers || [],
-        imageUrl: details.imageUrl || undefined,
-    });
+  const handleNewGameScanned = (details: GetGameTitleOutput) => {
+    form.setValue('name', details.title);
     toast({
-        title: 'Game Details Populated!',
-        description: 'The game details have been filled in. Review and save.',
+        title: 'Game Title Populated!',
+        description: 'The game title has been filled in. BGG data will be fetched upon saving.',
     });
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      await addGame(values);
+      // The addGame action will now handle fetching from BGG
+      const newGame = await addGame(values);
       toast({
         title: 'Game Added!',
-        description: `${values.name} has been added to your collection.`,
+        description: `${newGame.name} has been added to your collection.`,
       });
       handleClose();
     } catch (error) {
@@ -123,7 +75,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Could not add the new game. Please try again.',
+        description: 'Could not add the new game. The BGG API might be down or the game not found.',
       });
     } finally {
       setIsSubmitting(false);
@@ -149,13 +101,13 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Scan a game box to auto-fill the details, or enter them manually.
+                  Scan a game box to get the title, or enter details manually.
                 </DialogDescription>
               </DialogHeader>
 
               <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isSubmitting}>
                     <Scan className="mr-2 h-4 w-4" />
-                    Scan Box to Auto-Fill
+                    Scan Box to Get Title
               </Button>
               
               <div className="flex items-center gap-2">
@@ -171,79 +123,15 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                   <FormItem>
                     <FormLabel>Game Name</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} placeholder="e.g. Catan, Wingspan..."/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <FormControl>
-                        <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-               />
+              <p className="text-sm text-muted-foreground">Additional details (playtime, rating, etc.) will be fetched from BoardGameGeek when you save.</p>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="minPlayers"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Min Players</FormLabel>
-                        <FormControl>
-                            <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="maxPlayers"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Max Players</FormLabel>
-                        <FormControl>
-                            <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-              </div>
-
-               <FormField
-                control={form.control}
-                name="difficulty"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Difficulty</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select difficulty..." />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            <SelectItem value="Beginner">Beginner</SelectItem>
-                            <SelectItem value="Intermediate">Intermediate</SelectItem>
-                            <SelectItem value="Advanced">Advanced</SelectItem>
-                            <SelectItem value="Expert">Expert</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
 
               <DialogFooter className="pt-4">
                 <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
