@@ -80,7 +80,7 @@ export let games: Game[] = [
     difficulty: 'Expert',
     mechanics: ['Campaign', 'Legacy', 'Hand Management'],
     yearPublished: 2017,
-    description: 'Gloomhaven is a game of Euro-inspired tactical combat in a persistent world of shifting motives. Players will take on the role of a wandering adventurer with their own special set of skills and their own reasons for traveling to this dark corner of the world.',
+    description: 'Gloomhaven is a game of Euro-inspired tactical combat in a persistent world of shifting motives. Players will take on the role of a wandering adventurer with their own special set of skills and their own reasons for traveling to this dark corner of the. world.',
     imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiJGStVyd4A__imagepage/img/jB9bS_319e-Gu2g22L2g4g4S53Y=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2437871.jpg',
     minPlaytime: 60,
     maxPlaytime: 120,
