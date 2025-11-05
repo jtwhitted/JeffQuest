@@ -1,9 +1,10 @@
+
 import { getGameById, getSessions, getPlayers } from '@/lib/actions';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,7 +69,13 @@ export default async function GameDetailPage({ params }: { params: { id: string 
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="md:w-1/3">
-                            <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} board game`} />
+                            {game.imageUrl ? (
+                                <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} board game`} />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center rounded-lg bg-muted aspect-square">
+                                    <Dices className="h-16 w-16 text-muted-foreground" />
+                                </div>
+                            )}
                         </div>
                         <div className="md:w-2/3 space-y-4">
                             <div className="space-y-2">
