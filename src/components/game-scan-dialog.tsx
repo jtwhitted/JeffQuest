@@ -97,7 +97,7 @@ export function GameScanDialog({
       toast({
         variant: 'destructive',
         title: 'Error Identifying Game',
-        description: 'Could not get game details. The AI service may be temporarily unavailable due to rate limits. Please wait a moment and try again.',
+        description: 'Could not get game details. The AI or BGG service may be temporarily unavailable. Please wait a moment and try again.',
         duration: 10000,
       });
     } finally {

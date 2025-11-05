@@ -198,10 +198,13 @@ export async function getGames(): Promise<Game[]> {
   noStore();
    // In a real app, you would fetch this from a database
   // and handle image URLs properly.
-  const gamesWithImages = games.map(game => ({
-    ...game,
-    imageUrl: game.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
-  }));
+  const gamesWithImages = games.map(game => {
+    const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
+    return {
+        ...game,
+        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+    }
+  });
   return Promise.resolve(gamesWithImages);
 }
 
@@ -219,9 +222,10 @@ export async function getGameById(id: string): Promise<Game | undefined> {
     noStore();
     const game = games.find(g => g.id === id);
     if (game) {
+      const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
       return {
         ...game,
-        imageUrl: game.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
       };
     }
     return undefined;

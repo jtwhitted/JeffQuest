@@ -110,7 +110,7 @@ const getGameDetailsFlow = ai.defineFlow(
     }
     
     // Step 5: Ensure the image URL has a protocol.
-    let finalImageUrl = gameDetails.imageUrl;
+    let finalImageUrl = gameDetails.imageUrl || '';
     if (finalImageUrl && finalImageUrl.startsWith('//')) {
       finalImageUrl = `https:${finalImageUrl}`;
     }
