@@ -11,7 +11,7 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
-import { unstable_noStore as noStore } from 'next/cache';
+import { searchBgg, getBggGameDetails } from './bgg';
 
 // Server Actions for data mutation
 
@@ -95,13 +95,39 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         throw new Error('Invalid game data.');
     }
     
-    const { name, imageUrl, ...rest } = validatedFields.data;
+    let gameData = validatedFields.data;
     
+    // Fetch details from BGG to enrich the data
+    const bggId = await searchBgg(gameData.name);
+    if (bggId) {
+        const bggDetails = await getBggGameDetails(bggId);
+        if (bggDetails) {
+            // Merge BGG data with form data, giving precedence to BGG
+            gameData = {
+                ...gameData,
+                ...bggDetails,
+            };
+        }
+    }
+
     const newGame: Game = {
         id: `g${Date.now().toString()}`,
-        name,
-        imageUrl: imageUrl || '',
-        ...rest
+        name: gameData.name,
+        category: gameData.category,
+        mechanics: gameData.mechanics,
+        minPlayers: gameData.minPlayers,
+        maxPlayers: gameData.maxPlayers,
+        difficulty: gameData.difficulty,
+        yearPublished: gameData.yearPublished,
+        description: gameData.description,
+        minPlaytime: gameData.minPlaytime,
+        maxPlaytime: gameData.maxPlaytime,
+        rating: gameData.rating,
+        ratingCount: gameData.ratingCount,
+        complexity: gameData.complexity,
+        designers: gameData.designers,
+        publishers: gameData.publishers,
+        imageUrl: gameData.imageUrl || '',
     };
     
     addGameToDB(newGame);

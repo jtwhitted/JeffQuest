@@ -1,14 +1,16 @@
+
 'use server';
 /**
- * @fileOverview An AI flow to extract board game details from an image.
+ * @fileOverview An AI flow to extract a board game title from an image.
  *
- * - getGameDetailsFromImage - A function that takes an image of a game box and returns its details.
+ * - getGameDetailsFromImage - A function that takes an image of a game box and returns its title and basic, AI-generated details.
  * - GetGameDetailsInput - The input type for the getGameDetailsFromimage function.
  * - GetGameDetailsOutput - The return type for the getGameDetailsFromImage function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
+import { searchBgg, getBggGameDetails } from '@/lib/bgg';
 
 
 const GetGameDetailsInputSchema = z.object({
@@ -56,7 +58,18 @@ const getGameTitlePrompt = ai.definePrompt({
 const getDetailsFromTitlePrompt = ai.definePrompt({
     name: 'getDetailsFromTitlePrompt',
     input: { schema: z.object({ name: z.string() }) },
-    output: { schema: GetGameDetailsOutputSchema.omit({ name: true, imageUrl: true, rating: true, ratingCount: true, complexity: true }) },
+    output: { schema: GetGameDetailsOutputSchema.omit({ 
+        name: true, 
+        imageUrl: true, 
+        rating: true, 
+        ratingCount: true, 
+        complexity: true,
+        designers: true,
+        publishers: true,
+        yearPublished: true,
+        minPlaytime: true,
+        maxPlaytime: true,
+    }) },
     prompt: `You are a board game expert. Based on the game title "{{name}}", provide a best-guess approximation for the following details.
     
     - category: A single, primary category.
@@ -87,7 +100,18 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error("Could not determine game title from the image.");
     }
     
-    // Step 2: Use another AI prompt to generate default data from the title.
+    // Step 2: Search BGG for the game ID
+    const bggId = await searchBgg(title);
+
+    if (bggId) {
+        // Step 3: If found, get full details from BGG
+        const bggDetails = await getBggGameDetails(bggId);
+        if (bggDetails) {
+            return bggDetails;
+        }
+    }
+
+    // Step 4 (Fallback): If BGG search fails, use another AI prompt to generate default data.
     const { output } = await getDetailsFromTitlePrompt({ name: title });
     if (!output) {
         throw new Error('AI fallback for details failed.');
@@ -106,7 +130,7 @@ const getGameDetailsFlow = ai.defineFlow(
         maxPlaytime: output.maxPlaytime,
         designers: output.designers,
         publishers: output.publishers,
-        imageUrl: '', // This will be populated later
+        imageUrl: '',
     };
   }
 );
