@@ -20,9 +20,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const refetchGames = useCallback(async () => {
     setIsLoading(true);
-    const updatedGames = await fetchGames();
-    setGames(updatedGames);
-    setIsLoading(false);
+    try {
+        const updatedGames = await fetchGames();
+        setGames(updatedGames);
+    } catch (error) {
+        console.error("Failed to refetch games:", error);
+    } finally {
+        setIsLoading(false);
+    }
   }, []);
 
 

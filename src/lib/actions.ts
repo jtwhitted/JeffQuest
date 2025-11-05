@@ -150,7 +150,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>) {
     const { name, imageUrl, ...rest } = validatedFields.data;
     
     const newGame: Game = {
-        id: `g${Math.random().toString(36).substring(2, 9)}`,
+        id: `g${Date.now().toString()}`,
         name,
         imageUrl: imageUrl || PlaceHolderImages.find(img => img.id.startsWith('game-'))?.imageUrl || 'https://picsum.photos/seed/default/300/300',
         ...rest
@@ -189,7 +189,7 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     const randomImage = PlaceHolderImages.find(p => p.imageHint.includes('portrait'));
 
     const newPlayer: Player = {
-        id: `p${Math.random().toString(36).substring(2, 9)}`,
+        id: `p${Date.now().toString()}`,
         name,
         avatarUrl: avatarUrl || randomImage?.imageUrl || '',
     };
