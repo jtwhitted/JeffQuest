@@ -1,10 +1,10 @@
 'use client';
-import { getSessions, getGames, getPlayers } from '@/lib/data';
+import { getSessions, getPlayers } from '@/lib/data';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3 } from 'lucide-react';
+import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -14,33 +14,34 @@ import { deleteGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { useGames } from '@/context/game-context';
 
 export default function GamesPage() {
   const { toast } = useToast();
+  const { games, isLoading: areGamesLoading } = useGames();
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [games, setGames] = useState<Game[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [isAddGameOpen, setAddGameOpen] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
+  const [mutableGames, setMutableGames] = useState<Game[]>([]);
+
+  useEffect(() => {
+    setMutableGames(games);
+  }, [games]);
 
   useEffect(() => {
     async function fetchData() {
       setSessions(await getSessions());
-      setGames(await getGames());
       setPlayers(await getPlayers());
     }
     fetchData();
   }, []);
-  
-  const handleGameAdded = (newGame: Game) => {
-    setGames(prev => [...prev, newGame]);
-  }
 
   const handleDeleteGame = async () => {
     if (!gameToDelete) return;
     try {
       await deleteGame(gameToDelete.id);
-      setGames(prev => prev.filter(g => g.id !== gameToDelete.id));
+      setMutableGames(prev => prev.filter(g => g.id !== gameToDelete.id));
       toast({
         title: "Game Deleted",
         description: `${gameToDelete.name} has been removed from your collection.`
@@ -56,7 +57,7 @@ export default function GamesPage() {
     }
   }
 
-  const gamesWithStats = games.map(game => {
+  const gamesWithStats = mutableGames.map(game => {
     const gameSessions = sessions.filter(s => s.gameId === game.id);
     const playCount = gameSessions.length;
     
@@ -81,7 +82,7 @@ export default function GamesPage() {
 
   return (
     <>
-    <AddGameDialog open={isAddGameOpen} onOpenChange={setAddGameOpen} onGameAdded={handleGameAdded} />
+    <AddGameDialog open={isAddGameOpen} onOpenChange={setAddGameOpen} />
     <DeleteConfirmationDialog 
       open={!!gameToDelete}
       onOpenChange={() => setGameToDelete(null)}
@@ -100,7 +101,11 @@ export default function GamesPage() {
         </Button>
       </PageHeader>
 
-      {gamesWithStats.length > 0 ? (
+      {areGamesLoading ? (
+        <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : gamesWithStats.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {gamesWithStats.map(game => (
             <Link key={game.id} href={`/games/${game.id}`} className="flex">

@@ -21,7 +21,11 @@ const sessionFormSchema = z.object({
     if (data.isCooperative) {
         return !!data.cooperativeResult;
     }
-    return !!data.winnerId;
+    // For competitive games, a winner is required if there are players selected
+    if (data.playerIds.length > 0) {
+        return !!data.winnerId;
+    }
+    return true;
 }, {
     message: "A winner or a cooperative result must be selected.",
     path: ['winnerId'], // Show error on one of the fields
@@ -91,7 +95,6 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     // Since we are not actually persisting this data on the server,
     // we return the new game object so the client can update its state.
     
-    // In a real app, you might not need to return it if the client re-fetches after revalidation.
     revalidatePath('/sessions/new');
     revalidatePath('/games');
     

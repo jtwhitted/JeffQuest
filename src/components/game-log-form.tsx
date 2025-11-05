@@ -30,11 +30,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Game, Player } from '@/lib/types';
-import { addSession, addGame } from '@/lib/actions';
+import { addSession } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Scan, UserPlus, Users } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState } from 'react';
@@ -42,6 +42,7 @@ import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
 import { Label } from "./ui/label"
+import { useGames } from '@/context/game-context';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -72,7 +73,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface GameLogFormProps {
-  games: Game[];
+  games: Game[]; // Keep this for initial data, but we'll use context
   players: Player[];
 }
 
@@ -81,7 +82,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
   const router = useRouter();
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
-  const [games, setGames] = useState(initialGames);
+  const { games, addGame: addGameToContext } = useGames();
   const [players, setPlayers] = useState(initialPlayers);
   const [isClient, setIsClient] = useState(false);
 
@@ -146,9 +147,8 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
 
   const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
     try {
-        const newGame = await addGame(details);
+        const newGame = await addGameToContext(details);
         if (newGame) {
-            setGames(prevGames => [...prevGames, newGame]);
             form.setValue('gameId', newGame.id);
             toast({
                 title: 'Game Added!',
@@ -474,5 +474,3 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
     </>
   );
 }
-
-    

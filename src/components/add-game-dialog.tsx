@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Scan } from 'lucide-react';
 import React, { useState } from 'react';
-import { addGame } from '@/lib/actions';
 import type { Game } from '@/lib/types';
 import {
   Form,
@@ -36,11 +35,12 @@ import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 import { Separator } from './ui/separator';
+import { useGames } from '@/context/game-context';
 
 interface AddGameDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGameAdded: (game: Game) => void;
+  onGameAdded?: (game: Game) => void; // This is now optional
 }
 
 const formSchema = z.object({
@@ -69,6 +69,7 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
+  const { addGame } = useGames();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -109,7 +110,7 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
     try {
       const newGame = await addGame(values);
       if (newGame) {
-        onGameAdded(newGame);
+        onGameAdded?.(newGame);
         toast({
           title: 'Game Added!',
           description: `${newGame.name} has been added to your collection.`,
