@@ -198,7 +198,7 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     
     revalidatePath('/players');
     revalidatePath('/sessions/new');
-    return newPlayer; // Keep returning for immediate UI update in player dialog
+    return newPlayer;
 }
 
 export async function deletePlayer(playerId: string) {

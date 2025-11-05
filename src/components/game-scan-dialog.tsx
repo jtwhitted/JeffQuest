@@ -97,7 +97,7 @@ export function GameScanDialog({
       toast({
         variant: 'destructive',
         title: 'Error Identifying Game',
-        description: 'Could not get game details. The AI or BGG service may be temporarily unavailable. Please wait a moment and try again.',
+        description: 'Could not get game details from BoardGameGeek. The AI or BGG service may be temporarily unavailable. Please wait a moment and try again, or enter the details manually.',
         duration: 10000,
       });
     } finally {

@@ -98,7 +98,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         imageUrl: details.imageUrl || undefined,
     });
     toast({
-        title: 'Game Details Scanned!',
+        title: 'Game Details Populated!',
         description: 'The game details have been filled in. Review and save.',
     });
   };
@@ -117,7 +117,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Could not add the new game.',
+        description: 'Could not add the new game. Please try again.',
       });
     } finally {
       setIsLoading(false);
