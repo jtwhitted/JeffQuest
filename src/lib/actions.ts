@@ -11,7 +11,8 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
-import { getBggGameDetails, searchBgg } from './bgg';
+import { getBggGameDetails } from './bgg';
+import { getBggIdFromTitle } from '@/ai/flows/get-bgg-id-from-title';
 
 // Server Actions for data mutation
 
@@ -80,16 +81,16 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     
     let { name, bggId } = validatedFields.data;
 
-    // If bggId is not provided, try to search for it
+    // If bggId is not provided, try to get it from the AI flow
     if (!bggId) {
         try {
-            const foundId = await searchBgg(name);
-            if (foundId) {
-                bggId = foundId;
+            const result = await getBggIdFromTitle({ title: name });
+            if (result && result.bggId) {
+                bggId = result.bggId;
             }
-        } catch (searchError) {
-            console.error("BGG search failed:", searchError);
-            // Proceed without BGG ID
+        } catch (aiError) {
+            console.error("AI lookup for BGG ID failed:", aiError);
+            // Proceed without a BGG ID if the AI fails
         }
     }
 
@@ -99,7 +100,12 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         const idMatch = bggId.match(/boardgamegeek\.com\/boardgame\/(\d+)/);
         const extractedId = idMatch ? idMatch[1] : bggId;
         if (extractedId) {
-            bggData = await getBggGameDetails(extractedId);
+            try {
+                bggData = await getBggGameDetails(extractedId);
+            } catch (bggError) {
+                console.error("BGG details fetch failed:", bggError);
+                // Proceed with only the name if BGG fetch fails
+            }
         }
     }
     

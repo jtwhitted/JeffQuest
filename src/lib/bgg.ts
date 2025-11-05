@@ -3,8 +3,7 @@
 
 import { XMLParser } from 'fast-xml-parser';
 
-// Note: Using a mix of v1 and v2 APIs. v1 for search, v2 for thing.
-const BGG_API_V1_URL = 'https://boardgamegeek.com/xmlapi';
+// Note: Using v2 for the 'thing' endpoint as it's reliable.
 const BGG_API_V2_URL = 'https://boardgamegeek.com/xmlapi2';
 
 // Helper to fetch and handle retries with delay, as BGG API can be slow
@@ -21,25 +20,6 @@ async function fetchWithRetry(url: string, retries = 5, delay = 1000): Promise<R
         }
     }
     throw new Error('Failed to fetch from BGG API after multiple retries.');
-}
-
-export async function searchBgg(name: string): Promise<string | null> {
-    const url = `${BGG_API_V1_URL}/search?query=${encodeURIComponent(name)}&type=boardgame&exact=1`;
-    try {
-        const response = await fetchWithRetry(url);
-        const xmlText = await response.text();
-        const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
-        const result = parser.parse(xmlText);
-
-        if (result.boardgames && result.boardgames.boardgame) {
-            const items = Array.isArray(result.boardgames.boardgame) ? result.boardgames.boardgame : [result.boardgames.boardgame];
-            return items[0]?.['@_objectid'] || null;
-        }
-        return null;
-    } catch (error) {
-        console.error(`BGG Search Error for "${name}":`, error);
-        return null;
-    }
 }
 
 export async function getBggGameDetails(bggId: string) {
