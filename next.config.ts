@@ -47,7 +47,6 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {},
   },
-  allowedDevOrigins: ["https://*.cloudworkstations.dev"],
 };
 
 export default nextConfig;
