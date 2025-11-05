@@ -1,6 +1,6 @@
 
 'use client';
-import { getSessions, getPlayers, getGames } from '@/lib/actions';
+import { getSessions, getPlayers } from '@/lib/actions';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
