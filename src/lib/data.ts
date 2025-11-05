@@ -15,7 +15,7 @@ const games: Game[] = [
     id: 'g1', 
     name: 'Catan', 
     category: 'Strategy', 
-    imageUrl: 'https://cf.geekdo-images.com/W3_MgieX6AR2V2Byi0s5sw__imagepage/img/M4wHHw_M3-2XvIe9KkY_g2uTf_g=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2419375.jpg',
+    imageUrl: '',
     minPlayers: 3, 
     maxPlayers: 4, 
     difficulty: 'Intermediate', 
@@ -34,7 +34,7 @@ const games: Game[] = [
     id: 'g2', 
     name: 'Wingspan', 
     category: 'Card', 
-    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/uIjeoKgHMcRtzRSR4MoUYl3nXxs=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4458123.jpg',
+    imageUrl: '',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Intermediate', 
@@ -53,7 +53,7 @@ const games: Game[] = [
     id: 'g3', 
     name: 'King of Tokyo', 
     category: 'Dice', 
-    imageUrl: 'https://cf.geekdo-images.com/m_RzXpHURC0_xLkvRj-t_g__imagepage/img/3o22113D-t3Z120U52L192iV2n4=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3043734.jpg',
+    imageUrl: '',
     minPlayers: 2, maxPlayers: 6, 
     difficulty: 'Beginner', 
     mechanics: ['Dice Rolling', 'Player Elimination', 'King of the Hill'],
@@ -71,7 +71,7 @@ const games: Game[] = [
     id: 'g4', 
     name: 'Gloomhaven', 
     category: 'RPG', 
-    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRiJGStVyd4A__imagepage/img/jB9bS_319e-Gu2g22L2g4g4S53Y=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2437871.jpg',
+    imageUrl: '',
     minPlayers: 1, 
     maxPlayers: 4, 
     difficulty: 'Expert', 
@@ -90,7 +90,7 @@ const games: Game[] = [
     id: 'g5', 
     name: 'Terraforming Mars', 
     category: 'Sci-fi', 
-    imageUrl: 'https://cf.geekdo-images.com/wg9oOLcsKvDesSUdZQ4rxw__imagepage/img/C3_H2oZf1L_1y0b2302cfn70sJw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3536616.jpg',
+    imageUrl: '',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Advanced', 
@@ -185,12 +185,24 @@ const sessions: Session[] = [
 // Simulate API calls
 export async function getPlayers(): Promise<Player[]> {
   noStore();
-  return Promise.resolve(players);
+  // In a real app, you would fetch this from a database
+  // and handle image URLs properly.
+  const playersWithImages = players.map(player => ({
+    ...player,
+    avatarUrl: player.avatarUrl || PlaceHolderImages.find(p => p.imageHint.includes('portrait'))?.imageUrl || ''
+  }));
+  return Promise.resolve(playersWithImages);
 }
 
 export async function getGames(): Promise<Game[]> {
   noStore();
-  return Promise.resolve(games);
+   // In a real app, you would fetch this from a database
+  // and handle image URLs properly.
+  const gamesWithImages = games.map(game => ({
+    ...game,
+    imageUrl: game.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+  }));
+  return Promise.resolve(gamesWithImages);
 }
 
 export async function getSessions(): Promise<Session[]> {
@@ -205,20 +217,17 @@ export async function getSessionById(id: string): Promise<Session | undefined> {
 
 export async function getGameById(id: string): Promise<Game | undefined> {
     noStore();
-    return Promise.resolve(games.find(g => g.id === id));
+    const game = games.find(g => g.id === id);
+    if (game) {
+      return {
+        ...game,
+        imageUrl: game.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+      };
+    }
+    return undefined;
 }
 
 export async function getPlayerById(id: string): Promise<Player | undefined> {
     noStore();
     return Promise.resolve(players.find(p => p.id === id));
 }
-
-    
-
-    
-
-
-
-
-
-

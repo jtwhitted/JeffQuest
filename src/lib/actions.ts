@@ -82,7 +82,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     const newGame: Game = {
         id: `g${Math.floor(Math.random() * 1000) + 6}`, // semi-random ID for demo
         name,
-        imageUrl: imageUrl || PlaceHolderImages.find(img => img.id === 'game-1')?.imageUrl || '',
+        imageUrl: imageUrl || PlaceHolderImages.find(img => img.id.startsWith('game-'))?.imageUrl || 'https://picsum.photos/seed/default/300/300',
         ...rest
     };
     
