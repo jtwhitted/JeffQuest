@@ -1,12 +1,13 @@
+
 import type { Metadata } from 'next';
 import { PT_Sans } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { Sidebar, SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import AppSidebar from '@/components/app-sidebar';
-import Header from '@/components/header';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { GameProvider } from '@/context/game-context';
+import { getInitialData } from '@/lib/data';
+import AppLayoutClient from '@/components/app-layout-client';
 
 const ptSans = PT_Sans({
   subsets: ['latin'],
@@ -24,6 +25,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialData = getInitialData();
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -35,19 +38,9 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased', ptSans.variable)}>
-        <GameProvider>
+        <GameProvider initialData={initialData}>
           <SidebarProvider>
-            <Sidebar
-              collapsible="icon"
-              variant="sidebar"
-              className="hidden bg-sidebar text-sidebar-foreground lg:flex lg:flex-col"
-            >
-              <AppSidebar />
-            </Sidebar>
-            <div className="flex flex-1 flex-col lg:pl-[--sidebar-width-icon]">
-              <Header />
-              <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-            </div>
+            <AppLayoutClient>{children}</AppLayoutClient>
           </SidebarProvider>
         </GameProvider>
         <Toaster />

@@ -1,17 +1,16 @@
-import { unstable_noStore as noStore } from 'next/cache';
+
 import type { Player, Game, Session } from './types';
 
 // This file now acts as a mock database.
-// All data fetching and mutation should go through `lib/actions.ts` to ensure consistency.
 
-export let players: Player[] = [
+let players: Player[] = [
   { id: 'p1', name: 'Alex', avatarUrl: 'https://images.unsplash.com/photo-1535643302794-19c3804b874b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzYyMjgwNTQ5fDA&ixlib=rb-4.1.0&q=80&w=200' },
   { id: 'p2', name: 'Ben', avatarUrl: 'https://images.unsplash.com/photo-1592621385612-4d7129426394?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjI0NDMxOHww&ixlib=rb-4.1.0&q=80&w=200' },
   { id: 'p3', name: 'Chris', avatarUrl: 'https://images.unsplash.com/photo-1607031542107-f6f46b5d54e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjIyMjQ5MzB8MA&ixlib=rb-4.1.0&q=80&w=200' },
   { id: 'p4', name: 'Dana', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2MjI4NTc0OHww&ixlib=rb-4.1.0&q=80&w=200' },
 ];
 
-export let games: Game[] = [
+let games: Game[] = [
   {
     id: 'g1',
     name: 'Catan',
@@ -109,7 +108,7 @@ export let games: Game[] = [
   }
 ];
 
-export let sessions: Session[] = [
+let sessions: Session[] = [
   {
     id: 's1',
     gameId: 'g1',
@@ -184,6 +183,15 @@ export let sessions: Session[] = [
   }
 ];
 
+// Data Accessor
+export function getInitialData() {
+    return {
+        players: [...players],
+        games: [...games],
+        sessions: [...sessions],
+    }
+}
+
 // Functions to modify the mock database
 export function addGameToDB(game: Game) {
     games.push(game);
@@ -191,6 +199,7 @@ export function addGameToDB(game: Game) {
 
 export function addSessionToDB(session: Session) {
     sessions.push(session);
+    return session;
 }
 
 export function addPlayerToDB(player: Player) {

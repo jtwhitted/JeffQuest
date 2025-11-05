@@ -31,7 +31,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Player } from '@/lib/types';
-import { addSession, getPlayers } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -78,17 +77,11 @@ export default function GameLogForm() {
   const router = useRouter();
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
-  const { games, addGame } = useGames();
-  const [players, setPlayers] = useState<Player[]>([]);
+  const { games, players, addGame, addPlayer, addSession } = useGames();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    async function loadPlayers() {
-        const initialPlayers = await getPlayers();
-        setPlayers(initialPlayers);
-    }
-    loadPlayers();
   }, []);
 
   const form = useForm<FormValues>({
@@ -134,7 +127,7 @@ export default function GameLogForm() {
   
     const validScores = scores?.filter(s => typeof s.score === 'number' && !isNaN(s.score));
   
-    if (validScores && validScores.length > 0) {
+    if (validScores && validScores.length > 0 && validScores.length === selectedPlayerIds.length) {
       const winner = validScores.reduce((prev, current) => {
         return (prev.score! > current.score!) ? prev : current;
       });
@@ -143,17 +136,13 @@ export default function GameLogForm() {
         form.setValue('winnerId', winner.playerId, { shouldValidate: true });
       }
     }
-  }, [scores, isCooperative, form]);
+  }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
 
   const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
     try {
-        await addGame(details);
-        // The context will update the games list, and the new game will be available
-        const newGame = games.find(g => g.name === details.name);
-        if (newGame) {
-            form.setValue('gameId', newGame.id);
-        }
+        const newGame = await addGame(details);
+        form.setValue('gameId', newGame.id);
         toast({
             title: 'Game Added!',
             description: `${details.name} has been added to your collection.`,
@@ -168,7 +157,6 @@ export default function GameLogForm() {
   };
 
   const handlePlayerAdded = (newPlayer: Player) => {
-    setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
     // Automatically select the new player
     const currentPlayerIds = form.getValues('playerIds');
     form.setValue('playerIds', [...currentPlayerIds, newPlayer.id]);

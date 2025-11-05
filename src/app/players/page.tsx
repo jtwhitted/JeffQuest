@@ -1,12 +1,11 @@
+
 'use client';
-import { getSessions, getPlayers, getGames } from '@/lib/actions';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Swords, Trophy, PlusCircle, Trash2 } from 'lucide-react';
-import type { Metadata } from 'next';
-import { useState, useEffect } from 'react';
+import { Swords, Trophy, PlusCircle, Trash2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddPlayerDialog } from '@/components/add-player-dialog';
@@ -14,38 +13,27 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 import { deletePlayer } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { PlayerDetailsDialog, type PlayerWithFullStats } from '@/components/player-details-dialog';
+import { useGames } from '@/context/game-context';
 
 export default function PlayersPage() {
   const { toast } = useToast();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [games, setGames] = useState<Game[]>([]);
+  const { sessions, players, games, isLoading, addPlayer } = useGames();
   const [isAddPlayerOpen, setAddPlayerOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithFullStats | null>(null);
 
-
-  useEffect(() => {
-    async function fetchData() {
-      setSessions(await getSessions());
-      setPlayers(await getPlayers());
-      setGames(await getGames());
-    }
-    fetchData();
-  }, []);
-
   const handlePlayerAdded = (newPlayer: Player) => {
-    setPlayers(prev => [...prev, newPlayer]);
+    // The context handles adding the player, so we just need to close the dialog
+    setAddPlayerOpen(false);
   };
 
   const handleDeletePlayer = async () => {
     if (!playerToDelete) return;
     try {
       await deletePlayer(playerToDelete.id);
-      setPlayers(prev => prev.filter(p => p.id !== playerToDelete.id));
-      toast({
+       toast({
         title: "Player Removed",
-        description: `${playerToDelete.name} has been removed from the group.`
+        description: `${playerToDelete.name} has been removed. The list will update on next refresh.`
       });
     } catch (e) {
       toast({
@@ -131,7 +119,11 @@ export default function PlayersPage() {
             Add New Player
           </Button>
         </PageHeader>
-        {playersWithStats.length > 0 ? (
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : playersWithStats.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {playersWithStats.map(player => (
               <Card 

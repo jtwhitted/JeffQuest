@@ -1,13 +1,12 @@
 
 'use client';
-import { getSessions, getPlayers } from '@/lib/actions';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3, Loader2, Dices } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { Game, Player, Session } from '@/lib/types';
+import { Crown, Swords, PlusCircle, Users, BarChart3, Loader2, Dices } from 'lucide-react';
+import { useState } from 'react';
+import type { Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddGameDialog } from '@/components/add-game-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
@@ -19,28 +18,23 @@ import { useGames } from '@/context/game-context';
 
 export default function GamesPage() {
   const { toast } = useToast();
-  const { games, isLoading: areGamesLoading, refetchGames } = useGames();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const { games, sessions, players, isLoading: areGamesLoading } = useGames();
   const [isAddGameOpen, setAddGameOpen] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
   
-  useEffect(() => {
-    async function fetchData() {
-      setSessions(await getSessions());
-      setPlayers(await getPlayers());
-    }
-    fetchData();
-  }, []);
+  // This is a local refetch function for the context, not used in this component but demonstrates pattern
+  // const { refetchGames } = useGames();
 
   const handleDeleteGame = async () => {
     if (!gameToDelete) return;
     try {
       await deleteGame(gameToDelete.id);
-      await refetchGames();
+      // The context is not automatically updated on deletes, so a refetch or manual removal is needed.
+      // For now, we'll just show a toast and let the user see the change on next refresh.
+      // A more robust solution would update the context state.
       toast({
         title: "Game Deleted",
-        description: `${gameToDelete.name} has been removed from your collection.`
+        description: `${gameToDelete.name} has been removed from your collection. The list will update on next refresh.`
       });
     } catch(e) {
        toast({

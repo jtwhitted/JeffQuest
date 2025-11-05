@@ -5,9 +5,6 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { Game, Player, Session } from './types';
 import { 
-    games as dbGames, 
-    players as dbPlayers, 
-    sessions as dbSessions,
     addGameToDB,
     addSessionToDB,
     addPlayerToDB,
@@ -15,39 +12,6 @@ import {
     deletePlayerFromDB
 } from './data';
 import { unstable_noStore as noStore } from 'next/cache';
-
-// Data fetching functions
-export async function getGames(): Promise<Game[]> {
-  noStore();
-  return Promise.resolve(dbGames);
-}
-
-export async function getPlayers(): Promise<Player[]> {
-  noStore();
-  return Promise.resolve(dbPlayers);
-}
-
-export async function getSessions(): Promise<Session[]> {
-  noStore();
-  return Promise.resolve(dbSessions);
-}
-
-export async function getGameById(id: string): Promise<Game | undefined> {
-    noStore();
-    const game = dbGames.find(g => g.id === id);
-    return Promise.resolve(game);
-}
-
-export async function getSessionById(id: string): Promise<Session | undefined> {
-    noStore();
-    return Promise.resolve(dbSessions.find(s => s.id === id));
-}
-
-export async function getPlayerById(id: string): Promise<Player | undefined> {
-    noStore();
-    return Promise.resolve(dbPlayers.find(p => p.id === id));
-}
-
 
 // Server Actions for data mutation
 
@@ -93,12 +57,14 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
     date: validatedFields.data.date.toISOString(),
   };
 
-  addSessionToDB(newSession);
+  const newSessionWithDate = addSessionToDB(newSession);
 
   revalidatePath('/sessions');
   revalidatePath('/');
   revalidatePath('/games');
   revalidatePath('/players');
+
+  return newSessionWithDate;
 }
 
 

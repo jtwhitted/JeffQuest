@@ -1,20 +1,14 @@
-import { getSessions, getGames, getPlayers } from '@/lib/actions';
+
+'use client';
 import SessionCard from '@/components/session-card';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import type { Metadata } from 'next';
+import { PlusCircle, Loader2 } from 'lucide-react';
+import { useGames } from '@/context/game-context';
 
-export const metadata: Metadata = {
-  title: 'Sessions | Tabletop Tracker',
-  description: 'Browse all your logged game sessions.',
-};
-
-export default async function SessionsPage() {
-  const sessions = await getSessions();
-  const games = await getGames();
-  const players = await getPlayers();
+export default function SessionsPage() {
+  const { sessions, games, players, isLoading } = useGames();
 
   const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -32,7 +26,11 @@ export default async function SessionsPage() {
         </Button>
       </PageHeader>
       
-      {sortedSessions.length > 0 ? (
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : sortedSessions.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sortedSessions.map((session) => {
             const game = games.find((g) => g.id === session.gameId);

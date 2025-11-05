@@ -1,47 +1,38 @@
 
-import { getGameById, getSessions, getPlayers } from '@/lib/actions';
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices } from 'lucide-react';
-import type { Metadata } from 'next';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DeleteGameButton } from './_components/delete-game-button';
 import { GameSessionHistory } from './_components/game-session-history';
+import { useGames } from '@/context/game-context';
 
-type Props = {
-  params: { id: string };
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const game = await getGameById(params.id);
+export default function GameDetailPage() {
+  const { id } = useParams();
+  const { games, sessions, players, isLoading } = useGames();
   
-  if (!game) {
-    return {
-      title: 'Game Not Found | Tabletop Tracker',
-    };
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  return {
-    title: `${game.name} | Tabletop Tracker`,
-    description: `Detailed information and statistics for ${game.name}.`,
-  };
-}
+  const game = games.find(g => g.id === id);
 
-
-export default async function GameDetailPage({ params }: { params: { id: string } }) {
-  const game = await getGameById(params.id);
   if (!game) {
     notFound();
   }
 
-  const allSessions = await getSessions();
-  const allPlayers = await getPlayers();
-  const gameSessions = allSessions.filter(s => s.gameId === game.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const gameSessions = sessions.filter(s => s.gameId === game.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const formatRating = (rating?: number) => rating ? rating.toFixed(1) : 'N/A';
   const formatComplexity = (complexity?: number) => complexity ? complexity.toFixed(2) : 'N/A';
@@ -80,7 +71,7 @@ export default async function GameDetailPage({ params }: { params: { id: string 
                         <div className="md:w-2/3 space-y-4">
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-bold">{game.name}</h2>
-                                <div className="prose prose-sm dark:prose-invert text-muted-foreground" dangerouslySetInnerHTML={{__html: game.description || '<p>No description available.</p>'}} />
+                                <div className="prose prose-sm dark:prose-invert text-muted-foreground" dangerouslySetInnerHTML={{__html: game.description?.replace(/\n/g, '<br />') || '<p>No description available.</p>'}} />
                             </div>
                         </div>
                     </div>
@@ -163,7 +154,7 @@ export default async function GameDetailPage({ params }: { params: { id: string 
             </Card>
         </div>
       </div>
-      <GameSessionHistory sessions={gameSessions} allPlayers={allPlayers} />
+      <GameSessionHistory sessions={gameSessions} allPlayers={players} />
     </div>
   );
 }

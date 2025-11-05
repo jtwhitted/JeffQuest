@@ -1,47 +1,73 @@
+
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import type { Game } from '@/lib/types';
-import { getGames as fetchGames, addGame as addGameAction } from '@/lib/actions';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import type { Game, Player, Session } from '@/lib/types';
+import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction } from '@/lib/actions';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
 interface GameContextType {
   games: Game[];
-  addGame: (gameData: GetGameDetailsOutput) => Promise<void>;
+  players: Player[];
+  sessions: Session[];
+  addGame: (gameData: GetGameDetailsOutput) => Promise<Game>;
+  addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
+  addSession: (sessionData: any) => Promise<Session>;
   isLoading: boolean;
-  refetchGames: () => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-export function GameProvider({ children }: { children: ReactNode }) {
-  const [games, setGames] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+interface GameProviderProps {
+  children: ReactNode;
+  initialData: {
+    games: Game[];
+    players: Player[];
+    sessions: Session[];
+  };
+}
 
-  const refetchGames = useCallback(async () => {
+export function GameProvider({ children, initialData }: GameProviderProps) {
+  const [games, setGames] = useState<Game[]>(initialData.games);
+  const [players, setPlayers] = useState<Player[]>(initialData.players);
+  const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const addGame = useCallback(async (gameData: GetGameDetailsOutput) => {
     setIsLoading(true);
     try {
-        const updatedGames = await fetchGames();
-        setGames(updatedGames);
-    } catch (error) {
-        console.error("Failed to refetch games:", error);
+      const newGame = await addGameAction(gameData);
+      setGames(prevGames => [...prevGames, newGame]);
+      return newGame;
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }, []);
 
-
-  useEffect(() => {
-    refetchGames();
-  }, [refetchGames]);
-
-  const addGame = useCallback(async (gameData: GetGameDetailsOutput) => {
-    const newGame = await addGameAction(gameData);
-    setGames(prevGames => [...prevGames, newGame]);
+  const addPlayer = useCallback(async (playerData: { name: string; avatarUrl?: string }) => {
+    setIsLoading(true);
+    try {
+      const newPlayer = await addPlayerAction(playerData);
+      setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
+      return newPlayer;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+  
+  const addSession = useCallback(async (sessionData: any) => {
+    setIsLoading(true);
+    try {
+      const newSession = await addSessionAction(sessionData);
+      setSessions(prevSessions => [...prevSessions, newSession]);
+      return newSession;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
-    <GameContext.Provider value={{ games, addGame, isLoading, refetchGames }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, addSession, isLoading }}>
       {children}
     </GameContext.Provider>
   );

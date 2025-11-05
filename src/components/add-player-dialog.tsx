@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -13,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera } from 'lucide-react';
 import React, { useState } from 'react';
-import { addPlayer } from '@/lib/actions';
 import type { Player } from '@/lib/types';
 import {
     Form,
@@ -28,6 +28,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useGames } from '@/context/game-context';
 
 interface AddPlayerDialogProps {
   open: boolean;
@@ -42,8 +43,8 @@ const formSchema = z.object({
 
 export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayerDialogProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [isCaptureDialogOpen, setCaptureDialogOpen] = useState(false);
+  const { addPlayer } = useGames();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,7 +53,8 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
         avatarUrl: '',
     }
   });
-
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const avatarUrl = form.watch('avatarUrl');
 
   const handleAvatarCaptured = (imageDataUrl: string) => {
@@ -65,19 +67,15 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const newPlayer = await addPlayer(values);
-      if (newPlayer) {
-        onPlayerAdded(newPlayer);
-        toast({
-          title: 'Player Added!',
-          description: `${newPlayer.name} has been added to the group.`,
-        });
-        handleClose();
-      } else {
-        throw new Error('Failed to create player.');
-      }
+      onPlayerAdded(newPlayer);
+      toast({
+        title: 'Player Added!',
+        description: `${newPlayer.name} has been added to the group.`,
+      });
+      handleClose();
     } catch (error) {
       console.error('Error adding player:', error);
       toast({
@@ -86,7 +84,7 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
         description: 'Could not add the new player.',
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
   
@@ -142,9 +140,9 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
                       />
                   </div>
                   <DialogFooter>
-                      <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>Cancel</Button>
-                      <Button type="submit" disabled={isLoading}>
-                          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
+                      <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Save Player
                       </Button>
                   </DialogFooter>

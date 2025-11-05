@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -65,7 +66,7 @@ const formSchema = z.object({
 
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const { addGame } = useGames();
 
@@ -104,7 +105,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       await addGame(values);
       toast({
@@ -120,7 +121,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         description: 'Could not add the new game. Please try again.',
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -147,7 +148,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 </DialogDescription>
               </DialogHeader>
 
-              <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isLoading}>
+              <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isSubmitting}>
                     <Scan className="mr-2 h-4 w-4" />
                     Scan Box to Auto-Fill
               </Button>
@@ -240,9 +241,9 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 />
 
               <DialogFooter className="pt-4">
-                <Button type="button" variant="ghost" onClick={handleClose} disabled={isLoading}>Cancel</Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Save Game
                 </Button>
               </DialogFooter>
