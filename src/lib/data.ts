@@ -42,7 +42,7 @@ export let games: Game[] = [
     mechanics: ['Card Drafting', 'Engine Building', 'Set Collection'],
     yearPublished: 2019,
     description: 'Wingspan is a competitive, medium-weight, card-driven, engine-building board game from Stonemaier Games. You are bird enthusiasts—researchers, bird watchers, ornithologists, and collectors—seeking to discover and attract the best birds to your network of wildlife preserves.',
-    imageUrl: 'https://images.unsplash.com/photo-1589982434682-275d315993a9?q=80&w=600&auto=format&fit=crop',
+    imageUrl: 'https://picsum.photos/seed/g2/600/600',
     minPlaytime: 40,
     maxPlaytime: 70,
     rating: 8.1,
