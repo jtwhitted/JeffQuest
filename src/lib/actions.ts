@@ -45,10 +45,7 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
   const validatedFields = sessionFormSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to Create Session.',
-    };
+    throw new Error('Invalid session data.');
   }
   
   const newSession: Session = {
@@ -95,20 +92,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         throw new Error('Invalid game data.');
     }
     
-    let gameData = validatedFields.data;
-    
-    // Fetch details from BGG to enrich the data
-    const bggId = await searchBgg(gameData.name);
-    if (bggId) {
-        const bggDetails = await getBggGameDetails(bggId);
-        if (bggDetails) {
-            // Merge BGG data with form data, giving precedence to BGG
-            gameData = {
-                ...gameData,
-                ...bggDetails,
-            };
-        }
-    }
+    const gameData = validatedFields.data;
 
     const newGame: Game = {
         id: `g${Date.now().toString()}`,

@@ -59,7 +59,12 @@ const formSchema = z.object({
   designers: z.array(z.string()).optional(),
   publishers: z.array(z.string()).optional(),
   imageUrl: z.string().optional(),
-}).refine(data => data.maxPlayers >= data.minPlayers, {
+}).refine(data => {
+    if (data.minPlayers && data.maxPlayers) {
+        return data.maxPlayers >= data.minPlayers;
+    }
+    return true;
+}, {
     message: 'Max players must be greater than or equal to min players.',
     path: ['maxPlayers'],
 });

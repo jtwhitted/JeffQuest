@@ -29,10 +29,10 @@ const GetGameDetailsOutputSchema = z.object({
   minPlayers: z.number().describe('The minimum number of players for the game.'),
   maxPlayers: z.number().describe('The maximum number of players for the game.'),
   difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).describe('The estimated difficulty of the game.'),
-  yearPublished: z.number().optional().describe('The year the game was published.'),
-  description: z.string().optional().describe('A brief description of the game.'),
-  minPlaytime: z.number().optional().describe('The minimum playtime in minutes.'),
-  maxPlaytime: z.number().optional().describe('The maximum playtime in minutes.'),
+  yearPublished: z.coerce.number().optional(),
+  description: z.string().optional(),
+  minPlaytime: z.coerce.number().optional(),
+  maxPlaytime: z.coerce.number().optional(),
   rating: z.coerce.number().optional(),
   ratingCount: z.coerce.number().optional(),
   complexity: z.coerce.number().optional(),
@@ -107,7 +107,7 @@ const getGameDetailsFlow = ai.defineFlow(
         // Step 3: If found, get full details from BGG
         const bggDetails = await getBggGameDetails(bggId);
         if (bggDetails) {
-            return bggDetails;
+            return bggDetails as GetGameDetailsOutput;
         }
     }
 
@@ -119,17 +119,7 @@ const getGameDetailsFlow = ai.defineFlow(
 
     return {
         name: title,
-        category: output.category,
-        mechanics: output.mechanics,
-        minPlayers: output.minPlayers,
-        maxPlayers: output.maxPlayers,
-        difficulty: output.difficulty,
-        yearPublished: output.yearPublished,
-        description: output.description,
-        minPlaytime: output.minPlaytime,
-        maxPlaytime: output.maxPlaytime,
-        designers: output.designers,
-        publishers: output.publishers,
+        ...output,
         imageUrl: '',
     };
   }
