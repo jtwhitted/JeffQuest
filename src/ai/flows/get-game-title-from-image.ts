@@ -73,28 +73,41 @@ const getGameDetailsFlow = ai.defineFlow(
     
     let gameDetails: BggGameDetails | null = null;
     
-    // Step 2: Use the title to search BGG for potential matches.
-    const searchResults = await searchBgg({ query: title });
-    
-    if (searchResults && searchResults.length > 0) {
-        // Step 3: Fetch lightweight stats for the top few results to find the best match.
-        const detailedStatsPromises = searchResults.slice(0, 3).map(result => getBggGameDetails({ id: result.id }));
-        const detailedStats = await Promise.all(detailedStatsPromises);
+    try {
+        // Step 2: Use the title to search BGG for potential matches.
+        const searchResults = await searchBgg({ query: title });
+        
+        if (searchResults && searchResults.length > 0) {
+            // Step 3: Fetch lightweight stats for the top few results to find the best match.
+            const detailedStatsPromises = searchResults.slice(0, 3).map(result => getBggGameDetails({ id: result.id }));
+            const detailedStats = await Promise.all(detailedStatsPromises);
 
-        // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
-        const sortedResults = detailedStats
-          .filter((details): details is BggGameDetails => details !== null && details.id > 0)
-          .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+            // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
+            const sortedResults = detailedStats
+            .filter((details): details is BggGameDetails => details !== null && details.id > 0)
+            .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
 
-        if (sortedResults.length > 0) {
-            // Step 4: We have the best game, which is the first in the sorted list.
-            gameDetails = sortedResults[0];
+            if (sortedResults.length > 0) {
+                // Step 4: We have the best game, which is the first in the sorted list.
+                gameDetails = sortedResults[0];
+            }
         }
+    } catch (error) {
+        console.error(`BGG lookup failed for "${title}". Proceeding with AI-identified title only. Error:`, error);
+        // Do not throw; we will proceed with default data.
     }
     
-    // If BGG lookup failed or returned no results, we throw an error.
+    // If BGG lookup failed, we create a default object.
     if (!gameDetails) {
-        throw new Error(`Could not find detailed game info for "${title}" on BoardGameGeek.`);
+        return {
+            name: title,
+            category: 'Uncategorized',
+            mechanics: [],
+            minPlayers: 1,
+            maxPlayers: 1,
+            difficulty: 'Intermediate',
+            imageUrl: '',
+        };
     }
 
     // Map BGG complexity to our difficulty enum
