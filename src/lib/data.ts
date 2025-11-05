@@ -15,7 +15,7 @@ const games: Game[] = [
     id: 'g1', 
     name: 'Catan', 
     category: 'Strategy', 
-    imageUrl: 'https://cf.geekdo-images.com/W3_MgieX6AR2V2Byi0s5sw__imagepage/img/M4wHHw_M3-2XvIe9KkY_g2uTf_g=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2419375.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/0XODRpReiZBFUffEcqT5-Q__imagepage/img/enC7UTvCAnb6j1Uazvh0OBQjvxw=/fit-in/900x600/filters:no_upscale():strip_icc()/pic9156909.png',
     minPlayers: 3, 
     maxPlayers: 4, 
     difficulty: 'Intermediate', 
@@ -216,5 +216,6 @@ export async function getPlayerById(id: string): Promise<Player | undefined> {
     
 
     
+
 
 
