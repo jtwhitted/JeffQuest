@@ -1,10 +1,11 @@
+
 'use client';
 import { getSessions, getPlayers, getGames } from '@/lib/actions';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3, Loader2 } from 'lucide-react';
+import { Crown, Swords, PlusCircle, Trash2, Users, BarChart3, Loader2, Dices } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -106,7 +107,13 @@ export default function GamesPage() {
             <Link key={game.id} href={`/games/${game.id}`} className="flex">
               <Card className="flex flex-col w-full transition-shadow hover:shadow-lg">
                 <CardHeader className="relative flex flex-row items-start gap-4">
-                  <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} />
+                  {game.imageUrl ? (
+                    <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} />
+                  ) : (
+                    <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-muted">
+                        <Dices className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
                   <div className="flex-1">
                     <CardTitle>{game.name}</CardTitle>
                     <CardDescription>{game.category}</CardDescription>
