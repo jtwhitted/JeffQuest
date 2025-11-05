@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileOverview Tools for interacting with the BoardGameGeek (BGG) API.
  *
