@@ -3,7 +3,9 @@
 
 import { XMLParser } from 'fast-xml-parser';
 
-const BGG_API_URL = 'https://boardgamegeek.com/xmlapi2';
+// Note: Using a mix of v1 and v2 APIs. v1 for search, v2 for thing.
+const BGG_API_V1_URL = 'https://boardgamegeek.com/xmlapi';
+const BGG_API_V2_URL = 'https://boardgamegeek.com/xmlapi2';
 
 // Helper to fetch and handle retries with delay, as BGG API can be slow
 async function fetchWithRetry(url: string, retries = 5, delay = 1000): Promise<Response> {
@@ -22,16 +24,16 @@ async function fetchWithRetry(url: string, retries = 5, delay = 1000): Promise<R
 }
 
 export async function searchBgg(name: string): Promise<string | null> {
-    const url = `${BGG_API_URL}/search?query=${encodeURIComponent(name)}&type=boardgame&exact=1`;
+    const url = `${BGG_API_V1_URL}/search?query=${encodeURIComponent(name)}&type=boardgame&exact=1`;
     try {
         const response = await fetchWithRetry(url);
         const xmlText = await response.text();
         const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
         const result = parser.parse(xmlText);
 
-        if (result.items && result.items.item) {
-            const items = Array.isArray(result.items.item) ? result.items.item : [result.items.item];
-            return items[0]?.['@_id'] || null;
+        if (result.boardgames && result.boardgames.boardgame) {
+            const items = Array.isArray(result.boardgames.boardgame) ? result.boardgames.boardgame : [result.boardgames.boardgame];
+            return items[0]?.['@_objectid'] || null;
         }
         return null;
     } catch (error) {
@@ -41,7 +43,7 @@ export async function searchBgg(name: string): Promise<string | null> {
 }
 
 export async function getBggGameDetails(bggId: string) {
-    const url = `${BGG_API_URL}/thing?id=${bggId}&stats=1`;
+    const url = `${BGG_API_V2_URL}/thing?id=${bggId}&stats=1`;
     try {
         const response = await fetchWithRetry(url);
         const xmlText = await response.text();

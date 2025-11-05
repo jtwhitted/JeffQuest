@@ -11,8 +11,7 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
-import { getBggGameDetails } from './bgg';
-import { getBggIdFromTitle } from '@/ai/flows/get-bgg-id-from-title';
+import { getBggGameDetails, searchBgg } from './bgg';
 
 // Server Actions for data mutation
 
@@ -81,15 +80,16 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     
     let { name, bggId } = validatedFields.data;
 
-    // If bggId is not provided, try to get it from AI
+    // If bggId is not provided, try to search for it
     if (!bggId) {
         try {
-            const aiResult = await getBggIdFromTitle({ title: name });
-            if (aiResult.bggId) {
-                bggId = aiResult.bggId;
+            const foundId = await searchBgg(name);
+            if (foundId) {
+                bggId = foundId;
             }
-        } catch (aiError) {
-            console.error("AI fallback for BGG ID failed:", aiError);
+        } catch (searchError) {
+            console.error("BGG search failed:", searchError);
+            // Proceed without BGG ID
         }
     }
 
