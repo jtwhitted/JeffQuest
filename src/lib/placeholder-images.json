@@ -1,36 +1,6 @@
 {
   "placeholderImages": [
     {
-      "id": "g1",
-      "description": "Catan box art",
-      "imageUrl": "https://images.unsplash.com/photo-1628434752727-28e7d8061435?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdHJhdGVneSUyMGdhbWV8ZW58MHx8fHwxNzYyMjY2NDEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "strategy game"
-    },
-    {
-      "id": "g2",
-      "description": "Wingspan box art",
-      "imageUrl": "https://images.unsplash.com/photo-1742850012613-80760441e2de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxiaXJkJTIwY2FyZCUyMGdhbWV8ZW58MHx8fHwxNzYyMzE2MTY2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "bird card game"
-    },
-    {
-      "id": "g3",
-      "description": "King of Tokyo box art",
-      "imageUrl": "https://images.unsplash.com/photo-1522617804560-8454764f1815?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtb25zdGVyJTIwZGljZSUyMGdhbWV8ZW58MHx8fHwxNzYyMzE2MTY2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "monster dice game"
-    },
-    {
-      "id": "g4",
-      "description": "Gloomhaven box art",
-      "imageUrl": "https://images.unsplash.com/photo-1698450998458-0bc1045788a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYW50YXN5JTIwY2FtcGFpZ24lMjBnYW1lfGVufDB8fHx8MTc2MjMxNjE2Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fantasy campaign game"
-    },
-    {
-      "id": "g5",
-      "description": "Terraforming Mars box art",
-      "imageUrl": "https://images.unsplash.com/photo-1682384114890-f1caab8ab16c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzY2ktZmklMjBleHBsb3JhdGlvbiUyMGdhbWV8ZW58MHx8fHwxNzYyMzE2MTY2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "sci-fi exploration game"
-    },
-    {
       "id": "player-1",
       "description": "Player avatar 1",
       "imageUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjIyODA1NDl8MA&ixlib=rb-4.1.0&q=80&w=1080",

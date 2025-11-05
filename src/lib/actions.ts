@@ -20,17 +20,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 // Data fetching functions
 export async function getGames(): Promise<Game[]> {
   noStore();
-  const gamesWithImages = dbGames.map(game => {
-    if (game.imageUrl && !game.imageUrl.startsWith('https://picsum.photos')) {
-        return game;
-    }
-    const placeholder = PlaceHolderImages.find(p => p.id === game.id);
-    return {
-        ...game,
-        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
-    }
-  });
-  return Promise.resolve(gamesWithImages);
+  return Promise.resolve(dbGames);
 }
 
 export async function getPlayers(): Promise<Player[]> {
@@ -50,17 +40,7 @@ export async function getSessions(): Promise<Session[]> {
 export async function getGameById(id: string): Promise<Game | undefined> {
     noStore();
     const game = dbGames.find(g => g.id === id);
-    if (game) {
-      if (game.imageUrl && !game.imageUrl.startsWith('https://picsum.photos')) {
-          return game;
-      }
-      const placeholder = PlaceHolderImages.find(p => p.id === game.id);
-      return {
-        ...game,
-        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
-      };
-    }
-    return undefined;
+    return Promise.resolve(game);
 }
 
 export async function getSessionById(id: string): Promise<Session | undefined> {
@@ -159,7 +139,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     const newGame: Game = {
         id: `g${Date.now().toString()}`,
         name,
-        imageUrl: imageUrl || PlaceHolderImages.find(img => img.id.startsWith('g'))?.imageUrl || 'https://picsum.photos/seed/default/300/300',
+        imageUrl: imageUrl || `/images/${name.toLowerCase().replace(/\\s/g, '-')}.svg`,
         ...rest
     };
     
