@@ -79,31 +79,26 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     
     const gameData = validatedFields.data;
     
-    // Fetch details from BGG
-    const bggId = await searchBgg(gameData.name);
-    let bggDetails = null;
-    if (bggId) {
-        bggDetails = await getBggGameDetails(bggId);
-    }
-
+    // The BGG Search API is not reliable, so we will add the game with minimal details.
+    // The rich data can be added later if a manual BGG ID entry is implemented.
     const newGame: Game = {
         id: `g${Date.now()}`,
         name: gameData.name,
-        category: bggDetails?.category || 'Unknown',
-        mechanics: bggDetails?.mechanics || [],
-        minPlayers: bggDetails?.minPlayers || 1,
-        maxPlayers: bggDetails?.maxPlayers || 1,
-        difficulty: bggDetails?.difficulty || 'Intermediate',
-        yearPublished: bggDetails?.yearPublished,
-        description: bggDetails?.description,
-        minPlaytime: bggDetails?.minPlaytime,
-        maxPlaytime: bggDetails?.maxPlaytime,
-        rating: bggDetails?.rating,
-        ratingCount: bggDetails?.ratingCount,
-        complexity: bggDetails?.complexity,
-        designers: bggDetails?.designers || [],
-        publishers: bggDetails?.publishers || [],
-        imageUrl: bggDetails?.imageUrl || '',
+        category: 'Unknown',
+        mechanics: [],
+        minPlayers: 1,
+        maxPlayers: 1,
+        difficulty: 'Intermediate',
+        yearPublished: undefined,
+        description: 'No description available.',
+        minPlaytime: undefined,
+        maxPlaytime: undefined,
+        rating: undefined,
+        ratingCount: undefined,
+        complexity: undefined,
+        designers: [],
+        publishers: [],
+        imageUrl: '',
     };
     
     await addGameToDB(newGame);
