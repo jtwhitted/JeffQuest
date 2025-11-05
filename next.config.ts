@@ -45,9 +45,7 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
   },
   experimental: {
-    // This property is intentionally left empty.
-    // allowedDevOrigins has been moved to the root level.
-    serverActions: true,
+    serverActions: {},
   },
   allowedDevOrigins: ["https://*.cloudworkstations.dev"],
 };
