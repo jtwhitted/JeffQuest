@@ -11,7 +11,7 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
-import { searchBgg, getBggGameDetails } from './bgg';
+import { getBggGameDetails } from './bgg';
 
 // Server Actions for data mutation
 
@@ -67,6 +67,7 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
 
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
+    bggId: z.string().optional(),
 });
 
 export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -77,28 +78,34 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         throw new Error('Invalid game data.');
     }
     
-    const gameData = validatedFields.data;
+    const { name, bggId } = validatedFields.data;
+
+    let bggData = null;
+    if (bggId) {
+        // Attempt to extract ID from full URL if provided
+        const idMatch = bggId.match(/boardgamegeek\.com\/boardgame\/(\d+)/);
+        const extractedId = idMatch ? idMatch[1] : bggId;
+        bggData = await getBggGameDetails(extractedId);
+    }
     
-    // The BGG Search API is not reliable, so we will add the game with minimal details.
-    // The rich data can be added later if a manual BGG ID entry is implemented.
     const newGame: Game = {
         id: `g${Date.now()}`,
-        name: gameData.name,
-        category: 'Unknown',
-        mechanics: [],
-        minPlayers: 1,
-        maxPlayers: 1,
-        difficulty: 'Intermediate',
-        yearPublished: undefined,
-        description: 'No description available.',
-        minPlaytime: undefined,
-        maxPlaytime: undefined,
-        rating: undefined,
-        ratingCount: undefined,
-        complexity: undefined,
-        designers: [],
-        publishers: [],
-        imageUrl: '',
+        name: bggData?.name || name,
+        category: bggData?.category || 'Unknown',
+        mechanics: bggData?.mechanics || [],
+        minPlayers: bggData?.minPlayers || 1,
+        maxPlayers: bggData?.maxPlayers || 1,
+        difficulty: bggData?.difficulty || 'Intermediate',
+        yearPublished: bggData?.yearPublished,
+        description: bggData?.description || 'No description available.',
+        minPlaytime: bggData?.minPlaytime,
+        maxPlaytime: bggData?.maxPlaytime,
+        rating: bggData?.rating,
+        ratingCount: bggData?.ratingCount,
+        complexity: bggData?.complexity,
+        designers: bggData?.designers || [],
+        publishers: bggData?.publishers || [],
+        imageUrl: bggData?.imageUrl || '',
     };
     
     await addGameToDB(newGame);

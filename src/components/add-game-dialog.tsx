@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -21,6 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +37,7 @@ interface AddGameDialogProps {
 
 const formSchema = z.object({
   name: z.string().min(1, 'Game name is required.').max(100, 'Name must be 100 characters or less.'),
+  bggId: z.string().optional(),
 });
 
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
@@ -49,6 +50,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      bggId: '',
     },
   });
   
@@ -56,14 +58,14 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     form.setValue('name', details.title);
     toast({
         title: 'Game Title Populated!',
-        description: 'The game title has been filled in. BGG data will be fetched upon saving.',
+        description: 'The game title has been filled in. You can now save it or add a BGG ID.',
     });
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // The addGame action will now handle fetching from BGG
+      // The addGame action will now handle fetching from BGG if an ID is provided
       const newGame = await addGame(values);
       toast({
         title: 'Game Added!',
@@ -75,7 +77,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Could not add the new game. The BGG API might be down or the game not found.',
+        description: 'Could not add the new game. If providing a BGG ID, ensure it is correct.',
       });
     } finally {
       setIsSubmitting(false);
@@ -101,7 +103,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Scan a game box to get the title, or enter details manually.
+                  Scan a game box to get the title, or enter details manually. Add a BGG ID to auto-fill details.
                 </DialogDescription>
               </DialogHeader>
 
@@ -129,9 +131,23 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                   </FormItem>
                 )}
               />
-              
-              <p className="text-sm text-muted-foreground">Additional details (playtime, rating, etc.) will be fetched from BoardGameGeek when you save.</p>
 
+              <FormField
+                control={form.control}
+                name="bggId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>BoardGameGeek ID (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g., 13 for Catan"/>
+                    </FormControl>
+                    <FormDescription>
+                      Find the ID in the game's URL on BoardGameGeek to fetch all data automatically.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter className="pt-4">
                 <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
