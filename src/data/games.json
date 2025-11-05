@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "id": "g1762367078952",
+    "name": "Wingspan",
+    "category": "Animals",
+    "mechanics": [
+      "Card Drafting",
+      "Dice Rolling",
+      "Engine Building",
+      "Hand Management",
+      "Set Collection"
+    ],
+    "minPlayers": 1,
+    "maxPlayers": 5,
+    "difficulty": "Intermediate",
+    "yearPublished": 2019,
+    "description": "Wingspan is a competitive, medium-weight, card-driven, engine-building board game from Stonemaier Games. You are bird enthusiasts—researchers, bird watchers, ornithologists, and collectors—seeking to discover and attract the best birds to your network of wildlife preserves.",
+    "minPlaytime": 40,
+    "maxPlaytime": 70,
+    "rating": 8.1,
+    "ratingCount": 130000,
+    "complexity": 2.45,
+    "designers": [
+      "Elizabeth Hargrave"
+    ],
+    "publishers": [
+      "Stonemaier Games",
+      "999 Games",
+      "Albi",
+      "Angames"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/yLZJ2d408TO3spC_gUZMzA__original/img/cI782Zis9cT1gL5-2-0J_K2_IeI=/0x0/filters:format(jpeg)/pic4458123.jpg"
+  }
+]
