@@ -4,7 +4,6 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { Game, Player, Session } from './types';
-import { PlaceHolderImages } from './placeholder-images';
 import { 
     games as dbGames, 
     players as dbPlayers, 
@@ -25,11 +24,7 @@ export async function getGames(): Promise<Game[]> {
 
 export async function getPlayers(): Promise<Player[]> {
   noStore();
-  const playersWithImages = dbPlayers.map(player => ({
-    ...player,
-    avatarUrl: player.avatarUrl || PlaceHolderImages.find(p => p.imageHint.includes('portrait'))?.imageUrl || ''
-  }));
-  return Promise.resolve(playersWithImages);
+  return Promise.resolve(dbPlayers);
 }
 
 export async function getSessions(): Promise<Session[]> {
@@ -139,7 +134,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     const newGame: Game = {
         id: `g${Date.now().toString()}`,
         name,
-        imageUrl: imageUrl || `/images/${name.toLowerCase().replace(/\\s/g, '-')}.svg`,
+        imageUrl: imageUrl || '',
         ...rest
     };
     
@@ -175,12 +170,10 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     
     const { name, avatarUrl } = validatedFields.data;
 
-    const randomImage = PlaceHolderImages.find(p => p.imageHint.includes('portrait'));
-
     const newPlayer: Player = {
         id: `p${Date.now().toString()}`,
         name,
-        avatarUrl: avatarUrl || randomImage?.imageUrl || '',
+        avatarUrl: avatarUrl || '',
     };
 
     addPlayerToDB(newPlayer);
