@@ -1,3 +1,4 @@
+
 export interface Player {
   id: string;
   name: string;
@@ -31,6 +32,6 @@ export interface Session {
   playerIds: string[];
   winnerId?: string; // Optional for co-op games
   cooperativeResult?: 'win' | 'loss'; // For co-op games
-  scores?: { playerId: string; score: number }[];
+  scores?: { playerId: string; score?: number }[];
   notes?: string;
 }

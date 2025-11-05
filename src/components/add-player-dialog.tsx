@@ -56,6 +56,7 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const avatarUrl = form.watch('avatarUrl');
+  const name = form.watch('name');
 
   const handleAvatarCaptured = (imageDataUrl: string) => {
     form.setValue('avatarUrl', imageDataUrl);
@@ -93,6 +94,12 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
     onOpenChange(false);
   }
 
+  const getAvatarUrl = () => {
+    if (avatarUrl) return avatarUrl;
+    if (name) return `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`;
+    return '';
+  }
+
   return (
     <>
       <AvatarCaptureDialog
@@ -107,13 +114,13 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
                   <DialogHeader>
                       <DialogTitle>Add New Player</DialogTitle>
                       <DialogDescription>
-                          Enter the player's name and optionally capture their avatar.
+                          Enter the player's name. A unique avatar will be generated, or you can take a photo.
                       </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                       <div className="flex flex-col items-center gap-4">
                         <Avatar className="h-24 w-24">
-                            <AvatarImage src={avatarUrl} alt="New player avatar" />
+                            <AvatarImage src={getAvatarUrl()} alt="New player avatar" />
                             <AvatarFallback className="text-3xl">
                                 {form.getValues('name')?.charAt(0) || <Camera />}
                             </AvatarFallback>

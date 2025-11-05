@@ -12,6 +12,7 @@ import {
     deletePlayerFromDB
 } from './data';
 import { getBggGameDetails } from './bgg';
+import { getBggIdFromTitle } from '@/ai/flows/get-bgg-id-from-title';
 
 // Server Actions for data mutation
 
@@ -78,14 +79,28 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         throw new Error('Invalid game data.');
     }
     
-    const { name, bggId } = validatedFields.data;
+    let { name, bggId } = validatedFields.data;
+
+    // If bggId is not provided, try to get it from AI
+    if (!bggId) {
+        try {
+            const aiResult = await getBggIdFromTitle({ title: name });
+            if (aiResult.bggId) {
+                bggId = aiResult.bggId;
+            }
+        } catch (aiError) {
+            console.error("AI fallback for BGG ID failed:", aiError);
+        }
+    }
 
     let bggData = null;
     if (bggId) {
         // Attempt to extract ID from full URL if provided
         const idMatch = bggId.match(/boardgamegeek\.com\/boardgame\/(\d+)/);
         const extractedId = idMatch ? idMatch[1] : bggId;
-        bggData = await getBggGameDetails(extractedId);
+        if (extractedId) {
+            bggData = await getBggGameDetails(extractedId);
+        }
     }
     
     const newGame: Game = {
@@ -143,7 +158,7 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     const newPlayer: Player = {
         id: `p${Date.now()}`,
         name,
-        avatarUrl: avatarUrl || '',
+        avatarUrl: avatarUrl || `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`,
     };
 
     await addPlayerToDB(newPlayer);
