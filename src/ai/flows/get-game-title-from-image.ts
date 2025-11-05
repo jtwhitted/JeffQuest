@@ -55,7 +55,7 @@ const getGameTitlePrompt = ai.definePrompt({
 const getDetailsFromTitlePrompt = ai.definePrompt({
     name: 'getDetailsFromTitlePrompt',
     input: { schema: z.object({ name: z.string() }) },
-    output: { schema: GetGameDetailsOutputSchema.omit({ name: true }) },
+    output: { schema: GetGameDetailsOutputSchema.omit({ name: true, imageUrl: true }) },
     prompt: `You are a board game expert. Based on the game title "{{name}}", provide a best-guess approximation for the following details.
     
     - category: A single, primary category.
@@ -64,7 +64,6 @@ const getDetailsFromTitlePrompt = ai.definePrompt({
     - maxPlayers: A reasonable maximum number of players.
     - difficulty: Your best estimate of the difficulty.
     - description: A short, one-paragraph description of the game.
-    - imageUrl: Find a publicly accessible, high-quality URL for the game's box art. Prioritize official publisher sites, then major retailers (like Amazon). Do NOT use URLs from BoardGameGeek (BGG), Fandom, or Wikipedia wikis.
     
     Do not invent wild details. Base your answer on general knowledge of popular board games.
     If you do not know the game, provide very generic details (e.g., "Strategy", 2-4 players, "Intermediate").`
@@ -93,6 +92,9 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error('AI fallback for details failed.');
     }
 
+    // This flow no longer fetches an image URL.
+    // The image URL will be retrieved via the BGG API when a game is added.
+
     return {
         name: title,
         category: output.category,
@@ -109,7 +111,7 @@ const getGameDetailsFlow = ai.defineFlow(
         complexity: output.complexity,
         designers: output.designers,
         publishers: output.publishers,
-        imageUrl: output.imageUrl || '',
+        imageUrl: '', // This will be populated later
     };
   }
 );

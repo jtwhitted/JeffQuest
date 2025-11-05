@@ -1,6 +1,5 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Player, Game, Session } from './types';
-import { PlaceHolderImages } from './placeholder-images';
 
 // This file now acts as a mock database.
 // All data fetching and mutation should go through `lib/actions.ts` to ensure consistency.
@@ -23,7 +22,7 @@ export let games: Game[] = [
     mechanics: ['Dice Rolling', 'Hex and Counter', 'Trading'],
     yearPublished: 1995,
     description: 'In Catan, players try to be the dominant force on the island of Catan by building settlements, cities, and roads. On each turn dice are rolled to determine what resources the island produces. Players collect these resources to build up their civilizations to get to 10 victory points and win the game.',
-    imageUrl: 'https://m.media-amazon.com/images/I/81+i-FEiJ1L._AC_SL1500_.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/W3Jy-2R0I648XwY2E-i23A__imagepage/img/M4AV2392DkG1n1kC-i1gG_F3_wM=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2419375.jpg',
     minPlaytime: 60,
     maxPlaytime: 120,
     rating: 7.1,
@@ -42,7 +41,7 @@ export let games: Game[] = [
     mechanics: ['Card Drafting', 'Engine Building', 'Set Collection'],
     yearPublished: 2019,
     description: 'Wingspan is a competitive, medium-weight, card-driven, engine-building board game from Stonemaier Games. You are bird enthusiasts—researchers, bird watchers, ornithologists, and collectors—seeking to discover and attract the best birds to your network of wildlife preserves.',
-    imageUrl: 'https://m.media-amazon.com/images/I/81oKyl3w5QL._AC_SL1500_.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/yLZJ2d408KbbC5gLpLot3A__imagepage/img/1W1_vssyT6i6m3n1b2Be0_wJv2U=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4458123.jpg',
     minPlaytime: 40,
     maxPlaytime: 70,
     rating: 8.1,
@@ -61,7 +60,7 @@ export let games: Game[] = [
     mechanics: ['Area Control', 'Dice Rolling', 'Player Elimination'],
     yearPublished: 2011,
     description: 'In King of Tokyo, you play mutant monsters, gigantic robots, and strange aliens—all of whom are destroying Tokyo and whacking each other in order to become the one and only King of Tokyo. At the start of each turn, you roll six dice... The player who first obtains 20 victory points—or is the last monster standing—wins the game.',
-    imageUrl: 'https://m.media-amazon.com/images/I/81O-q18a-ML._AC_SL1500_.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/LVC_x-y1t2bJ11s1dG3a-Q__imagepage/img/Lp2Vn55vVbS7G1gTfJ2gA3gYw8M=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3043734.jpg',
     minPlaytime: 30,
     maxPlaytime: 30,
     rating: 7.2,
@@ -80,7 +79,7 @@ export let games: Game[] = [
     mechanics: ['Campaign', 'Legacy', 'Hand Management'],
     yearPublished: 2017,
     description: 'Gloomhaven is a game of Euro-inspired tactical combat in a persistent world of shifting motives. Players will take on the role of a wandering adventurer with their own special set of skills and their own reasons for traveling to this dark corner of the. world.',
-    imageUrl: 'https://m.media-amazon.com/images/I/81cr-X6BE2L._AC_SL1500_.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/sZYp_3BTxCSRqM2PyIrvWg__imagepage/img/312P3s_b_N32iBfP-i_m3aI5zic=/fit-in/900x600/filters:no_upscale():strip_icc()/pic2437871.jpg',
     minPlaytime: 60,
     maxPlaytime: 120,
     rating: 8.7,
@@ -99,7 +98,7 @@ export let games: Game[] = [
     mechanics: ['Card Drafting', 'Engine Building', 'Tile Placement'],
     yearPublished: 2016,
     description: 'In the 2400s, mankind begins to terraform the planet Mars. Giant corporations, sponsored by the World Government on Earth, initiate huge projects to raise the temperature, the oxygen level, and the ocean coverage until the environment is habitable. In Terraforming Mars, you play one of those corporations and work together in the terraforming process, but compete for getting victory points that are awarded for your contribution to the terraforming and for advancing human infrastructure.',
-    imageUrl: 'https://m.media-amazon.com/images/I/81a4-246iSL._AC_SL1500_.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/wg9oOLcsKvDesSUdZQ4rxw__imagepage/img/FS1_3H_d3v1tS1x_vF4s9aWb9pY=/fit-in/900x600/filters:no_upscale():strip_icc()/pic3536616.jpg',
     minPlaytime: 120,
     maxPlaytime: 120,
     rating: 8.4,
