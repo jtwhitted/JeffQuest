@@ -11,8 +11,8 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
-import { getBggGameDetails } from './bgg';
 import { getBggIdFromTitle } from '@/ai/flows/get-bgg-id-from-title';
+import { getBggDetailsFromId } from '@/ai/flows/get-bgg-details-from-id';
 
 // Server Actions for data mutation
 
@@ -80,53 +80,44 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     let { name, bggId } = validatedFields.data;
+    let details: Awaited<ReturnType<typeof getBggDetailsFromId>> | null = null;
 
-    // If bggId is not provided, try to get it from the AI flow
-    if (!bggId) {
-        try {
-            const result = await getBggIdFromTitle({ title: name });
-            if (result && result.bggId) {
-                bggId = result.bggId;
-            }
-        } catch (aiError) {
-            console.error("AI lookup for BGG ID failed:", aiError);
-            // Proceed without a BGG ID if the AI fails
-        }
-    }
-
-    let bggData = null;
-    if (bggId) {
-        // Attempt to extract ID from full URL if provided
-        const idMatch = bggId.match(/boardgamegeek\.com\/boardgame\/(\d+)/);
-        const extractedId = idMatch ? idMatch[1] : bggId;
-        if (extractedId) {
-            try {
-                bggData = await getBggGameDetails(extractedId);
-            } catch (bggError) {
-                console.error("BGG details fetch failed:", bggError);
-                // Proceed with only the name if BGG fetch fails
+    try {
+        // Step 1: Get BGG ID. Use provided one or get from AI.
+        if (!bggId) {
+            const idResult = await getBggIdFromTitle({ title: name });
+            if (idResult && idResult.bggId) {
+                bggId = idResult.bggId;
             }
         }
+
+        // Step 2: If we have an ID, get details from AI.
+        if (bggId) {
+            details = await getBggDetailsFromId({ bggId });
+        }
+    } catch (aiError) {
+        console.error("AI processing for BGG data failed:", aiError);
+        // If AI fails, we proceed with just the name, no details.
     }
     
     const newGame: Game = {
         id: `g${Date.now()}`,
-        name: bggData?.name || name,
-        category: bggData?.category || 'Unknown',
-        mechanics: bggData?.mechanics || [],
-        minPlayers: bggData?.minPlayers || 1,
-        maxPlayers: bggData?.maxPlayers || 1,
-        difficulty: bggData?.difficulty || 'Intermediate',
-        yearPublished: bggData?.yearPublished,
-        description: bggData?.description || 'No description available.',
-        minPlaytime: bggData?.minPlaytime,
-        maxPlaytime: bggData?.maxPlaytime,
-        rating: bggData?.rating,
-        ratingCount: bggData?.ratingCount,
-        complexity: bggData?.complexity,
-        designers: bggData?.designers || [],
-        publishers: bggData?.publishers || [],
-        imageUrl: bggData?.imageUrl || '',
+        name: details?.name || name,
+        category: details?.category || 'Unknown',
+        mechanics: details?.mechanics || [],
+        minPlayers: details?.minPlayers || 1,
+        maxPlayers: details?.maxPlayers || 1,
+        difficulty: details?.difficulty as Game['difficulty'] || 'Intermediate',
+        yearPublished: details?.yearPublished,
+        description: details?.description || 'No description available.',
+        minPlaytime: details?.minPlaytime,
+        maxPlaytime: details?.maxPlaytime,
+        rating: details?.rating,
+        ratingCount: details?.ratingCount,
+        complexity: details?.complexity,
+        designers: details?.designers || [],
+        publishers: details?.publishers || [],
+        imageUrl: details?.imageUrl || '',
     };
     
     await addGameToDB(newGame);

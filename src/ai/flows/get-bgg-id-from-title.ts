@@ -33,7 +33,8 @@ const prompt = ai.definePrompt({
 Your task is to find the official BGG ID for the board game titled "{{title}}".
 
 Return only the ID number. For example, for "Catan", you would return "13".
-`,
+If the game is "Wingspan", you would return "266192".
+Only return the ID.`,
 });
 
 const getBggIdFlow = ai.defineFlow(
