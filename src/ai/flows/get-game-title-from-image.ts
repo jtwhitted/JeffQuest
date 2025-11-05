@@ -9,6 +9,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
+import { searchBgg, getBggGameDetails } from '@/lib/bgg';
+
 
 const GetGameDetailsInputSchema = z.object({
   photoDataUri: z
@@ -52,23 +54,6 @@ const getGameTitlePrompt = ai.definePrompt({
   Image: {{media url=photoDataUri}}`,
 });
 
-const getDetailsFromTitlePrompt = ai.definePrompt({
-    name: 'getDetailsFromTitlePrompt',
-    input: { schema: z.object({ name: z.string() }) },
-    output: { schema: GetGameDetailsOutputSchema.omit({ name: true, imageUrl: true }) },
-    prompt: `You are a board game expert. Based on the game title "{{name}}", provide a best-guess approximation for the following details.
-    
-    - category: A single, primary category.
-    - mechanics: A list of 2-3 core mechanics.
-    - minPlayers: A reasonable minimum number of players.
-    - maxPlayers: A reasonable maximum number of players.
-    - difficulty: Your best estimate of the difficulty.
-    - description: A short, one-paragraph description of the game.
-    
-    Do not invent wild details. Base your answer on general knowledge of popular board games.
-    If you do not know the game, provide very generic details (e.g., "Strategy", 2-4 players, "Intermediate").`
-});
-
 
 const getGameDetailsFlow = ai.defineFlow(
   {
@@ -86,32 +71,36 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error("Could not determine game title from the image.");
     }
     
-    // Step 2: Use another AI prompt to generate default data from the title.
-    const { output } = await getDetailsFromTitlePrompt({ name: title });
-    if (!output) {
-        throw new Error('AI fallback for details failed.');
+    // Step 2: Use the title to search BGG for a game ID.
+    const bggId = await searchBgg(title);
+    if (!bggId) {
+        throw new Error(`Could not find a match for "${title}" on BoardGameGeek.`);
     }
 
-    // This flow no longer fetches an image URL.
-    // The image URL will be retrieved via the BGG API when a game is added.
+    // Step 3: Use the BGG ID to get full details from the BGG API.
+    const bggDetails = await getBggGameDetails(bggId);
+    if (!bggDetails) {
+        throw new Error(`Could not retrieve details for BGG ID ${bggId}.`);
+    }
 
+    // Combine AI and BGG data, preferring BGG data.
     return {
-        name: title,
-        category: output.category,
-        mechanics: output.mechanics,
-        minPlayers: output.minPlayers,
-        maxPlayers: output.maxPlayers,
-        difficulty: output.difficulty,
-        yearPublished: output.yearPublished,
-        description: output.description,
-        minPlaytime: output.minPlaytime,
-        maxPlaytime: output.maxPlaytime,
-        rating: output.rating,
-        ratingCount: output.ratingCount,
-        complexity: output.complexity,
-        designers: output.designers,
-        publishers: output.publishers,
-        imageUrl: '', // This will be populated later
+        name: bggDetails.name || title,
+        category: bggDetails.category || 'Strategy',
+        mechanics: bggDetails.mechanics || [],
+        minPlayers: bggDetails.minPlayers || 1,
+        maxPlayers: bggDetails.maxPlayers || 4,
+        difficulty: 'Intermediate', // Default value
+        yearPublished: bggDetails.yearPublished,
+        description: bggDetails.description,
+        minPlaytime: bggDetails.minPlaytime,
+        maxPlaytime: bggDetails.maxPlaytime,
+        rating: bggDetails.rating,
+        ratingCount: bggDetails.ratingCount,
+        complexity: bggDetails.complexity,
+        designers: bggDetails.designers,
+        publishers: bggDetails.publishers,
+        imageUrl: bggDetails.imageUrl || '',
     };
   }
 );
