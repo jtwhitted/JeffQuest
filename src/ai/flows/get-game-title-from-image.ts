@@ -9,7 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import { searchBgg, getBggGameDetails } from './bgg-tools';
+import { searchBgg, getBggGameDetails, BggGameDetailsSchema, BggGameDetails } from './bgg-tools';
 
 const GetGameDetailsInputSchema = z.object({
   photoDataUri: z
@@ -71,29 +71,39 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error("Could not determine game title from the image.");
     }
     
-    // Step 2: Use the title to search BGG for potential matches.
-    const searchResults = await searchBgg({ query: title });
+    let gameDetails: BggGameDetails | null = null;
     
-    if (!searchResults || searchResults.length === 0) {
-        throw new Error(`No results found on BoardGameGeek for "${title}".`);
+    try {
+        // Step 2: Use the title to search BGG for potential matches.
+        const searchResults = await searchBgg({ query: title });
+        
+        if (searchResults && searchResults.length > 0) {
+            // Step 3: Fetch lightweight stats for the top few results to find the best match.
+            const detailedStatsPromises = searchResults.slice(0, 3).map(result => getBggGameDetails({ id: result.id }));
+            const detailedStats = await Promise.all(detailedStatsPromises);
+
+            // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
+            const sortedResults = detailedStats
+              .filter((details): details is BggGameDetails => details !== null && details.id > 0)
+              .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+
+            if (sortedResults.length > 0) {
+                // Step 4: We have the best game, which is the first in the sorted list.
+                gameDetails = sortedResults[0];
+            }
+        }
+    } catch (error) {
+        // If BGG tools fail, we don't crash. We log the error and proceed without BGG data.
+        console.error(`BGG lookup failed for title "${title}". Proceeding without BGG data. Error:`, error);
     }
     
-    // Step 3: Fetch lightweight stats for the top few results to find the best match.
-    // This is more efficient than fetching full details for all results at once.
-    const detailedStatsPromises = searchResults.slice(0, 5).map(result => getBggGameDetails({ id: result.id }));
-    const detailedStats = await Promise.all(detailedStatsPromises);
-
-    // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
-    const sortedResults = detailedStats
-      .filter(details => details !== null && details.id > 0)
-      .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
-
-    if (sortedResults.length === 0) {
-      throw new Error(`Could not fetch details for any search results for "${title}".`);
+    // If BGG lookup failed or returned no results, we create a default object
+    if (!gameDetails) {
+        gameDetails = {
+            id: 0,
+            name: title,
+        }
     }
-
-    // Step 4: We have the best game, which is the first in the sorted list.
-    const gameDetails = sortedResults[0];
 
     // Map BGG complexity to our difficulty enum
     let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
@@ -120,7 +130,7 @@ const getGameDetailsFlow = ai.defineFlow(
         category: gameDetails.category || 'Unknown',
         mechanics: gameDetails.mechanics || [],
         minPlayers: gameDetails.minPlayers || 1,
-        maxPlayers: gameDetails.maxPlayers || 1,
+        maxPlayers: gameDetails.maxPlayers || 2,
         difficulty,
         yearPublished: gameDetails.yearPublished,
         description: gameDetails.description,
