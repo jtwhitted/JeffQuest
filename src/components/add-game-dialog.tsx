@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Scan } from 'lucide-react';
 import React, { useState } from 'react';
-import type { Game } from '@/lib/types';
 import {
   Form,
   FormControl,
@@ -40,7 +39,6 @@ import { useGames } from '@/context/game-context';
 interface AddGameDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGameAdded?: (game: Game) => void; // This is now optional
 }
 
 const formSchema = z.object({
@@ -65,7 +63,7 @@ const formSchema = z.object({
     path: ['maxPlayers'],
 });
 
-export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialogProps) {
+export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
@@ -108,17 +106,12 @@ export function AddGameDialog({ open, onOpenChange, onGameAdded }: AddGameDialog
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const newGame = await addGame(values);
-      if (newGame) {
-        onGameAdded?.(newGame);
-        toast({
-          title: 'Game Added!',
-          description: `${newGame.name} has been added to your collection.`,
-        });
-        handleClose();
-      } else {
-        throw new Error('Failed to create game.');
-      }
+      await addGame(values);
+      toast({
+        title: 'Game Added!',
+        description: `${values.name} has been added to your collection.`,
+      });
+      handleClose();
     } catch (error) {
       console.error('Error adding game:', error);
       toast({

@@ -1,4 +1,4 @@
-import { getSessions, getPlayers, getGames } from '@/lib/data';
+import { getSessions, getPlayers, getGames } from '@/lib/actions';
 import DashboardClient from '@/components/dashboard-client';
 import type { Metadata } from 'next';
 import { unstable_noStore as noStore } from 'next/cache';

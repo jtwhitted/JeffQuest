@@ -29,8 +29,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { Game, Player } from '@/lib/types';
-import { addSession } from '@/lib/actions';
+import type { Player } from '@/lib/types';
+import { addSession, getPlayers } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -72,22 +72,22 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface GameLogFormProps {
-  games: Game[]; // Keep this for initial data, but we'll use context
-  players: Player[];
-}
-
-export default function GameLogForm({ games: initialGames, players: initialPlayers }: GameLogFormProps) {
+export default function GameLogForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
-  const { games, addGame: addGameToContext } = useGames();
-  const [players, setPlayers] = useState(initialPlayers);
+  const { games, addGame, refetchGames } = useGames();
+  const [players, setPlayers] = useState<Player[]>([]);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+    async function loadPlayers() {
+        const initialPlayers = await getPlayers();
+        setPlayers(initialPlayers);
+    }
+    loadPlayers();
   }, []);
 
   const form = useForm<FormValues>({
@@ -147,14 +147,19 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
 
   const handleNewGameScanned = async (details: GetGameDetailsOutput) => {
     try {
-        const newGame = await addGameToContext(details);
+        await addGame(details);
+        // The context will refetch, so the new game will be in the `games` state
+        // Find the newly added game to set its ID in the form.
+        // This is a bit of a hack, assuming the last added game is the one.
+        const updatedGames = await getGames(); // A bit inefficient, but ensures we have the ID
+        const newGame = updatedGames.find(g => g.name === details.name);
         if (newGame) {
             form.setValue('gameId', newGame.id);
-            toast({
-                title: 'Game Added!',
-                description: `${newGame.name} has been added to your collection.`,
-            });
         }
+        toast({
+            title: 'Game Added!',
+            description: `${details.name} has been added to your collection.`,
+        });
     } catch (error) {
         toast({
             variant: "destructive",
@@ -363,7 +368,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Game Outcome</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValuechange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select co-op result..." />
@@ -435,7 +440,7 @@ export default function GameLogForm({ games: initialGames, players: initialPlaye
                                             newScores.push({ playerId: player.id, score: isNaN(scoreValue) ? undefined : scoreValue });
                                         }
                                         field.onChange(newScores);
-                                    }}
+ax                                    }}
                                 />
                             </div>
                         ))}

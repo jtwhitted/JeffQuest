@@ -1,6 +1,5 @@
 import PageHeader from '@/components/page-header';
 import GameLogForm from '@/components/game-log-form';
-import { getGames, getPlayers } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -12,9 +11,6 @@ export const metadata: Metadata = {
 };
 
 export default async function NewSessionPage() {
-    const games = await getGames();
-    const players = await getPlayers();
-
     return (
         <div className="space-y-8">
             <PageHeader
@@ -29,7 +25,7 @@ export default async function NewSessionPage() {
                 </Button>
             </PageHeader>
             <div className="mx-auto max-w-2xl">
-                <GameLogForm games={games} players={players} />
+                <GameLogForm />
             </div>
         </div>
     );

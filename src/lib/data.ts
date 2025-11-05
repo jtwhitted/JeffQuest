@@ -3,14 +3,17 @@ import { unstable_noStore as noStore } from 'next/cache';
 import type { Player, Game, Session } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
-const players: Player[] = [
+// This file now acts as a mock database.
+// All data fetching and mutation should go through `lib/actions.ts` to ensure consistency.
+
+export let players: Player[] = [
   { id: 'p1', name: 'Alex', avatarUrl: 'https://picsum.photos/seed/p1/200/200' },
   { id: 'p2', name: 'Ben', avatarUrl: 'https://picsum.photos/seed/p2/200/200' },
   { id: 'p3', name: 'Chris', avatarUrl: 'https://picsum.photos/seed/p3/200/200' },
   { id: 'p4', name: 'Dana', avatarUrl: 'https://picsum.photos/seed/p4/200/200' },
 ];
 
-const games: Game[] = [
+export let games: Game[] = [
   { 
     id: 'g1', 
     name: 'Catan', 
@@ -107,7 +110,7 @@ const games: Game[] = [
   },
 ];
 
-const sessions: Session[] = [
+export let sessions: Session[] = [
   {
     id: 's1',
     gameId: 'g1',
@@ -182,56 +185,35 @@ const sessions: Session[] = [
   }
 ];
 
-// Simulate API calls
-export async function getPlayers(): Promise<Player[]> {
-  noStore();
-  // In a real app, you would fetch this from a database
-  // and handle image URLs properly.
-  const playersWithImages = players.map(player => ({
-    ...player,
-    avatarUrl: player.avatarUrl || PlaceHolderImages.find(p => p.imageHint.includes('portrait'))?.imageUrl || ''
-  }));
-  return Promise.resolve(playersWithImages);
+// Functions to modify the mock database
+export function addGameToDB(game: Game) {
+    games.push(game);
 }
 
-export async function getGames(): Promise<Game[]> {
-  noStore();
-   // In a real app, you would fetch this from a database
-  // and handle image URLs properly.
-  const gamesWithImages = games.map(game => {
-    const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
-    return {
-        ...game,
-        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
-    }
-  });
-  return Promise.resolve(gamesWithImages);
+export function addSessionToDB(session: Session) {
+    sessions.push(session);
 }
 
-export async function getSessions(): Promise<Session[]> {
-  noStore();
-  return Promise.resolve(sessions);
+export function addPlayerToDB(player: Player) {
+    players.push(player);
 }
 
-export async function getSessionById(id: string): Promise<Session | undefined> {
-    noStore();
-    return Promise.resolve(sessions.find(s => s.id === id));
+export function deleteGameFromDB(gameId: string) {
+    games = games.filter(g => g.id !== gameId);
+    sessions = sessions.filter(s => s.gameId !== gameId);
 }
 
-export async function getGameById(id: string): Promise<Game | undefined> {
-    noStore();
-    const game = games.find(g => g.id === id);
-    if (game) {
-      const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
-      return {
-        ...game,
-        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
-      };
-    }
-    return undefined;
-}
-
-export async function getPlayerById(id: string): Promise<Player | undefined> {
-    noStore();
-    return Promise.resolve(players.find(p => p.id === id));
+export function deletePlayerFromDB(playerId: string) {
+    players = players.filter(p => p.id !== playerId);
+    sessions = sessions.map(s => {
+        const newPlayerIds = s.playerIds.filter(id => id !== playerId);
+        if (newPlayerIds.length < s.playerIds.length) {
+            let winnerId = s.winnerId;
+            if (winnerId === playerId) {
+                winnerId = undefined; // Or handle this case differently
+            }
+            return { ...s, playerIds: newPlayerIds, winnerId };
+        }
+        return s;
+    });
 }

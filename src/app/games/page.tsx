@@ -1,5 +1,5 @@
 'use client';
-import { getSessions, getPlayers } from '@/lib/data';
+import { getSessions, getPlayers, getGames } from '@/lib/actions';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -18,17 +18,12 @@ import { useGames } from '@/context/game-context';
 
 export default function GamesPage() {
   const { toast } = useToast();
-  const { games, isLoading: areGamesLoading } = useGames();
+  const { games, isLoading: areGamesLoading, refetchGames } = useGames();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [isAddGameOpen, setAddGameOpen] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
-  const [mutableGames, setMutableGames] = useState<Game[]>([]);
-
-  useEffect(() => {
-    setMutableGames(games);
-  }, [games]);
-
+  
   useEffect(() => {
     async function fetchData() {
       setSessions(await getSessions());
@@ -41,7 +36,7 @@ export default function GamesPage() {
     if (!gameToDelete) return;
     try {
       await deleteGame(gameToDelete.id);
-      setMutableGames(prev => prev.filter(g => g.id !== gameToDelete.id));
+      await refetchGames();
       toast({
         title: "Game Deleted",
         description: `${gameToDelete.name} has been removed from your collection.`
@@ -57,7 +52,7 @@ export default function GamesPage() {
     }
   }
 
-  const gamesWithStats = mutableGames.map(game => {
+  const gamesWithStats = games.map(game => {
     const gameSessions = sessions.filter(s => s.gameId === game.id);
     const playCount = gameSessions.length;
     

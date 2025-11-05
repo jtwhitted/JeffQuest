@@ -1,4 +1,4 @@
-import { getSessionById, getGameById, getPlayers } from '@/lib/data';
+import { getSessionById, getGameById, getPlayers } from '@/lib/actions';
 import SessionDetailsClient from '@/components/session-details-client';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';

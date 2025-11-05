@@ -2,14 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { Game } from '@/lib/types';
-import { getGames as fetchGames } from '@/lib/data';
-import { addGame as addGameAction } from '@/lib/actions';
+import { getGames as fetchGames, addGame as addGameAction } from '@/lib/actions';
 import type { GetGameDetailsOutput } from '@/ai/flows/get-game-title-from-image';
 
 interface GameContextType {
   games: Game[];
-  addGame: (gameData: GetGameDetailsOutput) => Promise<Game | null>;
+  addGame: (gameData: GetGameDetailsOutput) => Promise<void>;
   isLoading: boolean;
+  refetchGames: () => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -18,26 +18,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadGames() {
-      setIsLoading(true);
-      const initialGames = await fetchGames();
-      setGames(initialGames);
-      setIsLoading(false);
-    }
-    loadGames();
+  const refetchGames = useCallback(async () => {
+    setIsLoading(true);
+    const updatedGames = await fetchGames();
+    setGames(updatedGames);
+    setIsLoading(false);
   }, []);
+
+
+  useEffect(() => {
+    refetchGames();
+  }, [refetchGames]);
 
   const addGame = useCallback(async (gameData: GetGameDetailsOutput) => {
-    const newGame = await addGameAction(gameData);
-    if (newGame) {
-      setGames((prevGames) => [...prevGames, newGame]);
-    }
-    return newGame;
-  }, []);
+    await addGameAction(gameData);
+    await refetchGames(); // Refetch to get the latest list from the "server"
+  }, [refetchGames]);
 
   return (
-    <GameContext.Provider value={{ games, addGame, isLoading }}>
+    <GameContext.Provider value={{ games, addGame, isLoading, refetchGames }}>
       {children}
     </GameContext.Provider>
   );

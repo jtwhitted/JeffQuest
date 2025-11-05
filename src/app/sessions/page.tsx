@@ -1,4 +1,4 @@
-import { getSessions, getGames, getPlayers } from '@/lib/data';
+import { getSessions, getGames, getPlayers } from '@/lib/actions';
 import SessionCard from '@/components/session-card';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';

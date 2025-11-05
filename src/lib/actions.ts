@@ -2,8 +2,72 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game, Player } from './types';
+import type { Game, Player, Session } from './types';
 import { PlaceHolderImages } from './placeholder-images';
+import { 
+    games as dbGames, 
+    players as dbPlayers, 
+    sessions as dbSessions,
+    addGameToDB,
+    addSessionToDB,
+    addPlayerToDB,
+    deleteGameFromDB,
+    deletePlayerFromDB
+} from './data';
+import { unstable_noStore as noStore } from 'next/cache';
+
+// Data fetching functions
+export async function getGames(): Promise<Game[]> {
+  noStore();
+  const gamesWithImages = dbGames.map(game => {
+    const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
+    return {
+        ...game,
+        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+    }
+  });
+  return Promise.resolve(gamesWithImages);
+}
+
+export async function getPlayers(): Promise<Player[]> {
+  noStore();
+  const playersWithImages = dbPlayers.map(player => ({
+    ...player,
+    avatarUrl: player.avatarUrl || PlaceHolderImages.find(p => p.imageHint.includes('portrait'))?.imageUrl || ''
+  }));
+  return Promise.resolve(playersWithImages);
+}
+
+export async function getSessions(): Promise<Session[]> {
+  noStore();
+  return Promise.resolve(dbSessions);
+}
+
+export async function getGameById(id: string): Promise<Game | undefined> {
+    noStore();
+    const game = dbGames.find(g => g.id === id);
+    if (game) {
+      const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
+      return {
+        ...game,
+        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+      };
+    }
+    return undefined;
+}
+
+export async function getSessionById(id: string): Promise<Session | undefined> {
+    noStore();
+    return Promise.resolve(dbSessions.find(s => s.id === id));
+}
+
+export async function getPlayerById(id: string): Promise<Player | undefined> {
+    noStore();
+    return Promise.resolve(dbPlayers.find(p => p.id === id));
+}
+
+
+// Server Actions for data mutation
 
 const sessionFormSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -21,14 +85,13 @@ const sessionFormSchema = z.object({
     if (data.isCooperative) {
         return !!data.cooperativeResult;
     }
-    // For competitive games, a winner is required if there are players selected
     if (data.playerIds.length > 0) {
         return !!data.winnerId;
     }
     return true;
 }, {
     message: "A winner or a cooperative result must be selected.",
-    path: ['winnerId'], // Show error on one of the fields
+    path: ['winnerId'],
 });
 
 
@@ -42,10 +105,14 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
     };
   }
   
-  // In a real application, you would insert the data into your database here.
-  console.log('New session logged:', validatedFields.data);
+  const newSession: Session = {
+    id: `s${Math.random().toString(36).substring(2, 9)}`,
+    ...validatedFields.data,
+    date: validatedFields.data.date.toISOString(),
+  };
 
-  // Revalidate paths to show the new data
+  addSessionToDB(newSession);
+
   revalidatePath('/sessions');
   revalidatePath('/');
   revalidatePath('/games');
@@ -72,40 +139,32 @@ const gameFormSchema = z.object({
     imageUrl: z.string().optional(),
 });
 
-export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game | null> {
+export async function addGame(values: z.infer<typeof gameFormSchema>) {
     const validatedFields = gameFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
-        // This case should ideally not be hit if client-side validation is working
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
-        return null;
+        throw new Error('Invalid game data.');
     }
     
     const { name, imageUrl, ...rest } = validatedFields.data;
     
     const newGame: Game = {
-        id: `g${Math.floor(Math.random() * 1000) + 6}`, // semi-random ID for demo
+        id: `g${Math.random().toString(36).substring(2, 9)}`,
         name,
         imageUrl: imageUrl || PlaceHolderImages.find(img => img.id.startsWith('game-'))?.imageUrl || 'https://picsum.photos/seed/default/300/300',
         ...rest
     };
     
-    console.log('New game added:', newGame);
-
-    // Since we are not actually persisting this data on the server,
-    // we return the new game object so the client can update its state.
+    addGameToDB(newGame);
     
-    revalidatePath('/sessions/new');
     revalidatePath('/games');
-    
-    return newGame;
+    revalidatePath('/sessions/new');
 }
 
 export async function deleteGame(gameId: string) {
-    console.log(`Deleting game with id: ${gameId}`);
-    // In a real app, you would delete from the database here.
+    deleteGameFromDB(gameId);
     
-    // Revalidate paths to update the UI
     revalidatePath('/games');
     revalidatePath(`/games/${gameId}`);
     revalidatePath('/');
@@ -117,12 +176,12 @@ const playerFormSchema = z.object({
     avatarUrl: z.string().optional(),
 });
 
-export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promise<Player | null> {
+export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     const validatedFields = playerFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
-        return null;
+        throw new Error('Invalid player data.');
     }
     
     const { name, avatarUrl } = validatedFields.data;
@@ -130,24 +189,21 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>): Promi
     const randomImage = PlaceHolderImages.find(p => p.imageHint.includes('portrait'));
 
     const newPlayer: Player = {
-        id: `p${Math.floor(Math.random() * 1000) + 5}`, // semi-random ID for demo
+        id: `p${Math.random().toString(36).substring(2, 9)}`,
         name,
         avatarUrl: avatarUrl || randomImage?.imageUrl || '',
     };
 
-    console.log('New player added:', newPlayer);
+    addPlayerToDB(newPlayer);
     
-    revalidatePath('/sessions/new');
     revalidatePath('/players');
-
-    return newPlayer;
+    revalidatePath('/sessions/new');
+    return newPlayer; // Keep returning for immediate UI update in player dialog
 }
 
 export async function deletePlayer(playerId: string) {
-    console.log(`Deleting player with id: ${playerId}`);
-    // In a real app, you would delete from the database here.
+    deletePlayerFromDB(playerId);
     
-    // Revalidate paths to update the UI
     revalidatePath('/players');
     revalidatePath('/');
     revalidatePath('/sessions');
