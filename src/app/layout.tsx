@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   description: 'Keep track of your board game records.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const initialData = getInitialData();
+  const initialData = await getInitialData();
 
   return (
     <html lang="en" className="dark">

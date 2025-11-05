@@ -48,29 +48,25 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
     throw new Error('Invalid session data.');
   }
   
-  const newSession: Session = {
-    id: `s${Math.random().toString(36).substring(2, 9)}`,
+  const newSessionData = {
+    id: `s${Date.now()}`,
     ...validatedFields.data,
     date: validatedFields.data.date.toISOString(),
   };
 
-  const newSessionWithDate = addSessionToDB(newSession);
+  const newSession = await addSessionToDB(newSessionData);
 
   revalidatePath('/sessions');
   revalidatePath('/');
   revalidatePath('/games');
   revalidatePath('/players');
 
-  return newSessionWithDate;
+  return newSession;
 }
 
 
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
-    category: z.string().optional(),
-    minPlayers: z.coerce.number().optional(),
-    maxPlayers: z.coerce.number().optional(),
-    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).optional(),
 });
 
 export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -91,14 +87,13 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
 
     const newGame: Game = {
-        id: `g${Date.now().toString()}`,
+        id: `g${Date.now()}`,
         name: gameData.name,
-        // Use BGG details if available, otherwise use form fallbacks
-        category: bggDetails?.category || gameData.category || 'Unknown',
+        category: bggDetails?.category || 'Unknown',
         mechanics: bggDetails?.mechanics || [],
-        minPlayers: bggDetails?.minPlayers || gameData.minPlayers || 1,
-        maxPlayers: bggDetails?.maxPlayers || gameData.maxPlayers || 1,
-        difficulty: gameData.difficulty || bggDetails?.difficulty || 'Intermediate',
+        minPlayers: bggDetails?.minPlayers || 1,
+        maxPlayers: bggDetails?.maxPlayers || 1,
+        difficulty: bggDetails?.difficulty || 'Intermediate',
         yearPublished: bggDetails?.yearPublished,
         description: bggDetails?.description,
         minPlaytime: bggDetails?.minPlaytime,
@@ -111,7 +106,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         imageUrl: bggDetails?.imageUrl || '',
     };
     
-    addGameToDB(newGame);
+    await addGameToDB(newGame);
     
     revalidatePath('/games');
     revalidatePath('/sessions/new');
@@ -120,7 +115,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
 }
 
 export async function deleteGame(gameId: string) {
-    deleteGameFromDB(gameId);
+    await deleteGameFromDB(gameId);
     
     revalidatePath('/games');
     revalidatePath(`/games/${gameId}`);
@@ -144,12 +139,12 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     const { name, avatarUrl } = validatedFields.data;
 
     const newPlayer: Player = {
-        id: `p${Date.now().toString()}`,
+        id: `p${Date.now()}`,
         name,
         avatarUrl: avatarUrl || '',
     };
 
-    addPlayerToDB(newPlayer);
+    await addPlayerToDB(newPlayer);
     
     revalidatePath('/players');
     revalidatePath('/sessions/new');
@@ -157,7 +152,7 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
 }
 
 export async function deletePlayer(playerId: string) {
-    deletePlayerFromDB(playerId);
+    await deletePlayerFromDB(playerId);
     
     revalidatePath('/players');
     revalidatePath('/');
