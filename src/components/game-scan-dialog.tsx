@@ -94,11 +94,10 @@ export function GameScanDialog({
       handleClose();
     } catch (error) {
       console.error('Error identifying game details:', error);
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       toast({
         variant: 'destructive',
         title: 'Error Identifying Game',
-        description: `Could not get game details. This may be due to API rate limits. Please wait a moment and try again.`,
+        description: 'Could not get game details. The AI service may be temporarily unavailable due to rate limits. Please wait a moment and try again.',
         duration: 10000,
       });
     } finally {
