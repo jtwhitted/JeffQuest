@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI flow to extract board game details from an image using BGG API.
+ * @fileOverview An AI flow to extract board game details from an image.
  *
  * - getGameDetailsFromImage - A function that takes an image of a game box and returns its details.
  * - GetGameDetailsInput - The input type for the getGameDetailsFromimage function.
@@ -9,7 +9,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
-import { searchBgg, getBggGameDetails, BggGameDetailsSchema, BggGameDetails } from './bgg-tools';
 
 const GetGameDetailsInputSchema = z.object({
   photoDataUri: z
