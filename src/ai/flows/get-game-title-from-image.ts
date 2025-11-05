@@ -76,7 +76,6 @@ const getGameDetailsFlow = ai.defineFlow(
     name: 'getGameDetailsFlow',
     inputSchema: GetGameDetailsInputSchema,
     outputSchema: GetGameDetailsOutputSchema,
-    tools: [searchBgg, getBggGameDetails]
   },
   async (input) => {
     
@@ -88,88 +87,29 @@ const getGameDetailsFlow = ai.defineFlow(
         throw new Error("Could not determine game title from the image.");
     }
     
-    let gameDetails: BggGameDetails | null = null;
-    
-    try {
-        // Step 2: Use the title to search BGG for potential matches.
-        const searchResults = await searchBgg({ query: title });
-        
-        if (searchResults && searchResults.length > 0) {
-            // Step 3: Fetch lightweight stats for the top few results to find the best match.
-            const detailedStatsPromises = searchResults.slice(0, 3).map(result => getBggGameDetails({ id: result.id }));
-            const detailedStats = await Promise.all(detailedStatsPromises);
-
-            // Filter out any null results and sort by rating count to find the most popular (likely correct) version.
-            const sortedResults = detailedStats
-            .filter((details): details is BggGameDetails => details !== null && details.id > 0)
-            .sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
-
-            if (sortedResults.length > 0) {
-                // Step 4: We have the best game, which is the first in the sorted list.
-                gameDetails = sortedResults[0];
-            }
-        }
-    } catch (error) {
-        console.error(`BGG lookup failed for "${title}". Proceeding with AI-generated details. Error:`, error);
-        // Do not throw; we will proceed to the AI fallback.
-    }
-    
-    // Step 5: If BGG lookup failed, use another AI prompt to generate default data from the title.
-    if (!gameDetails) {
-        const { output } = await getDetailsFromTitlePrompt({ name: title });
-        if (!output) {
-            throw new Error('AI fallback for details failed.');
-        }
-        return {
-            name: title,
-            category: output.category,
-            mechanics: output.mechanics,
-            minPlayers: output.minPlayers,
-            maxPlayers: output.maxPlayers,
-            difficulty: output.difficulty,
-            yearPublished: output.yearPublished,
-            description: output.description,
-            imageUrl: '', // No image if BGG fails
-        };
+    // Step 2: Use another AI prompt to generate default data from the title.
+    const { output } = await getDetailsFromTitlePrompt({ name: title });
+    if (!output) {
+        throw new Error('AI fallback for details failed.');
     }
 
-    // Map BGG complexity to our difficulty enum
-    let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
-    if (gameDetails.complexity) {
-        if (gameDetails.complexity < 2.0) {
-            difficulty = 'Beginner';
-        } else if (gameDetails.complexity < 3.0) {
-            difficulty = 'Intermediate';
-        } else if (gameDetails.complexity < 4.0) {
-            difficulty = 'Advanced';
-        } else {
-            difficulty = 'Expert';
-        }
-    }
-    
-    // Step 6: Ensure the image URL has a protocol.
-    let finalImageUrl = gameDetails.imageUrl || '';
-    if (finalImageUrl && finalImageUrl.startsWith('//')) {
-      finalImageUrl = `https:${finalImageUrl}`;
-    }
-    
     return {
-        name: gameDetails.name,
-        category: gameDetails.category || 'Unknown',
-        mechanics: gameDetails.mechanics || [],
-        minPlayers: gameDetails.minPlayers || 1,
-        maxPlayers: gameDetails.maxPlayers || 2,
-        difficulty,
-        yearPublished: gameDetails.yearPublished,
-        description: gameDetails.description,
-        minPlaytime: gameDetails.minPlaytime,
-        maxPlaytime: gameDetails.maxPlaytime,
-        rating: gameDetails.rating,
-        ratingCount: gameDetails.ratingCount,
-        complexity: gameDetails.complexity,
-        designers: gameDetails.designers,
-        publishers: gameDetails.publishers,
-        imageUrl: finalImageUrl,
+        name: title,
+        category: output.category,
+        mechanics: output.mechanics,
+        minPlayers: output.minPlayers,
+        maxPlayers: output.maxPlayers,
+        difficulty: output.difficulty,
+        yearPublished: output.yearPublished,
+        description: output.description,
+        minPlaytime: output.minPlaytime,
+        maxPlaytime: output.maxPlaytime,
+        rating: output.rating,
+        ratingCount: output.ratingCount,
+        complexity: output.complexity,
+        designers: output.designers,
+        publishers: output.publishers,
+        imageUrl: '', // We will let the server action assign a placeholder
     };
   }
 );
