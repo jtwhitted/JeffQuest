@@ -177,13 +177,13 @@ export const getBggGameDetails = ai.defineTool(
         const ratingCount = parseInt(getValue(ratingsXml, 'usersrated') || '0', 10);
         const complexity = parseFloat(getValue(ratingsXml, 'averageweight') || '0');
         
-        const originalImageUrl = getTagValue(itemXml, 'image');
+        const imageUrl = getTagValue(itemXml, 'imagepage') || getTagValue(itemXml, 'image');
 
         return {
             id: input.id,
             name,
             description: getTagValue(itemXml, 'description') || undefined,
-            imageUrl: originalImageUrl || undefined,
+            imageUrl: imageUrl || undefined,
             yearPublished: yearPublished > 0 ? yearPublished : undefined,
             minPlayers: minPlayers > 0 ? minPlayers : undefined,
             maxPlayers: maxPlayers > 0 ? maxPlayers : undefined,
