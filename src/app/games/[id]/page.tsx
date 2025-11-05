@@ -68,7 +68,7 @@ export default async function GameDetailPage({ params }: { params: { id: string 
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="md:w-1/3">
-                            <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} box art`} />
+                            <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} board game`} />
                         </div>
                         <div className="md:w-2/3 space-y-4">
                             <div className="space-y-2">
