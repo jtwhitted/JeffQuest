@@ -21,10 +21,10 @@ import { unstable_noStore as noStore } from 'next/cache';
 export async function getGames(): Promise<Game[]> {
   noStore();
   const gamesWithImages = dbGames.map(game => {
-    const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
+    const placeholder = PlaceHolderImages.find(p => p.id === game.id);
     return {
         ...game,
-        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
     }
   });
   return Promise.resolve(gamesWithImages);
@@ -48,10 +48,10 @@ export async function getGameById(id: string): Promise<Game | undefined> {
     noStore();
     const game = dbGames.find(g => g.id === id);
     if (game) {
-      const placeholder = PlaceHolderImages.find(p => p.id === `game-${game.id.substring(1)}`);
+      const placeholder = PlaceHolderImages.find(p => p.id === game.id);
       return {
         ...game,
-        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('game-'))?.imageUrl || ''
+        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
       };
     }
     return undefined;
@@ -153,7 +153,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     const newGame: Game = {
         id: `g${Date.now().toString()}`,
         name,
-        imageUrl: imageUrl || PlaceHolderImages.find(img => img.id.startsWith('game-'))?.imageUrl || 'https://picsum.photos/seed/default/300/300',
+        imageUrl: imageUrl || PlaceHolderImages.find(img => img.id.startsWith('g'))?.imageUrl || 'https://picsum.photos/seed/default/300/300',
         ...rest
     };
     
