@@ -34,7 +34,7 @@ const games: Game[] = [
     id: 'g2', 
     name: 'Wingspan', 
     category: 'Card', 
-    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/uIjeoKgHMcRucikDtJtD9lCvwcE=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4458123.jpg',
+    imageUrl: 'https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__imagepage/img/uIjeoKgHMcRtzRSR4MoUYl3nXxs=/fit-in/900x600/filters:no_upscale():strip_icc()/pic4458123.jpg',
     minPlayers: 1, 
     maxPlayers: 5, 
     difficulty: 'Intermediate', 
@@ -216,6 +216,7 @@ export async function getPlayerById(id: string): Promise<Player | undefined> {
     
 
     
+
 
 
 
