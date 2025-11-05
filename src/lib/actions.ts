@@ -21,10 +21,13 @@ import { unstable_noStore as noStore } from 'next/cache';
 export async function getGames(): Promise<Game[]> {
   noStore();
   const gamesWithImages = dbGames.map(game => {
+    if (game.imageUrl && !game.imageUrl.startsWith('https://picsum.photos')) {
+        return game;
+    }
     const placeholder = PlaceHolderImages.find(p => p.id === game.id);
     return {
         ...game,
-        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
+        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
     }
   });
   return Promise.resolve(gamesWithImages);
@@ -48,10 +51,13 @@ export async function getGameById(id: string): Promise<Game | undefined> {
     noStore();
     const game = dbGames.find(g => g.id === id);
     if (game) {
+      if (game.imageUrl && !game.imageUrl.startsWith('https://picsum.photos')) {
+          return game;
+      }
       const placeholder = PlaceHolderImages.find(p => p.id === game.id);
       return {
         ...game,
-        imageUrl: game.imageUrl || placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
+        imageUrl: placeholder?.imageUrl || PlaceHolderImages.find(p => p.id.startsWith('g'))?.imageUrl || ''
       };
     }
     return undefined;

@@ -1,4 +1,3 @@
-
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Player, Game, Session } from './types';
 import { PlaceHolderImages } from './placeholder-images';
@@ -24,7 +23,7 @@ export let games: Game[] = [
     mechanics: ['Dice Rolling', 'Hex and Counter', 'Trading'],
     yearPublished: 1995,
     description: 'In Catan, players try to be the dominant force on the island of Catan by building settlements, cities, and roads. On each turn dice are rolled to determine what resources the island produces. Players collect these resources to build up their civilizations to get to 10 victory points and win the game.',
-    imageUrl: '', // This will be populated by getGames action
+    imageUrl: 'https://picsum.photos/seed/g1/600/600',
     minPlaytime: 60,
     maxPlaytime: 120,
     rating: 7.1,
@@ -43,7 +42,7 @@ export let games: Game[] = [
     mechanics: ['Card Drafting', 'Engine Building', 'Set Collection'],
     yearPublished: 2019,
     description: 'Wingspan is a competitive, medium-weight, card-driven, engine-building board game from Stonemaier Games. You are bird enthusiasts—researchers, bird watchers, ornithologists, and collectors—seeking to discover and attract the best birds to your network of wildlife preserves.',
-    imageUrl: '',
+    imageUrl: 'https://images.unsplash.com/photo-1589982434682-275d315993a9?q=80&w=600&auto=format&fit=crop',
     minPlaytime: 40,
     maxPlaytime: 70,
     rating: 8.1,
@@ -62,7 +61,7 @@ export let games: Game[] = [
     mechanics: ['Area Control', 'Dice Rolling', 'Player Elimination'],
     yearPublished: 2011,
     description: 'In King of Tokyo, you play mutant monsters, gigantic robots, and strange aliens—all of whom are destroying Tokyo and whacking each other in order to become the one and only King of Tokyo. At the start of each turn, you roll six dice... The player who first obtains 20 victory points—or is the last monster standing—wins the game.',
-    imageUrl: '',
+    imageUrl: 'https://picsum.photos/seed/g3/600/600',
     minPlaytime: 30,
     maxPlaytime: 30,
     rating: 7.2,
@@ -81,7 +80,7 @@ export let games: Game[] = [
     mechanics: ['Campaign', 'Legacy', 'Hand Management'],
     yearPublished: 2017,
     description: 'Gloomhaven is a game of Euro-inspired tactical combat in a persistent world of shifting motives. Players will take on the role of a wandering adventurer with their own special set of skills and their own reasons for traveling to this dark corner of the. world.',
-    imageUrl: '',
+    imageUrl: 'https://picsum.photos/seed/g4/600/600',
     minPlaytime: 60,
     maxPlaytime: 120,
     rating: 8.7,
@@ -100,7 +99,7 @@ export let games: Game[] = [
     mechanics: ['Card Drafting', 'Engine Building', 'Tile Placement'],
     yearPublished: 2016,
     description: 'In the 2400s, mankind begins to terraform the planet Mars. Giant corporations, sponsored by the World Government on Earth, initiate huge projects to raise the temperature, the oxygen level, and the ocean coverage until the environment is habitable. In Terraforming Mars, you play one of those corporations and work together in the terraforming process, but compete for getting victory points that are awarded for your contribution to the terraforming and for advancing human infrastructure.',
-    imageUrl: '',
+    imageUrl: 'https://picsum.photos/seed/g5/600/600',
     minPlaytime: 120,
     maxPlaytime: 120,
     rating: 8.4,
