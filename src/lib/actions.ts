@@ -11,8 +11,7 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
-import { getBggIdFromTitle } from '@/ai/flows/get-bgg-id-from-title';
-import { getBggDetailsFromId } from '@/ai/flows/get-bgg-details-from-id';
+import { searchBgg, getBggDetails } from './bgg';
 
 // Server Actions for data mutation
 
@@ -80,24 +79,24 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     let { name, bggId } = validatedFields.data;
-    let details: Awaited<ReturnType<typeof getBggDetailsFromId>> | null = null;
+    let details: Awaited<ReturnType<typeof getBggDetails>> | null = null;
 
     try {
-        // Step 1: Get BGG ID. Use provided one or get from AI.
+        // Step 1: Get BGG ID. Use provided one or search BGG.
         if (!bggId) {
-            const idResult = await getBggIdFromTitle({ title: name });
-            if (idResult && idResult.bggId) {
-                bggId = idResult.bggId;
+            const searchResults = await searchBgg(name);
+            if (searchResults.length > 0) {
+                bggId = searchResults[0].id;
             }
         }
 
-        // Step 2: If we have an ID, get details from AI.
+        // Step 2: If we have an ID, get details from BGG.
         if (bggId) {
-            details = await getBggDetailsFromId({ bggId });
+            details = await getBggDetails(bggId);
         }
-    } catch (aiError) {
-        console.error("AI processing for BGG data failed:", aiError);
-        // If AI fails, we proceed with just the name, no details.
+    } catch (bggError) {
+        console.error("BGG data fetching failed:", bggError);
+        // If BGG fails, we proceed with just the name, no details.
     }
     
     const newGame: Game = {
