@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -126,7 +127,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                     <Link href={`/games/${player.favoriteGame.id}`} className="group">
                         <Card className="overflow-hidden">
                         <div className="relative h-24">
-                            <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} fill className="object-cover" />
+                            <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} fill className="object-cover" unoptimized />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-2">
                             <h4 className="font-bold text-white text-lg">{player.favoriteGame.name}</h4>
                             </div>

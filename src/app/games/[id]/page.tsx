@@ -61,7 +61,7 @@ export default function GameDetailPage() {
                     <div className="flex flex-col md:flex-row gap-6">
                         <div className="md:w-1/3">
                             {game.imageUrl ? (
-                                <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} board game`} />
+                                <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} board game`} unoptimized />
                             ) : (
                                 <div className="flex h-full w-full items-center justify-center rounded-lg bg-muted aspect-square">
                                     <Dices className="h-16 w-16 text-muted-foreground" />

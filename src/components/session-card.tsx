@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -58,6 +59,7 @@ export default function SessionCard({ session, game, players, winner }: SessionC
           fill
           className="object-cover"
           data-ai-hint={`${game.category} game`}
+          unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-0 left-0 p-4">

@@ -102,7 +102,7 @@ export default function GamesPage() {
               <Card className="flex flex-col w-full transition-shadow hover:shadow-lg">
                 <CardHeader className="relative flex flex-row items-start gap-4">
                   {game.imageUrl ? (
-                    <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} />
+                    <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} unoptimized />
                   ) : (
                     <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-muted">
                         <Dices className="h-8 w-8 text-muted-foreground" />
