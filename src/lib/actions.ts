@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -8,6 +7,7 @@ import {
     addGameToDB,
     addSessionToDB,
     addPlayerToDB,
+    deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
 import { searchBgg, getBggDetails } from './bgg';
@@ -152,6 +152,14 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     revalidatePath('/players');
     revalidatePath('/sessions/new');
     return newPlayer;
+}
+
+export async function deleteGame(gameId: string) {
+    await deleteGameFromDB(gameId);
+
+    revalidatePath('/games');
+    revalidatePath('/');
+    revalidatePath('/sessions');
 }
 
 export async function deletePlayer(playerId: string) {

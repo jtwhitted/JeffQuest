@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams, notFound } from 'next/navigation';
@@ -11,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { GameSessionHistory } from './_components/game-session-history';
+import { DeleteGameButton } from './_components/delete-game-button';
 import { useGames } from '@/context/game-context';
 
 export default function GameDetailPage() {
@@ -49,6 +49,7 @@ export default function GameDetailPage() {
                 Back to Games
             </Link>
             </Button>
+            <DeleteGameButton gameId={game.id} gameName={game.name} />
         </div>
       </PageHeader>
       

@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,14 +9,13 @@ import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddPlayerDialog } from '@/components/add-player-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
-import { deletePlayer } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { PlayerDetailsDialog, type PlayerWithFullStats } from '@/components/player-details-dialog';
 import { useGames } from '@/context/game-context';
 
 export default function PlayersPage() {
   const { toast } = useToast();
-  const { sessions, players, games, isLoading, addPlayer } = useGames();
+  const { sessions, players, games, isLoading, addPlayer, deletePlayer } = useGames();
   const [isAddPlayerOpen, setAddPlayerOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithFullStats | null>(null);
@@ -33,7 +31,7 @@ export default function PlayersPage() {
       await deletePlayer(playerToDelete.id);
        toast({
         title: "Player Removed",
-        description: `${playerToDelete.name} has been removed. The list will update on next refresh.`
+        description: `${playerToDelete.name} has been removed.`
       });
     } catch (e) {
       toast({

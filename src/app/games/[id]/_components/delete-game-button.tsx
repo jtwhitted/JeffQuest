@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -23,12 +22,11 @@ export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
   const handleDelete = async () => {
     setDeleteDialogOpen(false);
 
-    // Navigate away first to prevent a 404 error on the detail page.
+    // First, navigate away to prevent a 404.
     router.push('/games');
     
-    // Then, delete the game data.
     try {
-      // A slight delay to allow navigation to complete visually
+      // A slight delay gives the navigation time to start.
       await new Promise(resolve => setTimeout(resolve, 50));
       await deleteGame(gameId);
 
