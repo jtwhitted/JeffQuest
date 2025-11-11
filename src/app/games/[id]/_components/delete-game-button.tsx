@@ -21,11 +21,15 @@ export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = async () => {
+    setDeleteDialogOpen(false);
+
     // First, navigate away to prevent a 404 on the detail page
     router.push('/games');
     
     // Then, delete the game data.
     try {
+      // A slight delay to allow navigation to complete visually
+      await new Promise(resolve => setTimeout(resolve, 50));
       await deleteGame(gameId);
 
       toast({
@@ -40,8 +44,6 @@ export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
         description: 'Failed to delete game.',
       });
       // If deletion fails, the user is already safely on the /games page.
-    } finally {
-      setDeleteDialogOpen(false);
     }
   };
 
