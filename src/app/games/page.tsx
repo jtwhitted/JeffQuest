@@ -1,4 +1,3 @@
-
 'use client';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -42,7 +41,7 @@ export default function GamesPage() {
       playCount,
       playerRankings
     };
-  }).sort((a,b) => b.playCount - a.playCount);
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   const handleDelete = async () => {
     if (!gameToDelete) return;
