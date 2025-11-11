@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { GameSessionHistory } from './_components/game-session-history';
-import { DeleteGameButton } from './_components/delete-game-button';
 import { useGames } from '@/context/game-context';
 
 export default function GameDetailPage() {
@@ -42,15 +41,12 @@ export default function GameDetailPage() {
         title={game.name}
         description={game.yearPublished ? `Published in ${game.yearPublished}` : 'A game in your collection'}
       >
-        <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
-            <Link href="/games">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Games
-            </Link>
-            </Button>
-            <DeleteGameButton gameId={game.id} gameName={game.name} />
-        </div>
+        <Button asChild variant="outline">
+        <Link href="/games">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Games
+        </Link>
+        </Button>
       </PageHeader>
       
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
