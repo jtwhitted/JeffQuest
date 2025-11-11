@@ -34,9 +34,14 @@ const getGameTitlePrompt = ai.definePrompt({
     input: { schema: GetGameTitleInputSchema },
     output: { schema: GetGameTitleOutputSchema },
     model: 'googleai/gemini-2.5-flash',
-    prompt: `Analyze the provided image of a board game box and identify the main title of the game. Return only the title.
-  
-  Image: {{media url=photoDataUri}}`,
+    prompt: `You are an expert at identifying board games from images of their box art.
+Your task is to analyze the provided image and extract the main title of the game.
+
+- The title is usually the most prominent text on the box.
+- Ignore any taglines, edition information, or publisher logos.
+- Return only the main title of the game.
+
+Image: {{media url=photoDataUri}}`,
 });
 
 const getGameTitleFlow = ai.defineFlow(
