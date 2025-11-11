@@ -92,7 +92,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const deleteGame = useCallback(async (gameId: string) => {
     setIsLoading(true);
     try {
-      await deleteGameAction(gameId);
+      await deleteGameFromDB(gameId);
       setGames(prev => prev.filter(g => g.id !== gameId));
       setSessions(prev => prev.filter(s => s.gameId !== gameId));
     } finally {
@@ -103,7 +103,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const deletePlayer = useCallback(async (playerId: string) => {
     setIsLoading(true);
     try {
-      await deletePlayerAction(playerId);
+      await deletePlayerFromDB(playerId);
       setPlayers(prev => prev.filter(p => p.id !== playerId));
       // This is a simplified update. A full implementation would re-evaluate winners, etc.
       setSessions(prev => prev.map(s => ({
