@@ -61,8 +61,9 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const [bio, setBio] = useState<string | null>(null);
 
   const handleGenerateBio = async () => {
+    if (bio) return; // Don't re-generate if we already have a bio
+
     setIsLoading(true);
-    setBio(null);
     try {
         const avatarDataUri = await toDataUri(player.avatarUrl);
 
@@ -79,7 +80,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
       toast({
         variant: 'destructive',
         title: 'AI Error',
-        description: 'Could not generate a bio for this player.',
+        description: 'Could not generate a bio for this player. Please try again later.',
       });
     } finally {
       setIsLoading(false);
@@ -95,6 +96,12 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+  
+  const getButtonText = () => {
+    if(isLoading) return 'Generating...';
+    if(bio) return 'Generated';
+    return 'Generate Bio';
   }
 
   return (
@@ -214,15 +221,15 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 <div>
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold">Player Bio</h3>
-                        <Button size="sm" onClick={handleGenerateBio} disabled={isLoading}>
-                            {isLoading ? <Loader2 className="mr-2" /> : <Sparkles className="mr-2" />}
-                            Generate
+                        <Button size="sm" onClick={handleGenerateBio} disabled={isLoading || !!bio}>
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                            {getButtonText()}
                         </Button>
                     </div>
 
                     <Card className="mt-2 min-h-[80px] flex items-center justify-center p-4 bg-secondary/50">
                         {isLoading && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
-                        {!isLoading && !bio && <p className="text-sm text-muted-foreground">Click generate to create a bio!</p>}
+                        {!isLoading && !bio && <p className="text-sm text-muted-foreground">Click "Generate Bio" to create a summary!</p>}
                         {bio && <p className="text-center text-sm prose prose-sm dark:prose-invert">{bio}</p>}
                     </Card>
                 </div>
@@ -232,3 +239,5 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     </Dialog>
   );
 }
+
+    
