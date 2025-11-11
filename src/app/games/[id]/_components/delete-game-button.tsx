@@ -23,7 +23,7 @@ export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
   const handleDelete = async () => {
     setDeleteDialogOpen(false);
 
-    // First, navigate away to prevent a 404 on the detail page
+    // Navigate away first to prevent a 404 error on the detail page.
     router.push('/games');
     
     // Then, delete the game data.
