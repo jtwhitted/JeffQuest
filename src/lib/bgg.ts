@@ -12,12 +12,12 @@ const apiKey = process.env.BGG_API_KEY;
 
 async function bggFetch(path: string, params: Record<string, string>) {
     if (!apiKey) {
-        throw new Error('BGG_API_KEY is not configured in .env file.');
+        console.warn('BGG_API_KEY is not configured. BGG integration will not work.');
+        return '<items total="0"></items>'; // Return empty XML to prevent crashes
     }
     
     const url = new URL(`${BGG_API_URL}/${path}`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
-    url.searchParams.append('apikey', apiKey);
 
     const response = await fetch(url.toString());
 
@@ -28,7 +28,9 @@ async function bggFetch(path: string, params: Record<string, string>) {
     }
     
     if (!response.ok) {
-        throw new Error(`BGG API request failed with status ${response.status}: ${await response.text()}`);
+        // Log the error but don't crash the server
+        console.error(`BGG API request failed with status ${response.status}: ${await response.text()}`);
+        return '<items total="0"></items>'; // Return empty XML on failure
     }
 
     return response.text();
@@ -74,7 +76,8 @@ export async function getBggDetails(id: string) {
     const parsed = parser.parse(xmlData);
 
     if (!parsed.items?.item) {
-        throw new Error(`Could not find details for BGG ID ${id}`);
+        console.warn(`Could not find details for BGG ID ${id}`);
+        return null;
     }
 
     const item = parsed.items.item[0];
@@ -92,8 +95,6 @@ export async function getBggDetails(id: string) {
         yearPublished: item.yearpublished?.value,
         minPlayers: item.minplayers?.value,
         maxPlayers: item.maxplayers?.value,
-        minPlaytime: item.minplaytime?.value,
-        maxPlaytime: item.maxplaytime?.value,
         difficulty: getStat('averageweight') < 2 ? 'Beginner' : getStat('averageweight') < 3 ? 'Intermediate' : getStat('averageweight') < 4 ? 'Advanced' : 'Expert',
         category: getLinkValue('boardgamecategory')?.[0] || 'Unknown',
         mechanics: getLinkValue('boardgamemechanic') || [],
