@@ -68,6 +68,19 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
     bggId: z.string().optional(),
+    // Manual fields
+    description: z.string().optional(),
+    yearPublished: z.number().optional(),
+    minPlayers: z.number().optional(),
+    maxPlayers: z.number().optional(),
+    minPlaytime: z.number().optional(),
+    maxPlaytime: z.number().optional(),
+    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).optional(),
+    category: z.array(z.string()).optional(),
+    mechanics: z.array(z.string()).optional(),
+    designers: z.array(z.string()).optional(),
+    publishers: z.array(z.string()).optional(),
+    imageUrl: z.string().optional(),
 });
 
 export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -78,6 +91,35 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         throw new Error('Invalid game data.');
     }
     
+    // If all details are provided, it's a manual entry
+    if (validatedFields.data.description !== undefined) {
+        const manualData = validatedFields.data;
+        const newGame: Game = {
+            id: `g${Date.now()}`,
+            name: manualData.name,
+            category: manualData.category || [],
+            mechanics: manualData.mechanics || [],
+            minPlayers: manualData.minPlayers || 1,
+            maxPlayers: manualData.maxPlayers || 1,
+            difficulty: manualData.difficulty || 'Intermediate',
+            yearPublished: manualData.yearPublished,
+            description: manualData.description || 'No description available.',
+            minPlaytime: manualData.minPlaytime,
+            maxPlaytime: manualData.maxPlaytime,
+            imageUrl: manualData.imageUrl || '',
+            // BGG specific fields are omitted
+            rating: undefined,
+            ratingCount: undefined,
+            complexity: undefined,
+            designers: manualData.designers || [],
+            publishers: manualData.publishers || [],
+        };
+        await addGameToDB(newGame);
+        revalidatePath('/games');
+        revalidatePath('/sessions/new');
+        return newGame;
+    }
+
     let { name, bggId } = validatedFields.data;
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
 

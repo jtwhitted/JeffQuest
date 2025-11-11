@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Scan } from 'lucide-react';
+import { Loader2, Scan, FilePlus2 } from 'lucide-react';
 import React, { useState } from 'react';
 import {
   Form,
@@ -28,6 +28,7 @@ import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
+import { ManualAddGameDialog } from './manual-add-game-dialog';
 
 interface AddGameDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
+  const [isManualAddDialogOpen, setManualAddDialogOpen] = useState(false);
   const { addGame } = useGames();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,8 +54,8 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   });
 
   const handleGameAdded = () => {
-    // This function is now called by GameScanDialog after a game is added
     setScanDialogOpen(false);
+    setManualAddDialogOpen(false);
     handleClose();
   };
 
@@ -90,6 +92,11 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
           onOpenChange={setScanDialogOpen}
           onGameAdded={handleGameAdded}
       />
+      <ManualAddGameDialog
+        open={isManualAddDialogOpen}
+        onOpenChange={setManualAddDialogOpen}
+        onGameAdded={handleGameAdded}
+      />
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <Form {...form}>
@@ -97,14 +104,20 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Scan the box or enter the game's name. We'll find the details on BGG for you.
+                  Scan a box, enter a name to search BGG, or add a game manually.
                 </DialogDescription>
               </DialogHeader>
 
-              <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isSubmitting}>
-                    <Scan className="mr-2 h-4 w-4" />
-                    Scan Box to Add Game
-              </Button>
+              <div className='space-y-2'>
+                <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isSubmitting}>
+                      <Scan className="mr-2 h-4 w-4" />
+                      Scan Box to Add Game
+                </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={() => setManualAddDialogOpen(true)} disabled={isSubmitting}>
+                      <FilePlus2 className="mr-2 h-4 w-4" />
+                      Add Game Manually
+                </Button>
+              </div>
               
               <div className="flex items-center gap-2">
                 <Separator className="flex-1" />
@@ -117,7 +130,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Game Name</FormLabel>
+                    <FormLabel>Search by Name (via BGG)</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="e.g. Catan, Wingspan..."/>
                     </FormControl>
@@ -130,7 +143,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Game
+                  Search and Add Game
                 </Button>
               </DialogFooter>
             </form>

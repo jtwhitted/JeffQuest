@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
@@ -5,11 +6,28 @@ import type { Game, Player, Session } from '@/lib/types';
 import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction } from '@/lib/actions';
 import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 
+type GameData = {
+  name: string;
+  bggId?: string;
+  description?: string;
+  yearPublished?: number;
+  minPlayers?: number;
+  maxPlayers?: number;
+  minPlaytime?: number;
+  maxPlaytime?: number;
+  difficulty?: Game['difficulty'];
+  category?: string[];
+  mechanics?: string[];
+  designers?: string[];
+  publishers?: string[];
+  imageUrl?: string;
+}
+
 interface GameContextType {
   games: Game[];
   players: Player[];
   sessions: Session[];
-  addGame: (gameData: { name: string; bggId?: string }) => Promise<Game>;
+  addGame: (gameData: GameData) => Promise<Game>;
   addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
@@ -34,7 +52,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addGame = useCallback(async (gameData: { name: string, bggId?: string }) => {
+  const addGame = useCallback(async (gameData: GameData) => {
     setIsLoading(true);
     try {
       const newGame = await addGameAction(gameData);
