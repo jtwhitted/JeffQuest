@@ -225,56 +225,5 @@
       "Ігромаг"
     ],
     "imageUrl": "https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__original/img/cI782Zis9cT66j2MjSHKJGnFPNw=/0x0/filters:format(jpeg)/pic4458123.jpg"
-  },
-  {
-    "id": "g1762880204705",
-    "name": "Just One",
-    "category": [
-      "Deduction",
-      "Party Game",
-      "Word Game"
-    ],
-    "mechanics": [
-      "Communication Limits",
-      "Cooperative Game",
-      "Deduction",
-      "Score-and-Reset Game"
-    ],
-    "minPlayers": 3,
-    "maxPlayers": 7,
-    "difficulty": "Beginner",
-    "yearPublished": 2018,
-    "description": "Just One is a co-operative party game in which you all play together to get the best score! Your goal each round is to get one player &mdash; the active player &mdash; to guess a mystery word based on the clues given by teammates. Can you achieve a perfect score by guessing all the mystery words?\n\nIn more detail, everyone who is not the active player sees the mystery word, then each player independently writes a clue on their personal easel. Once everyone has finished, you reveal the clues to one another. All identical clues are removed from play, so try to be original!\n\nAfter eliminating duplicate clues, reveal the remaining clues to the active player. If they correctly guess the mystery word, your team scores a point. If they decline to guess, you don't score the current card. If they guess wrong, you don't score the current card and you lose one of the points you had already scored. Thus, be original, but not so original that you don't help the active player guess correctly!",
-    "minPlaytime": 20,
-    "maxPlaytime": 60,
-    "rating": 7.598,
-    "ratingCount": 33060,
-    "complexity": 1.036,
-    "designers": [
-      "Ludovic Roudy",
-      "Bruno Sautter"
-    ],
-    "publishers": [
-      "Repos Production",
-      "ADC Blackfire Entertainment",
-      "Arclight Games",
-      "Brain Games",
-      "CoolPlay",
-      "FoxMind Israel",
-      "Fun Consortium",
-      "Galápagos Jogos",
-      "Geekach LLC",
-      "Gém Klub Kft.",
-      "GoKids 玩樂小子",
-      "Happy Baobab",
-      "Kaissa Chess & Games",
-      "Korea Boardgames",
-      "Lifestyle Boardgames Ltd",
-      "Maldón",
-      "Morapiaf",
-      "Nordic Games ehf",
-      "Rebel Sp. z o.o."
-    ],
-    "imageUrl": "https://cf.geekdo-images.com/74haNunMBn85beBi-yIKwA__original/img/hA22qL6nZxchA8FMTIfhLMcI53I=/0x0/filters:format(png)/pic8669313.png"
   }
 ]
