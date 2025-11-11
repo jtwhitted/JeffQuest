@@ -30,14 +30,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { Player } from '@/lib/types';
+import type { Player, Game } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
@@ -83,12 +83,16 @@ export default function GameLogForm() {
   const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
   const [manualAddDefaultName, setManualAddDefaultName] = useState('');
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
-  const { games, players, addGame, addPlayer, addSession } = useGames();
+  const { games, players, addGame, addSession } = useGames();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const sortedGames = useMemo(() => {
+    return [...games].sort((a, b) => a.name.localeCompare(b.name));
+  }, [games]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -266,7 +270,7 @@ export default function GameLogForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {games.map((game) => (
+                  {sortedGames.map((game) => (
                     <SelectItem key={game.id} value={game.id}>
                       {game.name}
                     </SelectItem>
