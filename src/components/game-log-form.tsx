@@ -43,6 +43,8 @@ import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
 import { Label } from "./ui/label"
 import { useGames } from '@/context/game-context';
+import { GameSearchResultsDialog } from './game-search-results-dialog';
+import { ManualAddGameDialog } from './manual-add-game-dialog';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -76,6 +78,10 @@ export default function GameLogForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
+  const [isManualAddDialogOpen, setManualAddDialogOpen] = useState(false);
+  const [isSearchResultsOpen, setSearchResultsOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
+  const [manualAddDefaultName, setManualAddDefaultName] = useState('');
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
   const { games, players, addGame, addPlayer, addSession } = useGames();
   const [isClient, setIsClient] = useState(false);
@@ -98,6 +104,14 @@ export default function GameLogForm() {
   const selectedPlayerIds = form.watch('playerIds');
   const scores = form.watch('scores');
   const isCooperative = form.watch('isCooperative');
+  const gameId = form.watch('gameId');
+
+  useEffect(() => {
+    if (!gameId) return;
+    const selectedGame = games.find(g => g.id === gameId);
+    const isCoopGame = selectedGame?.mechanics?.includes('Cooperative Game') || false;
+    form.setValue('isCooperative', isCoopGame, { shouldValidate: true });
+  }, [gameId, games, form]);
   
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
 
@@ -139,32 +153,50 @@ export default function GameLogForm() {
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
 
-  const handleNewGameScanned = async (details: GetGameTitleOutput) => {
-    try {
-        const existingGame = games.find(g => g.name.toLowerCase() === details.title.toLowerCase());
-        if(existingGame) {
-          form.setValue('gameId', existingGame.id);
-          toast({
-            title: 'Game Found!',
-            description: `${existingGame.name} has been selected.`,
-          });
-          return;
-        }
-
-        const newGame = await addGame({name: details.title});
-        form.setValue('gameId', newGame.id);
+  const handleScanComplete = async (results: {id: string, name: string}[], query: string) => {
+    setScanDialogOpen(false);
+    if (results.length === 1) {
+        await handleAddGameById(results[0].id, results[0].name);
+    } else if (results.length > 1) {
+        setSearchResults(results);
+        setSearchResultsOpen(true);
+    } else {
         toast({
-            title: 'Game Added!',
-            description: `${newGame.name} has been added and selected.`,
+            variant: 'destructive',
+            title: 'Game not found',
+            description: `No match found for "${query}". Try adding it manually.`,
         });
-    } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Error adding game",
-            description: "Could not save the new game.",
-        });
+        setManualAddDefaultName(query);
+        setManualAddDialogOpen(true);
     }
   };
+
+  const handleAddGameById = async (bggId: string, name: string) => {
+    try {
+      const newGame = await addGame({ bggId, name });
+      if (newGame) {
+        form.setValue('gameId', newGame.id, { shouldValidate: true });
+        toast({
+          title: 'Game Added!',
+          description: `${newGame.name} has been added and selected.`,
+        });
+        setSearchResultsOpen(false);
+      } else {
+        throw new Error('Failed to fetch details from BGG.');
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error adding game",
+        description: error.message || "Could not save the new game.",
+      });
+    }
+  };
+
+  const handleManualGameAdded = (newGame: Game) => {
+    form.setValue('gameId', newGame.id);
+    setManualAddDialogOpen(false);
+  }
 
   const handlePlayerAdded = (newPlayer: Player) => {
     // Automatically select the new player
@@ -194,7 +226,19 @@ export default function GameLogForm() {
     <GameScanDialog
         open={isScanDialogOpen}
         onOpenChange={setScanDialogOpen}
-        onDetailsScanned={handleNewGameScanned}
+        onScanComplete={handleScanComplete}
+    />
+     <ManualAddGameDialog
+        open={isManualAddDialogOpen}
+        onOpenChange={setManualAddDialogOpen}
+        onGameAdded={handleManualGameAdded}
+        initialName={manualAddDefaultName}
+      />
+    <GameSearchResultsDialog
+        open={isSearchResultsOpen}
+        onOpenChange={setSearchResultsOpen}
+        results={searchResults}
+        onGameSelected={(id, name) => handleAddGameById(id, name)}
     />
     <AddPlayerDialog
         open={isAddPlayerDialogOpen}
@@ -475,3 +519,5 @@ export default function GameLogForm() {
     </>
   );
 }
+
+    

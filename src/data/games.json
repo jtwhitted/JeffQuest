@@ -586,5 +586,53 @@
       "Rio Grande Games"
     ],
     "imageUrl": "https://cf.geekdo-images.com/KDrRxEKQMmHyM0QQ2ONX4Q__original/img/XD-aeaMShk-TN_n0n6O9kbczxNY=/0x0/filters:format(jpeg)/pic8638247.jpg"
+  },
+  {
+    "id": "g1762899045910",
+    "name": "Arcs",
+    "category": [
+      "Science Fiction",
+      "Space Exploration",
+      "Wargame"
+    ],
+    "mechanics": [
+      "Area Majority / Influence",
+      "Area Movement",
+      "Campaign / Battle Card Driven",
+      "Dice Rolling",
+      "Die Icon Resolution",
+      "Hand Management",
+      "Negotiation",
+      "Resource to Move",
+      "Trick-taking",
+      "Turn Order: Claim Action",
+      "Variable Player Powers"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "difficulty": "Advanced",
+    "yearPublished": 2024,
+    "description": "Arcs is a sharp, tactical space opera game set in a dark yet silly universe. Players represent officials from a distant, decaying and neglectful Empire who are now free to vie for dominance whether through battle, gathering scarce resources or diplomatic intrigue. Ready yourself for dramatic twists and turns as you launch into this galactic struggle.\n\nA deck of cards in 4 suits with ranks from 1-7 (2-6 for fewer than 4 players) defines the action selection system. These cards are played in a trick-taking adjacent system to select actions, take the initiative and declare Ambitions. The 3 declared Ambitions are what will score in that deal. Timing is everything. Bad hands must be mitigated by careful card play and benefitting from other players' card play.\n\nBattles are resolved quickly with the attacker choosing their level of risk. The defenders must be prepared with adequate defensive ships and cards in their tableau.\n\nEach game contains a hundred wooden ships and agents, 18 custom engraved dice, a beautiful six-panel board, and tons of cards with over 60 pieces of unique art. The base game may be played without the optional Leaders and Lore cards (for an easier teach) or with them for a richer, fuller and asymmetric game. It is also the core of the campaign game (requiring the Blighted Reach Expansion), which provides an epic, more thematic experience.",
+    "minPlaytime": 60,
+    "maxPlaytime": 120,
+    "rating": 8.047,
+    "ratingCount": 13790,
+    "complexity": 3.422,
+    "designers": [
+      "Cole Wehrle"
+    ],
+    "publishers": [
+      "Leder Games",
+      "2Tomatoes Games",
+      "CMON Global Limited",
+      "CrowD Games",
+      "Fox in the Box",
+      "HIT Games",
+      "Matagot",
+      "MeepleBR",
+      "Portal Games",
+      "Spielworxx"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__original/img/43ianMZOks7UHlZILx0VBRntOmM=/0x0/filters:format(png)/pic8145530.png"
   }
 ]
