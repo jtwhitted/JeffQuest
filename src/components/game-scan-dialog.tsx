@@ -15,18 +15,20 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
-import { useGames } from '@/context/game-context';
+import { searchBggAction } from '@/lib/actions';
+
+type SearchResult = { id: string; name: string };
 
 interface GameScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGameAdded: () => void;
+  onScanComplete: (results: SearchResult[], query: string) => void;
 }
 
 export function GameScanDialog({
   open,
   onOpenChange,
-  onGameAdded,
+  onScanComplete,
 }: GameScanDialogProps) {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -35,7 +37,7 @@ export function GameScanDialog({
     boolean | undefined
   >(undefined);
   const [isLoading, setIsLoading] = useState(false);
-  const { addGame } = useGames();
+  const [loadingMessage, setLoadingMessage] = useState('Analyzing Image...');
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -73,7 +75,7 @@ export function GameScanDialog({
     };
   }, [open, toast]);
 
-  const handleCaptureAndAdd = useCallback(async () => {
+  const handleCaptureAndSearch = useCallback(async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -85,27 +87,26 @@ export function GameScanDialog({
       
       setIsLoading(true);
       try {
+        setLoadingMessage('Identifying game from image...');
         const titleResult = await getGameTitleFromImage({ photoDataUri: dataUrl });
-        const newGame = await addGame({ name: titleResult.title });
 
-        toast({
-            title: 'Game Added!',
-            description: `${newGame.name} has been added to your collection.`,
-        });
-        onGameAdded();
+        setLoadingMessage(`Searching BGG for "${titleResult.title}"...`);
+        const searchResults = await searchBggAction(titleResult.title);
+        
+        onScanComplete(searchResults, titleResult.title);
         
       } catch (error: any) {
-        console.error('Error identifying or adding game:', error);
+        console.error('Error identifying or searching for game:', error);
         toast({
           variant: 'destructive',
-          title: 'Error Adding Game',
-          description: error.message || 'Could not identify or save the game from the image. Please try again or add it manually.',
+          title: 'Error Scanning Game',
+          description: error.message || 'Could not identify or find the game. Please try again or add it manually.',
         });
       } finally {
         setIsLoading(false);
       }
     }
-  }, [addGame, onGameAdded, toast]);
+  }, [onScanComplete, toast]);
   
   const handleClose = () => {
     onOpenChange(false);
@@ -121,9 +122,9 @@ export function GameScanDialog({
   const renderVideoState = () => {
     if (isLoading) {
        return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center">
           <Loader2 className="mb-2 h-8 w-8 animate-spin" />
-          <p>Analyzing and Adding Game...</p>
+          <p>{loadingMessage}</p>
         </div>
       );
     }
@@ -160,7 +161,7 @@ export function GameScanDialog({
         <DialogHeader>
           <DialogTitle>Scan Game Box</DialogTitle>
           <DialogDescription>
-            Center the game box cover in the frame. The game will be added automatically.
+            Center the game box cover in the frame to identify and search for it.
           </DialogDescription>
         </DialogHeader>
 
@@ -180,7 +181,7 @@ export function GameScanDialog({
         
         <DialogFooter className="gap-2 sm:justify-between">
             <Button
-              onClick={handleCaptureAndAdd}
+              onClick={handleCaptureAndSearch}
               disabled={!hasCameraPermission || isLoading}
               className="w-full"
             >
@@ -189,7 +190,7 @@ export function GameScanDialog({
               ) : (
                 <Camera className="mr-2 h-4 w-4" />
               )}
-              Capture and Add
+              Capture and Search
             </Button>
         </DialogFooter>
       </DialogContent>

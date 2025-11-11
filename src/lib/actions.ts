@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -81,7 +82,7 @@ const gameFormSchema = z.object({
     imageUrl: z.string().optional(),
 });
 
-export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
+export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game | null> {
     const validatedFields = gameFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
@@ -89,7 +90,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         throw new Error('Invalid game data.');
     }
     
-    // If all details are provided, it's a manual entry
+    // If description is provided, it's a manual entry
     if (validatedFields.data.description !== undefined) {
         const manualData = validatedFields.data;
         const newGame: Game = {
@@ -120,13 +121,22 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
 
     const { name, bggId } = validatedFields.data;
     if (!bggId) {
-        throw new Error('BGG ID is required to fetch game details.');
+        // This can happen if a search yields no results.
+        // Return null to indicate the game wasn't found and let the client handle it (e.g., open manual add dialog)
+        const exactMatch = await searchBgg(name, true);
+        if (exactMatch.length === 0) {
+            return null;
+        }
+        // If there was an exact match we didn't use, fetch its details.
+        const details = await getBggDetails(exactMatch[0].id);
+        if (!details || details.length === 0) return null;
+        // continue with details[0]
     }
     
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
     
     try {
-        const bggDetails = await getBggDetails(bggId);
+        const bggDetails = await getBggDetails(bggId!);
         if (bggDetails.length > 0) {
             details = bggDetails[0];
         }
@@ -136,7 +146,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     if (!details) {
-        throw new Error(`Could not find details for BGG ID ${bggId}.`);
+      return null;
     }
 
     const newGame: Game = {
@@ -215,8 +225,18 @@ export async function deletePlayer(playerId: string) {
 export async function searchBggAction(query: string): Promise<{ id: string; name: string }[]> {
   if (!query) return [];
   try {
+    // First, try an exact search
+    const exactResults = await searchBgg(query, true);
+    if (exactResults.length > 0) {
+        // If we get exact matches, we can be more confident. Return them.
+        // Often BGG returns one item for an exact match.
+        return exactResults;
+    }
+    
+    // If no exact match, perform a broader search
     const results = await searchBgg(query);
     return results;
+
   } catch (error) {
     console.error('BGG search action failed:', error);
     return [];

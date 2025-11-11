@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -43,6 +43,7 @@ interface ManualAddGameDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGameAdded: () => void;
+  initialName?: string;
 }
 
 const formSchema = z.object({
@@ -61,7 +62,7 @@ const formSchema = z.object({
   publishers: z.string().optional(),
 });
 
-export function ManualAddGameDialog({ open, onOpenChange, onGameAdded }: ManualAddGameDialogProps) {
+export function ManualAddGameDialog({ open, onOpenChange, onGameAdded, initialName }: ManualAddGameDialogProps) {
   const { toast } = useToast();
   const { addGame } = useGames();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +71,7 @@ export function ManualAddGameDialog({ open, onOpenChange, onGameAdded }: ManualA
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
+      name: initialName || '',
       description: '',
       imageUrl: '',
       minPlayers: 1,
@@ -78,6 +79,12 @@ export function ManualAddGameDialog({ open, onOpenChange, onGameAdded }: ManualA
       difficulty: 'Intermediate',
     },
   });
+
+  useEffect(() => {
+    if (initialName) {
+      form.setValue('name', initialName);
+    }
+  }, [initialName, form]);
 
   const imageUrl = form.watch('imageUrl');
 
@@ -113,7 +120,14 @@ export function ManualAddGameDialog({ open, onOpenChange, onGameAdded }: ManualA
   };
 
   const handleClose = () => {
-    form.reset();
+    form.reset({
+        name: '',
+        description: '',
+        imageUrl: '',
+        minPlayers: 1,
+        maxPlayers: 4,
+        difficulty: 'Intermediate',
+    });
     onOpenChange(false);
   };
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -40,12 +41,15 @@ const formSchema = z.object({
   name: z.string().min(1, 'Game name is required.').max(100, 'Name must be 100 characters or less.'),
 });
 
+type SearchResult = { id: string; name: string };
+
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isManualAddDialogOpen, setManualAddDialogOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
+  const [manualAddDefaultName, setManualAddDefaultName] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearchResultsOpen, setSearchResultsOpen] = useState(false);
 
   const { addGame } = useGames();
@@ -58,33 +62,47 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   });
 
   const handleGameAdded = () => {
+    handleClose();
     setScanDialogOpen(false);
     setManualAddDialogOpen(false);
     setSearchResultsOpen(false);
-    handleClose();
   };
+  
+  const handleSearchResults = (results: SearchResult[], query: string) => {
+    setScanDialogOpen(false); // Close scan dialog if open
+    if (results.length === 1) {
+        addGame({ name: results[0].name, bggId: results[0].id }).then(() => {
+            toast({
+              title: 'Game Added!',
+              description: `${results[0].name} has been added to your collection.`,
+            });
+            handleGameAdded();
+        }).catch((error) => {
+            toast({
+              variant: 'destructive',
+              title: 'Error Adding Game',
+              description: error.message || 'Could not add the game.',
+            });
+        });
+    } else if (results.length > 1) {
+        setSearchResults(results);
+        setSearchResultsOpen(true);
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Game not found',
+            description: `No match found for "${query}". Try adding it manually.`,
+        });
+        setManualAddDefaultName(query);
+        setManualAddDialogOpen(true);
+    }
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
       const results = await searchBggAction(values.name);
-      if (results.length === 1) {
-        await addGame({ name: results[0].name, bggId: results[0].id });
-        toast({
-          title: 'Game Added!',
-          description: `${results[0].name} has been added to your collection.`,
-        });
-        handleGameAdded();
-      } else if (results.length > 1) {
-        setSearchResults(results);
-        setSearchResultsOpen(true);
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Game not found',
-          description: 'Could not find a match on BoardGameGeek. Try a different name or add it manually.',
-        });
-      }
+      handleSearchResults(results, values.name);
     } catch (error: any) {
       console.error('Error searching game:', error);
       toast({
@@ -107,12 +125,13 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       <GameScanDialog
           open={isScanDialogOpen}
           onOpenChange={setScanDialogOpen}
-          onGameAdded={handleGameAdded}
+          onScanComplete={handleSearchResults}
       />
       <ManualAddGameDialog
         open={isManualAddDialogOpen}
         onOpenChange={setManualAddDialogOpen}
         onGameAdded={handleGameAdded}
+        initialName={manualAddDefaultName}
       />
       <GameSearchResultsDialog
         open={isSearchResultsOpen}
@@ -136,7 +155,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                       <Scan className="mr-2 h-4 w-4" />
                       Scan Box to Add Game
                 </Button>
-                <Button type="button" variant="outline" className="w-full" onClick={() => setManualAddDialogOpen(true)} disabled={isSubmitting}>
+                <Button type="button" variant="outline" className="w-full" onClick={() => { setManualAddDefaultName(''); setManualAddDialogOpen(true); }} disabled={isSubmitting}>
                       <FilePlus2 className="mr-2 h-4 w-4" />
                       Add Game Manually
                 </Button>
