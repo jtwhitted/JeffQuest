@@ -19,7 +19,11 @@ async function bggFetch(path: string, params: Record<string, string>) {
     const url = new URL(`${BGG_API_URL}/${path}`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+        headers: {
+            'Authorization': `Bearer ${apiKey}`
+        }
+    });
 
     if (response.status === 202) {
         // BGG has queued the request. We need to wait and retry.
@@ -100,6 +104,8 @@ export async function getBggDetails(id: string) {
         mechanics: getLinkValue('boardgamemechanic') || [],
         designers: getLinkValue('boardgamedesigner') || [],
         publishers: getLinkValue('boardgamepublisher') || [],
+        minPlaytime: item.minplaytime?.value,
+        maxPlaytime: item.maxplaytime?.value,
         rating: getStat('average'),
         ratingCount: getStat('usersrated'),
         complexity: getStat('averageweight'),
