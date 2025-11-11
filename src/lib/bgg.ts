@@ -46,21 +46,11 @@ const parser = new XMLParser({
 
 
 export async function searchBgg(query: string): Promise<{ id: string, name: string }[]> {
-    const xmlData = await bggFetch('search', { query, type: 'boardgame', exact: '1' });
+    const xmlData = await bggFetch('search', { query, type: 'boardgame' });
     const parsed = parser.parse(xmlData);
 
     if (!parsed.items?.item) {
-        // Handle no results by trying a non-exact search
-        const nonExactXml = await bggFetch('search', { query, type: 'boardgame' });
-        const nonExactParsed = parser.parse(nonExactXml);
-        if (!nonExactParsed.items?.item) {
-            return [];
-        }
-        const items = Array.isArray(nonExactParsed.items.item) ? nonExactParsed.items.item : [nonExactParsed.items.item];
-        return items.map((item: any) => ({
-            id: item.id.toString(),
-            name: Array.isArray(item.name) ? item.name[0].value : item.name.value
-        }));
+        return [];
     }
 
     // Handle both single and multiple results from BGG API

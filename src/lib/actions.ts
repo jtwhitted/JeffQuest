@@ -138,20 +138,20 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
 
     try {
-        if (bggId) {
-            const results = await getBggDetails(bggId);
-            details = results.length > 0 ? results[0] : null;
-        } else {
-             const searchResults = await searchBgg(name);
-            if (searchResults.length > 0) {
-                const ids = searchResults.map(r => r.id);
-                const allDetails = await getBggDetails(ids.join(','));
+        const searchResults = await searchBgg(name);
+        if (searchResults.length > 0) {
+            const ids = searchResults.map(r => r.id);
+            const allDetails = await getBggDetails(ids.join(','));
 
-                if (allDetails.length > 0) {
-                    details = allDetails.reduce((prev, current) => {
-                        return (prev.ratingCount || 0) > (current.ratingCount || 0) ? prev : current;
-                    });
-                }
+            if (allDetails.length > 0) {
+                // Find the best match - often the one with the most ratings
+                details = allDetails.reduce((prev, current) => {
+                    // Prefer exact name match if available
+                    if (current.name.toLowerCase() === name.toLowerCase()) return current;
+                    if (prev.name.toLowerCase() === name.toLowerCase()) return prev;
+                    // Otherwise, pick the one with more ratings
+                    return (prev.ratingCount || 0) > (current.ratingCount || 0) ? prev : current;
+                });
             }
         }
     } catch (bggError) {
