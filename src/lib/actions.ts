@@ -79,7 +79,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     let { name, bggId } = validatedFields.data;
-    let details: Awaited<ReturnType<typeof getBggDetails>> | null = null;
+    let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
 
     try {
         if (bggId) {
