@@ -1,4 +1,3 @@
-
 'use server';
 
 import { XMLParser } from 'fast-xml-parser';
@@ -12,7 +11,7 @@ const apiKey = process.env.BGG_API_KEY;
 async function bggFetch(path: string, params: Record<string, string>) {
     if (!apiKey) {
         console.warn('BGG_API_KEY is not configured. BGG integration will not work.');
-        return '<items total="0"></items>';
+        throw new Error('BGG API Key is not configured.');
     }
     
     const url = new URL(`${BGG_API_URL}/${path}`);
@@ -25,13 +24,13 @@ async function bggFetch(path: string, params: Record<string, string>) {
     });
 
     if (response.status === 202) {
-        await delay(3000);
+        await delay(3000); // BGG is queuing the request, wait and retry.
         return bggFetch(path, params);
     }
     
     if (!response.ok) {
-        console.error(`BGG API request failed with status ${response.status}: ${await response.text()}`);
-        return '<items total="0"></items>';
+        console.error(`BGG API request failed for ${url.toString()} with status ${response.status}: ${await response.text()}`);
+        throw new Error(`BoardGameGeek API request failed. Status: ${response.status}`);
     }
 
     return response.text();
