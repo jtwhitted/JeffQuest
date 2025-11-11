@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams, notFound } from 'next/navigation';
@@ -87,9 +88,9 @@ export default function GameDetailPage() {
                     )}
                      {game.publishers && game.publishers.length > 0 && (
                         <div className="mb-4">
-                            <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Publishers</h4>
+                            <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Publisher</h4>
                             <div className="flex flex-wrap gap-2">
-                                {game.publishers.map(p => <Badge key={p} variant="outline">{p}</Badge>)}
+                                <Badge variant="outline">{game.publishers[0]}</Badge>
                             </div>
                         </div>
                     )}
