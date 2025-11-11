@@ -53,9 +53,12 @@ export async function searchBgg(query: string): Promise<{ id: string, name: stri
         return [];
     }
 
-    return parsed.items.item.map((item: any) => ({
+    // Handle both single and multiple results from BGG API
+    const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
+
+    return items.map((item: any) => ({
         id: item.id.toString(),
-        name: item.name.value
+        name: Array.isArray(item.name) ? item.name[0].value : item.name.value
     }));
 }
 
