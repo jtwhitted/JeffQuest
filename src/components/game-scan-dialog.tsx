@@ -82,15 +82,18 @@ export function GameScanDialog({
       context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       const dataUrl = canvas.toDataURL('image/jpeg');
       setCapturedImage(dataUrl);
+      
+      // Automatically trigger confirm after capture
+      handleConfirm(dataUrl);
     }
   }, []);
 
-  const handleConfirm = async () => {
-    if (!capturedImage) return;
+  const handleConfirm = async (imageToProcess: string | null) => {
+    if (!imageToProcess) return;
 
     setIsLoading(true);
     try {
-      const result = await getGameTitleFromImage({ photoDataUri: capturedImage });
+      const result = await getGameTitleFromImage({ photoDataUri: imageToProcess });
       onDetailsScanned(result);
       handleClose();
     } catch (error) {
@@ -98,11 +101,12 @@ export function GameScanDialog({
       toast({
         variant: 'destructive',
         title: 'Error Identifying Game',
-        description: 'Could not get game title from the image. The AI service may be temporarily unavailable. Please wait a moment and try again, or enter the title manually.',
-        duration: 10000,
+        description: 'Could not get game title from the image. Please try again.',
       });
     } finally {
       setIsLoading(false);
+      // Reset image for retake if needed
+      setCapturedImage(null);
     }
   };
   
@@ -119,6 +123,15 @@ export function GameScanDialog({
   }
 
   const renderVideoState = () => {
+    if (isLoading) {
+       return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white">
+          <Loader2 className="mb-2 h-8 w-8 animate-spin" />
+          <p>Analyzing Image...</p>
+        </div>
+      );
+    }
+
     if (hasCameraPermission === undefined) {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -151,14 +164,14 @@ export function GameScanDialog({
         <DialogHeader>
           <DialogTitle>Scan Game Box</DialogTitle>
           <DialogDescription>
-            Center the game box cover in the frame and capture an image.
+            Center the game box cover in the frame to automatically capture the title.
           </DialogDescription>
         </DialogHeader>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
           <video
             ref={videoRef}
-            className={`h-full w-full object-cover ${capturedImage || !hasCameraPermission ? 'hidden' : 'block'}`}
+            className={`h-full w-full object-cover ${!hasCameraPermission ? 'hidden' : 'block'}`}
             autoPlay
             playsInline
             muted
@@ -166,41 +179,22 @@ export function GameScanDialog({
 
           {renderVideoState()}
 
-          {capturedImage && (
-            <img src={capturedImage} alt="Captured game box" className="h-full w-full object-cover" />
-          )}
-
           <canvas ref={canvasRef} className="hidden" />
         </div>
         
         <DialogFooter className="gap-2 sm:justify-between">
-          {!capturedImage ? (
             <Button
               onClick={handleCapture}
               disabled={!hasCameraPermission || isLoading}
               className="w-full"
             >
-              <Camera className="mr-2 h-4 w-4" />
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Camera className="mr-2 h-4 w-4" />
+              )}
               Capture
             </Button>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setCapturedImage(null)}
-                disabled={isLoading}
-              >
-                 <RefreshCw className="mr-2 h-4 w-4" />
-                Retake
-              </Button>
-              <Button onClick={handleConfirm} disabled={isLoading} className="flex-1">
-                {isLoading && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Confirm Title
-              </Button>
-            </>
-          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

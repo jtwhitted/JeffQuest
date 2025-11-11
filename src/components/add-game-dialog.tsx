@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -11,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Scan } from 'lucide-react';
+import { Loader2, Scan, Search } from 'lucide-react';
 import React, { useState } from 'react';
 import {
   Form,
@@ -29,6 +30,9 @@ import { GameScanDialog } from './game-scan-dialog';
 import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
+import { searchBggAction } from '@/lib/actions';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { ScrollArea } from './ui/scroll-area';
 
 interface AddGameDialogProps {
   open: boolean;
@@ -40,11 +44,15 @@ const formSchema = z.object({
   bggId: z.string().optional(),
 });
 
+type BggSearchResult = { id: string; name: string };
+
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const { addGame } = useGames();
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<BggSearchResult[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,19 +61,53 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       bggId: '',
     },
   });
+
+  const handleSearch = async () => {
+    const query = form.getValues('name');
+    if (!query) {
+      toast({
+        variant: 'destructive',
+        title: 'Search Error',
+        description: 'Please enter a game name to search.',
+      });
+      return;
+    }
+    setIsSearching(true);
+    setSearchResults([]);
+    form.setValue('bggId', '');
+    try {
+      const results = await searchBggAction(query);
+      if (results.length === 0) {
+        toast({
+          title: 'No Results',
+          description: `No games found on BGG for "${query}". You can still add it manually.`,
+        });
+      }
+      setSearchResults(results);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Search Failed',
+        description: 'Could not connect to BoardGameGeek. Please try again.',
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
   
   const handleNewGameScanned = (details: GetGameTitleOutput) => {
     form.setValue('name', details.title);
     toast({
         title: 'Game Title Populated!',
-        description: 'The game title has been filled in. You can now save it or add a BGG ID.',
+        description: 'Now searching BGG for matching games...',
     });
+    // Automatically trigger search after scan
+    handleSearch();
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // The addGame action will now handle fetching from BGG if an ID is provided
       const newGame = await addGame(values);
       toast({
         title: 'Game Added!',
@@ -86,6 +128,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
 
   const handleClose = () => {
     form.reset();
+    setSearchResults([]);
     onOpenChange(false);
   };
 
@@ -103,7 +146,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Scan a game box to get the title, or enter details manually. Add a BGG ID to auto-fill details.
+                  Scan, search, or manually enter a game. Searching BGG will autofill details.
                 </DialogDescription>
               </DialogHeader>
 
@@ -124,30 +167,58 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Game Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. Catan, Wingspan..."/>
-                    </FormControl>
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input {...field} placeholder="e.g. Catan, Wingspan..."/>
+                      </FormControl>
+                      <Button type="button" size="icon" variant="outline" onClick={handleSearch} disabled={isSearching}>
+                        {isSearching ? <Loader2 className="h-4 w-4 animate-spin"/> : <Search className="h-4 w-4" />}
+                        <span className="sr-only">Search</span>
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="bggId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>BoardGameGeek ID (Optional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g., 13 for Catan"/>
-                    </FormControl>
-                    <FormDescription>
-                      Find the ID in the game's URL on BoardGameGeek to fetch all data automatically.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {searchResults.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="bggId"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Select the correct game from BGG</FormLabel>
+                      <FormControl>
+                        <ScrollArea className="h-48">
+                        <RadioGroup
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            const selectedGame = searchResults.find(r => r.id === value);
+                            if (selectedGame) {
+                                form.setValue('name', selectedGame.name, { shouldValidate: true });
+                            }
+                          }}
+                          defaultValue={field.value}
+                          className="space-y-1"
+                        >
+                          {searchResults.map(result => (
+                            <FormItem key={result.id} className="flex items-center space-x-3 space-y-0 rounded-md border p-3">
+                              <FormControl>
+                                <RadioGroupItem value={result.id} />
+                              </FormControl>
+                              <FormLabel className="font-normal w-full cursor-pointer">
+                                {result.name}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
+                        </ScrollArea>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <DialogFooter className="pt-4">
                 <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>

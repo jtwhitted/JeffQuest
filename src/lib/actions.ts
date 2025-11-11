@@ -83,19 +83,15 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
 
     try {
         if (bggId) {
-            // If an ID is provided, fetch details for that specific game
             const results = await getBggDetails(bggId);
             details = results.length > 0 ? results[0] : null;
         } else {
-             // If no ID, search BGG, get top 10, fetch details, and find most popular
-            const searchResults = await searchBgg(name);
+             const searchResults = await searchBgg(name);
             if (searchResults.length > 0) {
-                const topResults = searchResults.slice(0, 10);
-                const ids = topResults.map(r => r.id);
+                const ids = searchResults.map(r => r.id);
                 const allDetails = await getBggDetails(ids.join(','));
 
                 if (allDetails.length > 0) {
-                    // Find the game with the most ratings to determine popularity
                     details = allDetails.reduce((prev, current) => {
                         return (prev.ratingCount || 0) > (current.ratingCount || 0) ? prev : current;
                     });
@@ -104,7 +100,6 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         }
     } catch (bggError) {
         console.error("BGG data fetching failed:", bggError);
-        // If BGG fails, we proceed with just the name, no details.
     }
     
     const newGame: Game = {
@@ -177,4 +172,16 @@ export async function deletePlayer(playerId: string) {
     revalidatePath('/players');
     revalidatePath('/');
     revalidatePath('/sessions');
+}
+
+
+export async function searchBggAction(query: string): Promise<{ id: string; name: string }[]> {
+  if (!query) return [];
+  try {
+    const results = await searchBgg(query);
+    return results;
+  } catch (error) {
+    console.error('BGG search action failed:', error);
+    return [];
+  }
 }
