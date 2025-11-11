@@ -52,7 +52,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addGame = useCallback(async (gameData: GameData) => {
+  const addGame = useCallback(async (gameData: GameData): Promise<Game> => {
     setIsLoading(true);
     try {
       const newGame = await addGameAction(gameData);

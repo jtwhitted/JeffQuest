@@ -94,12 +94,12 @@ export function GameScanDialog({
         });
         onGameAdded();
         
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error identifying or adding game:', error);
         toast({
           variant: 'destructive',
           title: 'Error Adding Game',
-          description: 'Could not identify or save the game from the image. Please try again or add it manually.',
+          description: error.message || 'Could not identify or save the game from the image. Please try again or add it manually.',
         });
       } finally {
         setIsLoading(false);
