@@ -22,11 +22,11 @@ export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
   const handleDelete = async () => {
     setDeleteDialogOpen(false);
 
-    // First, navigate away to prevent a 404.
+    // First, navigate away to the games list page.
     router.push('/games');
     
     try {
-      // A slight delay gives the navigation time to start.
+      // A slight delay gives the navigation time to start before the data is removed.
       await new Promise(resolve => setTimeout(resolve, 50));
       await deleteGame(gameId);
 
