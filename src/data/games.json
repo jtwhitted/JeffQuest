@@ -1,8 +1,12 @@
+
 [
   {
     "id": "g1762834555236",
     "name": "CATAN",
-    "category": "Economic",
+    "category": [
+      "Economic",
+      "Negotiation"
+    ],
     "mechanics": [
       "Chaining",
       "Dice Rolling",
@@ -93,7 +97,10 @@
   {
     "id": "g1762835339900",
     "name": "Moon Colony Bloodbath",
-    "category": "Card Game",
+    "category": [
+      "Card Game",
+      "Science Fiction"
+    ],
     "mechanics": [
       "Deck, Bag, and Pool Building",
       "Delayed Purchase",
@@ -122,7 +129,11 @@
   {
     "id": "g1762835357259",
     "name": "Vantage",
-    "category": "Adventure",
+    "category": [
+      "Adventure",
+      "Exploration",
+      "Science Fiction"
+    ],
     "mechanics": [
       "Cooperative Game",
       "Dice Rolling",
@@ -154,7 +165,10 @@
   {
     "id": "g1762835374792",
     "name": "Just One",
-    "category": "Deduction",
+    "category": [
+      "Deduction",
+      "Party Game"
+    ],
     "mechanics": [
       "Communication Limits",
       "Cooperative Game",
@@ -197,50 +211,5 @@
       "Rebel Sp. z o.o."
     ],
     "imageUrl": "https://cf.geekdo-images.com/74haNunMBn85beBi-yIKwA__original/img/hA22qL6nZxchA8FMTIfhLMcI53I=/0x0/filters:format(png)/pic8669313.png"
-  },
-  {
-    "id": "g1762838230559",
-    "name": "SETI: Search for Extraterrestrial Intelligence",
-    "category": "Science Fiction",
-    "mechanics": [
-      "Area Majority / Influence",
-      "End Game Bonuses",
-      "Income",
-      "Multi-Use Cards",
-      "Resource to Move",
-      "Solo / Solitaire Game",
-      "Turn Order: Progressive",
-      "Variable Set-up"
-    ],
-    "minPlayers": 1,
-    "maxPlayers": 4,
-    "difficulty": "Advanced",
-    "yearPublished": 2024,
-    "description": "In SETI: Search for Extraterrestrial Intelligence, you lead a scientific institution tasked with searching for traces of life beyond planet Earth. The game draws inspiration from current or emerging technologies and efforts in space exploration.Players will explore nearby planets and their moons by launching probes from Earth while taking advantage of ever-shifting planetary positions. Decide whether to land on their surface to collect valuable samples, or stay in orbit for a broader survey. Additionally, by directing your telescopes to gaze into distant star systems, you may detect traces of alien signals or undiscovered exoplanets, and collect promising data to examine and study back home.\n\nBack on Earth, you can invest in upgrading your equipment so you can analyze incoming data more efficiently, boost your telescope signal capacity, or increase your supply of resources&mdash;all to expand the scope of your search that could lead to a discovery of extraterrestrial life forms. Finding traces of extraterrestrial life is only a matter of time &mdash; utilize the resources you have at your disposal strategically and you may well end up being the one to make the biggest scientific contribution towards advancing our understanding of alien life within our galaxy.\n\nYou will also make use of over 200 cards to aid your efforts or focus your research in a particular direction for additional bonuses and rewards. Each card has unique effects and illustrations and depicts real-life technologies, projects, and discoveries (like the ISS, Large Hadron Collider, Perseverance rover, Voyager probe, and many more).\n\nThe game is played in 5 rounds. The player with the starting player marker takes the first turn of the round. Players take turns in clockwise order, skipping any players that have already passed for the round. At the end of round 5, the final score is calculated and the player with the most points wins.\n\nSETI: Search for Extraterrestrial Intelligence pays homage to space and planetary exploration, astronomy, the ongoing search for signs of life in the vastness of space, and efforts to understand the nature of life in the universe.\n\n&mdash;description from the publisher",
-    "minPlaytime": 40,
-    "maxPlaytime": 160,
-    "rating": 8.392,
-    "ratingCount": 14100,
-    "complexity": 3.805,
-    "designers": [
-      "Tomáš Holek"
-    ],
-    "publishers": [
-      "Czech Games Edition",
-      "Broadway Toys LTD",
-      "Cranio Creations",
-      "Devir",
-      "DiceTree Games",
-      "DSV Games",
-      "Feelindigo",
-      "Gém Klub Kft.",
-      "HeidelBÄR Games",
-      "Hobby Japan",
-      "IELLO",
-      "MINDOK",
-      "MIPL",
-      "Rebel Sp. z o.o."
-    ],
-    "imageUrl": "https://cf.geekdo-images.com/_BUXOVRDU9g_eRwgpR5ZZw__original/img/28ob2JiASW8iX8XoVzp5Y25-h24=/0x0/filters:format(jpeg)/pic8160466.jpg"
   }
 ]

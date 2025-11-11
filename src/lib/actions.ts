@@ -105,7 +105,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     const newGame: Game = {
         id: `g${Date.now()}`,
         name: details?.name || name,
-        category: details?.category || 'Unknown',
+        category: details?.category || [],
         mechanics: details?.mechanics || [],
         minPlayers: details?.minPlayers || 1,
         maxPlayers: details?.maxPlayers || 1,

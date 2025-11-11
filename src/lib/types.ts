@@ -8,7 +8,7 @@ export interface Player {
 export interface Game {
   id: string;
   name: string;
-  category: string;
+  category: string[];
   imageUrl: string;
   minPlayers: number;
   maxPlayers: number;

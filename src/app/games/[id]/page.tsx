@@ -67,7 +67,7 @@ export default function GameDetailPage() {
                         <div className="md:w-2/3 space-y-4">
                             <div className="space-y-2">
                                 <h2 className="text-2xl font-bold">{game.name}</h2>
-                                <div className="prose prose-sm dark:prose-invert text-muted-foreground" dangerouslySetInnerHTML={{__html: game.description?.replace(/\n/g, '<br />') || '<p>No description available.</p>'}} />
+                                <div className="prose prose-sm dark:prose-invert text-muted-foreground" dangerouslySetInnerHTML={{__html: game.description?.replace(/\\n/g, '<br />') || '<p>No description available.</p>'}} />
                             </div>
                         </div>
                     </div>
@@ -78,6 +78,14 @@ export default function GameDetailPage() {
                     <CardTitle>Mechanics & Details</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    {game.category && game.category.length > 0 && (
+                        <div className="mb-4">
+                            <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Categories</h4>
+                            <div className="flex flex-wrap gap-2">
+                                {game.category.map(c => <Badge key={c} variant="outline">{c}</Badge>)}
+                            </div>
+                        </div>
+                    )}
                     {game.designers && game.designers.length > 0 && (
                         <div className="mb-4">
                             <h4 className="font-semibold text-sm mb-2 text-muted-foreground">Designers</h4>

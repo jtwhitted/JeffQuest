@@ -1,3 +1,4 @@
+
 'use client';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -96,7 +97,7 @@ export default function GamesPage() {
                     <Link href={`/games/${game.id}`} className="flex">
                         <CardHeader className="relative flex flex-row items-start gap-4 flex-1">
                         {game.imageUrl ? (
-                            <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category} boardgame`} unoptimized />
+                            <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.category?.[0]} boardgame`} unoptimized />
                         ) : (
                             <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-muted">
                                 <Dices className="h-8 w-8 text-muted-foreground" />
@@ -104,7 +105,7 @@ export default function GamesPage() {
                         )}
                         <div className="flex-1">
                             <CardTitle>{game.name}</CardTitle>
-                            <CardDescription>{game.category}</CardDescription>
+                            <CardDescription>{game.category?.[0]}</CardDescription>
                             <div className="mt-2 flex flex-col items-start gap-2 text-sm text-muted-foreground">
                                 <div className="flex items-center">
                                     <Swords className="mr-1.5 h-4 w-4" />

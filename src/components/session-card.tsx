@@ -58,7 +58,7 @@ export default function SessionCard({ session, game, players, winner }: SessionC
           alt={game.name}
           fill
           className="object-cover"
-          data-ai-hint={`${game.category} game`}
+          data-ai-hint={`${game.category?.[0]} game`}
           unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
