@@ -1,99 +1,5 @@
 [
   {
-    "id": "g1762834555236",
-    "name": "CATAN",
-    "category": [
-      "Economic",
-      "Negotiation"
-    ],
-    "mechanics": [
-      "Chaining",
-      "Dice Rolling",
-      "Hand Management",
-      "Hexagon Grid",
-      "Hidden Victory Points",
-      "Income",
-      "Market",
-      "Modular Board",
-      "Network and Route Building",
-      "Race",
-      "Random Production",
-      "Take That",
-      "Trading",
-      "Variable Set-up"
-    ],
-    "minPlayers": 3,
-    "maxPlayers": 4,
-    "difficulty": "Intermediate",
-    "yearPublished": 1995,
-    "description": "In CATAN (formerly The Settlers of Catan), players try to be the dominant force on the island of Catan by building settlements, cities and roads. On each turn dice are rolled to determine which resources the island produces. Players build structures by 'spending' resources (sheep, wheat, wood, brick and ore) which are represented by the relevant resource cards; each land type, with the exception of the unproductive desert, produces a specific resource: hills produce brick, forests produce wood, mountains produce ore, fields produce wheat, and pastures produce sheep.\n\nSet-up includes randomly placing large hexagonal tiles (each depicting one of the five resource-producing terrain types--or the desert) in a honeycomb shape and surrounding them with water tiles, some of which contain ports of exchange. A number disk, the value of which will correspond to the roll of two 6-sided dice, are placed on each terrain tile. Each player is given two settlements (think: houses) and roads (sticks) which are placed on intersections and borders of the terrain tiles. Players collect a hand of resource cards based on which terrain tiles their last-placed settlement is adjacent to. A robber pawn is placed on the desert tile.\n\nA turn consists of rolling the dice, collecting resource cards based on this dice roll and the position of settlements (or upgraded cities&mdash;think: hotels), turning in resource cards (if possible and desired) for improvements, trading cards at a port, possibly playing a development card, or trading resource cards with other players. If the dice roll is a 7, the active player moves the robber to a new terrain tile and steals a resource card from another player who has a settlement adjacent to that tile.\n\nPoints are accumulated by building settlements and cities, having the longest road or the largest army (from some of the development cards), and gathering certain development cards that simply award victory points. When a player has gathered 10 points (some of which may be held in secret), s/he announces this and claims the win.",
-    "minPlaytime": 60,
-    "maxPlaytime": 120,
-    "rating": 7.091,
-    "ratingCount": 137900,
-    "complexity": 2.286,
-    "designers": [
-      "Klaus Teuber"
-    ],
-    "publishers": [
-      "KOSMOS",
-      "64 Ounce Games",
-      "999 Games",
-      "Albi",
-      "asmodee",
-      "Astrel Games",
-      "BGA Plus",
-      "Brädspel.se",
-      "Brain Games",
-      "Broadway Toys LTD",
-      "Capcom Co., Ltd.",
-      "Catan Studio",
-      "Competo / Marektoy",
-      "danspil",
-      "Descartes Editeur",
-      "Devir",
-      "Dexy Co",
-      "Enigma (Bergsala Enigma)",
-      "Eurogames",
-      "Filosofia Éditions",
-      "Galakta",
-      "Giochi Uniti",
-      "GP Games",
-      "Grow Jogos e Brinquedos",
-      "HaKubia",
-      "Hanayama",
-      "Hobby World",
-      "Ideal Board Games",
-      "Igroljub",
-      "IntelliGames.BG",
-      "Ísöld ehf.",
-      "Kaissa Chess & Games",
-      "Korea Boardgames",
-      "L&M Games",
-      "Laser plus",
-      "Lautapelit.fi",
-      "Logojogos",
-      "Mayfair Games",
-      "MIPL",
-      "NeoTroy Games",
-      "Ninive Games",
-      "Paper Iyagi",
-      "Piatnik",
-      "Rozum",
-      "Smart Ltd",
-      "Spilbræt.dk",
-      "Stupor Mundi",
-      "Super Impulse",
-      "SuperHeated Neurons",
-      "Swan Panasia Co., Ltd.",
-      "Tilsit",
-      "Top Toys",
-      "TRY SOFT",
-      "Vennerød Forlag AS"
-    ],
-    "imageUrl": "https://cf.geekdo-images.com/0XODRpReiZBFUffEcqT5-Q__original/img/oRc0AomWA9ZtFqQDZiZbIyKE1j0=/0x0/filters:format(png)/pic9156909.png"
-  },
-  {
     "id": "g1762835357259",
     "name": "Vantage",
     "category": [
@@ -162,68 +68,454 @@
     "imageUrl": "https://cf.geekdo-images.com/KDrRxEKQMmHyM0QQ2ONX4Q__original/img/XD-aeaMShk-TN_n0n6O9kbczxNY=/0x0/filters:format(jpeg)/pic8638247.jpg"
   },
   {
-    "id": "g1762871456395",
-    "name": "Wingspan",
+    "id": "g1762881557498",
+    "name": "Just One",
     "category": [
-      "Animals",
-      "Card Game",
-      "Educational"
+      "Deduction",
+      "Party Game",
+      "Word Game"
     ],
     "mechanics": [
-      "Action Queue",
-      "Dice Rolling",
-      "End Game Bonuses",
-      "Hand Management",
-      "Once-Per-Game Abilities",
-      "Open Drafting",
-      "Set Collection",
-      "Solo / Solitaire Game",
-      "Turn Order: Progressive"
+      "Communication Limits",
+      "Cooperative Game",
+      "Deduction",
+      "Score-and-Reset Game"
     ],
-    "minPlayers": 1,
+    "minPlayers": 3,
+    "maxPlayers": 7,
+    "difficulty": "Beginner",
+    "yearPublished": 2018,
+    "description": "Just One is a co-operative party game in which you all play together to get the best score! Your goal each round is to get one player &mdash; the active player &mdash; to guess a mystery word based on the clues given by teammates. Can you achieve a perfect score by guessing all the mystery words?\n\nIn more detail, everyone who is not the active player sees the mystery word, then each player independently writes a clue on their personal easel. Once everyone has finished, you reveal the clues to one another. All identical clues are removed from play, so try to be original!\n\nAfter eliminating duplicate clues, reveal the remaining clues to the active player. If they correctly guess the mystery word, your team scores a point. If they decline to guess, you don't score the current card. If they guess wrong, you don't score the current card and you lose one of the points you had already scored. Thus, be original, but not so original that you don't help the active player guess correctly!",
+    "minPlaytime": 20,
+    "maxPlaytime": 60,
+    "rating": 7.598,
+    "ratingCount": 33060,
+    "complexity": 1.036,
+    "designers": [
+      "Ludovic Roudy",
+      "Bruno Sautter"
+    ],
+    "publishers": [
+      "Repos Production",
+      "ADC Blackfire Entertainment",
+      "Arclight Games",
+      "Brain Games",
+      "CoolPlay",
+      "FoxMind Israel",
+      "Fun Consortium",
+      "Galápagos Jogos",
+      "Geekach LLC",
+      "Gém Klub Kft.",
+      "GoKids 玩樂小子",
+      "Happy Baobab",
+      "Kaissa Chess & Games",
+      "Korea Boardgames",
+      "Lifestyle Boardgames Ltd",
+      "Maldón",
+      "Morapiaf",
+      "Nordic Games ehf",
+      "Rebel Sp. z o.o."
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/74haNunMBn85beBi-yIKwA__original/img/hA22qL6nZxchA8FMTIfhLMcI53I=/0x0/filters:format(png)/pic8669313.png"
+  },
+  {
+    "id": "g1762884159788",
+    "name": "Mech A Dream",
+    "category": [
+      "Industry / Manufacturing"
+    ],
+    "mechanics": [
+      "End Game Bonuses",
+      "Worker Placement"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "difficulty": "Intermediate",
+    "yearPublished": 2023,
+    "description": "Can robot dream too ? With your workshop, take part in the wonderful MECH A DREAM project.\n\nEach day is divided into 3 shifts where you can use your workers  \n\n     Day \n     Afternoon \n     Evening\n\n\nDepending on the time of the day, the workers will be more or less efficient. \n \n     Use your workers to collect steam and electricity \n     Use these resources to build machines \n     Use your machines to build dreams!\n\n\n&mdash;description from the publisher",
+    "minPlaytime": 45,
+    "maxPlaytime": 45,
+    "rating": 6.598,
+    "ratingCount": 256,
+    "complexity": 2,
+    "designers": [
+      "Thomas Dupont",
+      "Antoni Guillen"
+    ],
+    "publishers": [
+      "Blue Orange (EU)",
+      "Blue Orange Games"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/MmWHmeaqjC7sWBFIL_VABw__original/img/TD-iDBZlM-4mU5DniMXzHihlxRo=/0x0/filters:format(png)/pic6940255.png"
+  },
+  {
+    "id": "g1762884180986",
+    "name": "The King&#039;s Dilemma",
+    "category": [
+      "Fantasy",
+      "Negotiation",
+      "Political"
+    ],
+    "mechanics": [
+      "Bias",
+      "Bribery",
+      "End Game Bonuses",
+      "Legacy Game",
+      "Storytelling",
+      "Voting"
+    ],
+    "minPlayers": 3,
     "maxPlayers": 5,
     "difficulty": "Intermediate",
     "yearPublished": 2019,
-    "description": "Wingspan is&nbsp;a competitive, medium-weight, card-driven, engine-building board game from Stonemaier Games. It's designed by Elizabeth Hargrave and features 180 birds illustrated by Natalia Rojas and Ana Maria Martinez.\n\nYou are bird enthusiasts&mdash;researchers, bird watchers, ornithologists, and collectors&mdash;seeking to discover and attract the best birds to your network of wildlife preserves. Each bird extends a chain of powerful combinations in one of your habitats (actions). These habitats  focus on several key aspects of growth:\n\n\n     Gain food tokens via custom dice in a birdfeeder dice tower\n     Lay eggs using egg miniatures in a variety of colors\n     Draw from hundreds of unique bird cards and play them\n\n\nThe winner is the player with the most points after 4 rounds.\n\n&mdash;description from the publisher\n\nFrom the 7th printing on, the base game box includes Wingspan: Swift-Start Promo Pack.",
-    "minPlaytime": 40,
-    "maxPlaytime": 70,
-    "rating": 8.009,
-    "ratingCount": 107500,
-    "complexity": 2.475,
+    "description": "The King's Dilemma is an interactive narrative experience with legacy elements, featuring several branching storylines leading to many possible finales and an evolving deck of event cards at its core. Players represent the various houses leading the government of the Kingdom of Ankist.\n\nYou will draw one card from the \"Dilemma deck\" each round and experience the game story as it unfolds. Each card poses a problem that the Council has to resolve on the King's behalf. As members of the King's inner circle, your decisions determine how the story proceeds and the fate of the kingdom. Each event happens only once: You discuss and bargain with the other players, then finally you make a choice, determining the outcome, progressing the game story, and possibly unlocking more events.\n\nYou have to keep the kingdom going, while also seeking an advantage for your own house; this power struggle may lead the kingdom into war, famine, or riot, or it could generate wealth and well-being. This will depend on your choices! The thing is, each decision has consequences, and what is good for the kingdom as a whole may be bad for your family...\n\nWill you act for the greater good, or will you think only of yourself?",
+    "minPlaytime": 45,
+    "maxPlaytime": 60,
+    "rating": 7.687,
+    "ratingCount": 6896,
+    "complexity": 2.247,
     "designers": [
-      "Elizabeth Hargrave"
+      "Hjalmar Hach",
+      "Lorenzo Silva"
     ],
     "publishers": [
-      "Stonemaier Games",
+      "Horrible Guild",
       "999 Games",
-      "Angry Lion Games",
-      "Arclight Games",
       "asmodee",
-      "Automa Factory",
-      "Bluebird Games",
-      "Brain Games",
+      "CrowD Games",
       "Delta Vision Publishing",
-      "Divercentro",
-      "Feuerland Spiele",
+      "DiceTree Games",
+      "Galakta",
       "Ghenos Games",
-      "Green Elephant Games",
       "Grok Games",
-      "Kaissa Chess & Games",
+      "HeidelBÄR Games",
+      "Hobby Japan",
+      "IELLO",
+      "One Moment Games",
+      "Yellowstar Games"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/FJlTdSMkK5hMNtCympJFmg__original/img/pr_jKPa74JjBBm30Mo9Uj9Jq1-w=/0x0/filters:format(jpeg)/pic5429837.jpg"
+  },
+  {
+    "id": "g1762884203323",
+    "name": "Tales of the Arabian Nights",
+    "category": [
+      "Adventure",
+      "Arabian",
+      "Exploration",
+      "Fantasy",
+      "Travel"
+    ],
+    "mechanics": [
+      "Dice Rolling",
+      "Narrative Choice / Paragraph",
+      "Point to Point Movement",
+      "Role Playing",
+      "Solo / Solitaire Game",
+      "Storytelling",
+      "Variable Player Powers"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 6,
+    "difficulty": "Intermediate",
+    "yearPublished": 2009,
+    "description": "In Tales of the Arabian Nights, you are the hero or heroine in a story of adventure and wonder just like those told by Scheherazade to her spellbound sultan! You will travel the land seeking your own destiny and fortune. You will learn stories and gain wisdom to share with others. Will you be the first to fulfill your destiny? The next Tale is yours to tell! There is, of course, a winner in Tales of the Arabian Nights, but the point of the game is less to see who wins and more to enjoy the unfolding and telling of a great story!\n\nPlayers choose a character card, a quest, select a set skills, and move across the board to fulfill the quest. A player's movement is based on their wealth and each player draws an encounter card at the end of their move. Dice are thrown and these determine the player's responses to the encounter based on their character card. In a very simplified sense, it's a very big Choose Your Own Adventure game - with the added spice that the players to your right and left control the matrix and the Book of Tales during your encounter - so the game moves along at a good pace. The first player to finish their quest wins.\n\nThe Book of Tales is huge and offers a huge amount of the variability and replayability. Solitaire modules can be purchased separately.",
+    "minPlaytime": 120,
+    "maxPlaytime": 120,
+    "rating": 7.157,
+    "ratingCount": 12950,
+    "complexity": 2.151,
+    "designers": [
+      "Anthony J. Gallela",
+      "Eric Goldberg",
+      "Kevin Maroney",
+      "Zev Shlasinger"
+    ],
+    "publishers": [
+      "Z-Man Games",
+      "Devir",
+      "Filosofia Éditions",
+      "Giochix.it",
+      "MYBG Co., Ltd."
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/ibYzk1WgVEEnC0hnXdpqpg__original/img/AOEgHEj7ER6T0AEfDVuS3s-dTI8=/0x0/filters:format(jpeg)/pic486114.jpg"
+  },
+  {
+    "id": "g1762884210606",
+    "name": "Mage Knight",
+    "category": [
+      "Collectible Components",
+      "Fantasy",
+      "Miniatures",
+      "Wargame"
+    ],
+    "mechanics": [],
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "difficulty": "Intermediate",
+    "yearPublished": 2000,
+    "description": "WizKids' first game, Mage Knight cleverly applies the CCG concept to miniatures; a \"Starter Pack\" contains 10 random pre-painted, plastic miniatures, while \"Booster Packs\" contain 5. Figures' stats are kept track of via dials on their bases, which change depending on how much damage they've taken.\n\nAs in most miniatures games, players each create an army with the same number of points (with each miniature having a different point value), then take turns moving and attacking until all of the opponent's forces are dead or captured, the opponent withdraws, or your pre-determined time limit expires.\n\nThe same figures could be used in two other games:\n\n    Mage Knight Conquest\n    Mage Knight Dungeons\n\n\nMage Knight 2.0\n\nMage Knight 2.0 changed many rules which overhauled or expanded, they introduced new strategic possibilities to the game, including capabilities to customize Unique warriors and battles via styrene cards called Items, Domains, and Constructed Terrain.\n\nLater expansions introduced more options via Spellbooks, Spells, and Adventuring Companies.\n\nIt was eventually counted as a new game since the old figures were ruled obsolete for all tournaments that utilized the Mage Knight 2.0 format.\n\nThe two \"versions\" can be distinguished by their logos; the original Mage Knight sets feature a straight short sword through the logo while \"2.0\" and its subsequent expansions have a curved scimitar.",
+    "minPlaytime": 60,
+    "maxPlaytime": 60,
+    "rating": 6.235,
+    "ratingCount": 1005,
+    "complexity": 2.382,
+    "designers": [
+      "Kevin Barrett",
+      "Jordan Weisman"
+    ],
+    "publishers": [
+      "Kadokawa Shoten",
+      "WizKids (I)"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/uE7vNy8iSwY_VbrteAovRQ__original/img/pOQRzUtOzQgd7NYkn1npzkXCs4I=/0x0/filters:format(jpeg)/pic11350.jpg"
+  },
+  {
+    "id": "g1762884236747",
+    "name": "Arkham Horror",
+    "category": [
+      "Adventure",
+      "Fighting",
+      "Horror",
+      "Novel-based"
+    ],
+    "mechanics": [
+      "Cooperative Game",
+      "Dice Rolling",
+      "Events",
+      "Finale Ending",
+      "Hand Management",
+      "Lose a Turn",
+      "Point to Point Movement",
+      "Role Playing",
+      "Solo / Solitaire Game",
+      "Stat Check Resolution",
+      "Variable Player Powers"
+    ],
+    "minPlayers": 1,
+    "maxPlayers": 8,
+    "difficulty": "Advanced",
+    "yearPublished": 2005,
+    "description": "The year is 1926, and it is the height of the Roaring Twenties. Flappers dance till dawn in smoke-filled speakeasies drinking alcohol supplied by rum runners and the mob. It's a celebration to end all celebrations in the aftermath of the war to end all wars.\n\n\n\n        Yet a dark shadow grows in the city of Arkham. Alien entities known as Ancient Ones lurk in the emptiness beyond space and time, writhing at the gates between worlds. These gates have begun to open and must be closed before the Ancient Ones make our world their ruined domination.\n\n\n\n        Only a handful of investigators stand against the Arkham Horror.  Will they Prevail? \n\n\nArkham Horror is a cooperative adventure game themed around H.P Lovecraft's Cthulhu Mythos. Players choose from 16 Investigators and take to the streets of Arkham. Before the game, one of the eight Ancient Ones is chosen and it's up to the Investigators to prevent it from breaking into our world. During the course of the game, players will upgrade their characters by acquiring skills, allies, items, weapons, and spells. It's up to the players to clean out the streets of Arkham by fighting many different types of monsters, but their main goal is to close gates to other dimensions that are opening up around town. With too many gates open the Ancient One awakens and the players only have one last chance to save the world - defeat the Ancient One in combat!",
+    "minPlaytime": 120,
+    "maxPlaytime": 240,
+    "rating": 7.238,
+    "ratingCount": 40210,
+    "complexity": 3.585,
+    "designers": [
+      "Richard Launius",
+      "Kevin Wilson"
+    ],
+    "publishers": [
+      "Fantasy Flight Games",
+      "ADC Blackfire Entertainment",
+      "Arclight Games",
+      "Delta Vision Publishing",
+      "Edge Entertainment",
+      "Galakta",
+      "Giochi Uniti",
+      "Heidelberger Spieleverlag",
+      "Hobby World",
       "Korea Boardgames",
-      "Lautapelit.fi",
-      "Lavka Games",
-      "Ludofy Creative",
+      "Nexus Editrice",
+      "Smart Ltd",
+      "Ubik",
+      "Wargames Club Publishing"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/9cJf4kd_HZQo6NunfJlo9w__original/img/YA5R2ZUV2Zwt_fgXIxu8bii3OJ0=/0x0/filters:format(jpeg)/pic175966.jpg"
+  },
+  {
+    "id": "g1762884245351",
+    "name": "Western Legends",
+    "category": [
+      "Adventure",
+      "American West"
+    ],
+    "mechanics": [
+      "Action Points",
+      "Area Movement",
+      "Betting and Bluffing",
+      "Card Play Conflict Resolution",
+      "Dice Rolling",
+      "End Game Bonuses",
+      "Hand Management",
+      "Pick-up and Deliver",
+      "Take That",
+      "Variable Player Powers"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 6,
+    "difficulty": "Intermediate",
+    "yearPublished": 2018,
+    "description": "Historic characters from the American Wild West face off and write new legends across the face of history! Gather your gun, your mount, and your grit as you forge your path into the history books.\n\nWestern Legends is an open-world sandbox tabletop adventure for 2-6 players set in the American Wild West. Players assume the roles of historical figures of the era, earning their legendary status in a variety of ways: gamble, drive cattle, prospect for gold, rob the bank, fight bandits, pursue stories, become an outlaw, keep the peace. The possibilities are darn near endless.\n\nEach player's turn starts with drawing poker cards and/or gaining cash. Then they choose three actions. Possible actions include: move on the map (how far depends on whether they have a mount), doing a location-specific action (such as mine for gold if they are at a gold mine, gamble if they're in a saloon, etc.), fight other players at the same location (either duel them, rob them, or arrest them if they're wanted), play poker cards that have action abilities, etc. Legendary Points (LPs) are earned based on the outcomes of many of these actions, and the winner is whoever has the most LPs at the end of the game.\n\nKey Points\n- Award-winning gaming experience set in the American West!\n- Beautiful artwork, and presentation brings this highly thematic game to life.\n- Intuitive gameplay and choices lets you write your own legend every game!\n\nNote: The Russian edition of Western Legends contains two expansions packaged inside the box and thus has its own entry here: Легенды Дикого Запада (Western Legends)",
+    "minPlaytime": 60,
+    "maxPlaytime": 90,
+    "rating": 7.604,
+    "ratingCount": 12570,
+    "complexity": 2.853,
+    "designers": [
+      "Hervé Lemaître"
+    ],
+    "publishers": [
+      "Kolossal Games",
+      "Board Game Box",
+      "Conclave Editora",
+      "Corax Games",
+      "Funiverse",
+      "Gém Klub Kft.",
       "Maldito Games",
       "Matagot",
       "MINDOK",
-      "MIPL",
-      "NeoTroy Games",
-      "Rebel Sp. z o.o.",
-      "Regatul Jocurilor",
-      "Siam Board Games",
+      "MS Edizioni",
       "Surfin&#039; Meeple China",
-      "Ігромаг"
+      "WoodCat"
     ],
-    "imageUrl": "https://cf.geekdo-images.com/yLZJCVLlIx4c7eJEWUNJ7w__original/img/cI782Zis9cT66j2MjSHKJGnFPNw=/0x0/filters:format(jpeg)/pic4458123.jpg"
+    "imageUrl": "https://cf.geekdo-images.com/lZwgk3_MqyAmROjkz4v8Wg__original/img/W0gWMrkx5fEgVp8b2fMc-LfGmz8=/0x0/filters:format(png)/pic6974323.png"
+  },
+  {
+    "id": "g1762884281021",
+    "name": "Regicide",
+    "category": [
+      "Card Game",
+      "Fantasy",
+      "Fighting"
+    ],
+    "mechanics": [
+      "Card Play Conflict Resolution",
+      "Communication Limits",
+      "Cooperative Game",
+      "Hand Management",
+      "Solo / Solitaire Game",
+      "Variable Set-up"
+    ],
+    "minPlayers": 1,
+    "maxPlayers": 4,
+    "difficulty": "Beginner",
+    "yearPublished": 2020,
+    "description": "Regicide is a cooperative, fantasy card game for 1 to 4 players, played using a standard deck of cards.\n\nPlayers work together to defeat 12 powerful enemies. On their turn a player plays a card to the table to attack the enemy and once enough damage is dealt, the enemy is defeated. The players win when the last King is defeated. But beware! Each turn the enemy strikes back. Players will discard cards to satisfy the damage and if they can't discard enough, everyone loses.\n\nRich with tactical decisions and a deep heuristic tree, Regicide is a huge challenge for anyone who is brave enough to take it on.\n\n&mdash;description from the designer\n\nFor a dice-based, typo-inspired, April 1st-announced game from the same designers, try Regidice!",
+    "minPlaytime": 10,
+    "maxPlaytime": 30,
+    "rating": 7.405,
+    "ratingCount": 7808,
+    "complexity": 1.958,
+    "designers": [
+      "Paul Abrahams",
+      "Luke Badger",
+      "Andy Richdale"
+    ],
+    "publishers": [
+      "Badgers from Mars",
+      "BoardM Factory",
+      "Devir",
+      "Gameplay Publishing ApS",
+      "Hobby Japan",
+      "IELLO"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/C9U2E51tkzLljewFEGQ74g__original/img/Q-a5lAydzhwNLLhy8n326tlxuYE=/0x0/filters:format(jpeg)/pic5837347.jpg"
+  },
+  {
+    "id": "g1762884301543",
+    "name": "The Shipwreck Arcana",
+    "category": [
+      "Card Game",
+      "Deduction",
+      "Fantasy",
+      "Math",
+      "Number",
+      "Print & Play"
+    ],
+    "mechanics": [
+      "Communication Limits",
+      "Cooperative Game",
+      "Deduction",
+      "Hand Management",
+      "Pattern Building"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "difficulty": "Intermediate",
+    "yearPublished": 2017,
+    "description": "Trapped in a drowned world, you and your allies are doomed -- or are you? Using a mystical deck and a healthy dose of logic, you can predict each others' fates and escape unscathed.\n\nThe Shipwreck Arcana is a compact, co-operative game of deduction, evaluation, and logic. Each player's doom constantly changes as they draw numbered fate tiles from the bag. By choosing which fate to give up and which card to play it on, you can give your allies enough information to identify the fate you're holding - which is important, as the active player cannot communicate with their allies during their turn!\n\nEach card has strict rules governing what fates can be played on it. As doom builds up, the cards themselves fade, becoming one-time powers to help the players while new cards cycle in from the deck.\n\nSkilled play requires carefully rationing powers, hints, and cycling, while paying attention to not only where each fate was played -- but more importantly, where it wasn't.\n\nThe rotating active player creates a different group dynamic each turn, preventing any one player from dominating the game. Inexperienced players can still use the group deduction phase to ask questions (while they are not the active player).",
+    "minPlaytime": 10,
+    "maxPlaytime": 30,
+    "rating": 7.412,
+    "ratingCount": 4383,
+    "complexity": 2.244,
+    "designers": [
+      "Kevin Bishop"
+    ],
+    "publishers": [
+      "Meromorph Games"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/yv5EAl5uidhZ53WJI-bQ4g__original/img/M7dWeql-u4Xtcaff5tfSCa2AvSs=/0x0/filters:format(png)/pic4042715.png"
+  },
+  {
+    "id": "g1762884322402",
+    "name": "The Mind",
+    "category": [
+      "Card Game",
+      "Number"
+    ],
+    "mechanics": [
+      "Communication Limits",
+      "Cooperative Game",
+      "Hand Management"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "difficulty": "Beginner",
+    "yearPublished": 2018,
+    "description": "The Mind is more than just a game. It's an experiment, a journey, a team experience in which you can't exchange information, yet will become one to defeat all the levels of the game.\n\nIn more detail, the deck contains cards numbered 1-100, and during the game you try to complete 12, 10, or 8 levels of play with 2, 3, or 4 players. In a level, each player receives a hand of cards equal to the number of the level: one card in level 1, two cards in level 2, etc. Collectively you must play these cards into the center of the table on a single discard pile in ascending order but you cannot communicate with one another in any way as to which cards you hold. You simply stare into one another's eyes, and when you feel the time is right, you play your lowest card. If no one holds a card lower than what you played, great, the game continues! If someone did, all players discard face up all cards lower than what you played, and you lose one life.\n\nYou start the game with a number of lives equal to the number of players. Lose all your lives, and you lose the game. You start with one shuriken as well, and if everyone wants to use a shuriken, each player discards their lowest card face up, giving everyone information and getting you closer to completing the level. As you complete levels, you might receive a reward of a shuriken or an extra life. Complete all the levels, and you win!\n\nFor an extra challenge, play The Mind in extreme mode with all played cards going onto the stack face down. You don't look at the cards played until the end of a level, losing lives at that time for cards played out of order.",
+    "minPlaytime": 20,
+    "maxPlaytime": 20,
+    "rating": 6.73,
+    "ratingCount": 35750,
+    "complexity": 1.075,
+    "designers": [
+      "Wolfgang Warsch"
+    ],
+    "publishers": [
+      "Nürnberger-Spielkarten-Verlag",
+      "Arclight Games",
+      "Brain Games",
+      "Coiledspring Games",
+      "DV Games",
+      "FoxGames",
+      "Fractal Juegos",
+      "GaGa Games",
+      "Galápagos Jogos",
+      "Game Factory",
+      "Gém Klub Kft.",
+      "Ideal Board Games",
+      "Kaissa Chess & Games",
+      "Lanlalen",
+      "Lautapelit.fi",
+      "Maldón",
+      "Mar Lúdico",
+      "Mercurio",
+      "Oya",
+      "Pandasaurus Games",
+      "Popcorn Games",
+      "Pravi Junak",
+      "REXhry",
+      "Swan Panasia Co., Ltd.",
+      "Vennerød Forlag AS",
+      "White Goblin Games",
+      "YellowBOX"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/q_JGK291hrhnhiRB0667oA__original/img/8VjZEG278faO9JZwzce3v3EKssI=/0x0/filters:format(png)/pic3979766.png"
+  },
+  {
+    "id": "g1762884363413",
+    "name": "THE CREW",
+    "category": [],
+    "mechanics": [],
+    "minPlayers": 1,
+    "maxPlayers": 1,
+    "difficulty": "Intermediate",
+    "description": "No description available.",
+    "designers": [],
+    "publishers": [],
+    "imageUrl": ""
   }
 ]

@@ -64,6 +64,20 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
   return newSession;
 }
 
+function decodeHtmlEntities(text: string): string {
+    if (typeof text !== 'string') return text;
+    return text.replace(/&#(\d+);/g, (match, dec) => {
+        return String.fromCharCode(dec);
+    }).replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => {
+        return String.fromCharCode(parseInt(hex, 16));
+    }).replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&apos;/g, "'")
+      .replace(/&#039;/g, "'");
+}
+
 
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
@@ -146,7 +160,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     
     const newGame: Game = {
         id: `g${Date.now()}`,
-        name: details?.name || name,
+        name: decodeHtmlEntities(details?.name || name),
         category: details?.category || [],
         mechanics: details?.mechanics || [],
         minPlayers: details?.minPlayers || 1,
