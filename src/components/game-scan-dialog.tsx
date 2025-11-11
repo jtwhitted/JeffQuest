@@ -14,18 +14,19 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle, RefreshCw } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getGameTitleFromImage, type GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
+import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
+import { useGames } from '@/context/game-context';
 
 interface GameScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDetailsScanned: (details: GetGameTitleOutput) => void;
+  onGameAdded: () => void;
 }
 
 export function GameScanDialog({
   open,
   onOpenChange,
-  onDetailsScanned,
+  onGameAdded,
 }: GameScanDialogProps) {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -34,7 +35,7 @@ export function GameScanDialog({
     boolean | undefined
   >(undefined);
   const [isLoading, setIsLoading] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const { addGame } = useGames();
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -72,7 +73,7 @@ export function GameScanDialog({
     };
   }, [open, toast]);
 
-  const handleCapture = useCallback(() => {
+  const handleCaptureAndAdd = useCallback(async () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -81,37 +82,32 @@ export function GameScanDialog({
       const context = canvas.getContext('2d');
       context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
       const dataUrl = canvas.toDataURL('image/jpeg');
-      setCapturedImage(dataUrl);
       
-      // Automatically trigger confirm after capture
-      handleConfirm(dataUrl);
-    }
-  }, []);
+      setIsLoading(true);
+      try {
+        const titleResult = await getGameTitleFromImage({ photoDataUri: dataUrl });
+        const newGame = await addGame({ name: titleResult.title });
 
-  const handleConfirm = async (imageToProcess: string | null) => {
-    if (!imageToProcess) return;
-
-    setIsLoading(true);
-    try {
-      const result = await getGameTitleFromImage({ photoDataUri: imageToProcess });
-      onDetailsScanned(result);
-      handleClose();
-    } catch (error) {
-      console.error('Error identifying game title:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error Identifying Game',
-        description: 'Could not get game title from the image. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-      // Reset image for retake if needed
-      setCapturedImage(null);
+        toast({
+            title: 'Game Added!',
+            description: `${newGame.name} has been added to your collection.`,
+        });
+        onGameAdded();
+        
+      } catch (error) {
+        console.error('Error identifying or adding game:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error Adding Game',
+          description: 'Could not identify or save the game from the image. Please try again or add it manually.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [addGame, onGameAdded, toast]);
   
   const handleClose = () => {
-    setCapturedImage(null);
     onOpenChange(false);
   }
 
@@ -127,7 +123,7 @@ export function GameScanDialog({
        return (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white">
           <Loader2 className="mb-2 h-8 w-8 animate-spin" />
-          <p>Analyzing Image...</p>
+          <p>Analyzing and Adding Game...</p>
         </div>
       );
     }
@@ -164,7 +160,7 @@ export function GameScanDialog({
         <DialogHeader>
           <DialogTitle>Scan Game Box</DialogTitle>
           <DialogDescription>
-            Center the game box cover in the frame to automatically capture the title.
+            Center the game box cover in the frame. The game will be added automatically.
           </DialogDescription>
         </DialogHeader>
 
@@ -184,7 +180,7 @@ export function GameScanDialog({
         
         <DialogFooter className="gap-2 sm:justify-between">
             <Button
-              onClick={handleCapture}
+              onClick={handleCaptureAndAdd}
               disabled={!hasCameraPermission || isLoading}
               className="w-full"
             >
@@ -193,7 +189,7 @@ export function GameScanDialog({
               ) : (
                 <Camera className="mr-2 h-4 w-4" />
               )}
-              Capture
+              Capture and Add
             </Button>
         </DialogFooter>
       </DialogContent>

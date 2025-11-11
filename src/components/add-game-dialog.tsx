@@ -26,7 +26,6 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
-import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
 
@@ -52,18 +51,15 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     },
   });
 
-  const handleNewGameScanned = (details: GetGameTitleOutput) => {
-    form.setValue('name', details.title);
-    toast({
-        title: 'Game Title Populated!',
-        description: 'You can now save the game.',
-    });
+  const handleGameAdded = () => {
+    // This function is now called by GameScanDialog after a game is added
+    setScanDialogOpen(false);
+    handleClose();
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      // The addGame action will now handle the BGG search internally
       const newGame = await addGame({ name: values.name });
       toast({
         title: 'Game Added!',
@@ -92,7 +88,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       <GameScanDialog
           open={isScanDialogOpen}
           onOpenChange={setScanDialogOpen}
-          onDetailsScanned={handleNewGameScanned}
+          onGameAdded={handleGameAdded}
       />
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
@@ -107,7 +103,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
 
               <Button type="button" variant="outline" className="w-full" onClick={() => setScanDialogOpen(true)} disabled={isSubmitting}>
                     <Scan className="mr-2 h-4 w-4" />
-                    Scan Box to Get Title
+                    Scan Box to Add Game
               </Button>
               
               <div className="flex items-center gap-2">
