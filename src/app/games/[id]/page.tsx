@@ -66,7 +66,7 @@ export default function GameDetailPage() {
                         </div>
                         <div className="md:w-2/3 space-y-4">
                             <div className="space-y-2">
-                                <h2 className="text-2xl font-bold">{game.name}</h2>
+                                <h2 className="text-2xl font-bold" dangerouslySetInnerHTML={{__html: game.name}} />
                                 <div className="prose prose-sm dark:prose-invert text-muted-foreground" dangerouslySetInnerHTML={{__html: game.description?.replace(/\\n/g, '<br />').replace(/&#10;/g, '<br />') || '<p>No description available.</p>'}} />
                             </div>
                         </div>
