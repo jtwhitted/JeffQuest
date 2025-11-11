@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -81,17 +82,25 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     let details: Awaited<ReturnType<typeof getBggDetails>> | null = null;
 
     try {
-        // Step 1: Get BGG ID. Use provided one or search BGG.
-        if (!bggId) {
+        if (bggId) {
+            // If an ID is provided, fetch details for that specific game
+            const results = await getBggDetails(bggId);
+            details = results.length > 0 ? results[0] : null;
+        } else {
+             // If no ID, search BGG, get top 10, fetch details, and find most popular
             const searchResults = await searchBgg(name);
             if (searchResults.length > 0) {
-                bggId = searchResults[0].id;
-            }
-        }
+                const topResults = searchResults.slice(0, 10);
+                const ids = topResults.map(r => r.id);
+                const allDetails = await getBggDetails(ids.join(','));
 
-        // Step 2: If we have an ID, get details from BGG.
-        if (bggId) {
-            details = await getBggDetails(bggId);
+                if (allDetails.length > 0) {
+                    // Find the game with the most ratings to determine popularity
+                    details = allDetails.reduce((prev, current) => {
+                        return (prev.ratingCount || 0) > (current.ratingCount || 0) ? prev : current;
+                    });
+                }
+            }
         }
     } catch (bggError) {
         console.error("BGG data fetching failed:", bggError);

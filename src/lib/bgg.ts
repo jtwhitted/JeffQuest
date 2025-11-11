@@ -1,3 +1,4 @@
+
 'use server';
 
 import { XMLParser } from 'fast-xml-parser';
@@ -9,19 +10,15 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const apiKey = process.env.BGG_API_KEY;
 
 async function bggFetch(path: string, params: Record<string, string>) {
-    if (!apiKey) {
-        console.warn('BGG_API_KEY is not configured. BGG integration will not work.');
-        throw new Error('BGG API Key is not configured.');
-    }
-    
     const url = new URL(`${BGG_API_URL}/${path}`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
-    const response = await fetch(url.toString(), {
-        headers: {
-            'Authorization': `Bearer ${apiKey}`
-        }
-    });
+    const headers: HeadersInit = {};
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(url.toString(), { headers });
 
     if (response.status === 202) {
         await delay(3000); // BGG is queuing the request, wait and retry.
@@ -63,56 +60,60 @@ export async function searchBgg(query: string): Promise<{ id: string, name: stri
 }
 
 
-export async function getBggDetails(id: string) {
-    const xmlData = await bggFetch('thing', { id, stats: '1' });
+export async function getBggDetails(ids: string) {
+    if (!ids) {
+        return [];
+    }
+
+    const xmlData = await bggFetch('thing', { id: ids, stats: '1' });
     const parsed = parser.parse(xmlData);
 
     if (!parsed.items?.item) {
-        console.warn(`Could not find details for BGG ID ${id}`);
-        return null;
+        console.warn(`Could not find details for BGG ID(s) ${ids}`);
+        return [];
     }
 
-    const item = parsed.items.item[0];
-
-    const getPrimaryName = (names: any[]) => {
-        if (!names) return 'Unknown';
-        const primary = names.find(n => n.type === 'primary');
-        return primary ? primary.value : names[0]?.value || 'Unknown';
-    };
-
-    const getLinkValue = (type: string) => item.link?.filter((l: any) => l.type === type).map((l: any) => l.value) || [];
-    const getStat = (name: string) => {
-        const value = item.statistics?.ratings?.[name]?.value;
-        return typeof value === 'number' ? parseFloat(value.toPrecision(4)) : undefined;
-    };
+    return parsed.items.item.map((item: any) => {
+        const getPrimaryName = (names: any[]) => {
+            if (!names) return 'Unknown';
+            const primary = names.find(n => n.type === 'primary');
+            return primary ? primary.value : names[0]?.value || 'Unknown';
+        };
     
-    const description = item.description?.replace(/&#10;/g, '\n') || 'No description available.';
-
-    const complexity = getStat('averageweight');
-    let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
-    if (complexity) {
-        if (complexity < 2) difficulty = 'Beginner';
-        else if (complexity < 3) difficulty = 'Intermediate';
-        else if (complexity < 4) difficulty = 'Advanced';
-        else difficulty = 'Expert';
-    }
-
-    return {
-        name: getPrimaryName(item.name),
-        imageUrl: item.image || '',
-        description: description,
-        yearPublished: item.yearpublished?.value,
-        minPlayers: item.minplayers?.value,
-        maxPlayers: item.maxplayers?.value,
-        difficulty: difficulty,
-        category: getLinkValue('boardgamecategory')?.[0] || 'Unknown',
-        mechanics: getLinkValue('boardgamemechanic'),
-        designers: getLinkValue('boardgamedesigner'),
-        publishers: getLinkValue('boardgamepublisher'),
-        minPlaytime: item.minplaytime?.value,
-        maxPlaytime: item.maxplaytime?.value,
-        rating: getStat('average'),
-        ratingCount: getStat('usersrated'),
-        complexity: complexity,
-    };
+        const getLinkValue = (type: string) => item.link?.filter((l: any) => l.type === type).map((l: any) => l.value) || [];
+        const getStat = (name: string) => {
+            const value = item.statistics?.ratings?.[name]?.value;
+            return typeof value === 'number' ? parseFloat(value.toPrecision(4)) : undefined;
+        };
+        
+        const description = item.description?.replace(/&#10;/g, '\n') || 'No description available.';
+    
+        const complexity = getStat('averageweight');
+        let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
+        if (complexity) {
+            if (complexity < 2) difficulty = 'Beginner';
+            else if (complexity < 3) difficulty = 'Intermediate';
+            else if (complexity < 4) difficulty = 'Advanced';
+            else difficulty = 'Expert';
+        }
+    
+        return {
+            name: getPrimaryName(item.name),
+            imageUrl: item.image || '',
+            description: description,
+            yearPublished: item.yearpublished?.value,
+            minPlayers: item.minplayers?.value,
+            maxPlayers: item.maxplayers?.value,
+            difficulty: difficulty,
+            category: getLinkValue('boardgamecategory')?.[0] || 'Unknown',
+            mechanics: getLinkValue('boardgamemechanic'),
+            designers: getLinkValue('boardgamedesigner'),
+            publishers: getLinkValue('boardgamepublisher'),
+            minPlaytime: item.minplaytime?.value,
+            maxPlaytime: item.maxplaytime?.value,
+            rating: getStat('average'),
+            ratingCount: getStat('usersrated'),
+            complexity: complexity,
+        };
+    });
 }
