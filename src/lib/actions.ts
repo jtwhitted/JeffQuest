@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -64,21 +63,6 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
   return newSession;
 }
 
-function decodeHtmlEntities(text: string): string {
-    if (typeof text !== 'string') return text;
-    return text.replace(/&#(\d+);/g, (match, dec) => {
-        return String.fromCharCode(dec);
-    }).replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => {
-        return String.fromCharCode(parseInt(hex, 16));
-    }).replace(/&quot;/g, '"')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&apos;/g, "'")
-      .replace(/&#039;/g, "'");
-}
-
-
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
     bggId: z.string().optional(),
@@ -134,35 +118,30 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         return newGame;
     }
 
-    let { name, bggId } = validatedFields.data;
+    const { name, bggId } = validatedFields.data;
+    if (!bggId) {
+        throw new Error('BGG ID is required to fetch game details.');
+    }
+    
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
-
+    
     try {
-        // First try an exact search
-        let searchResults = await searchBgg(name, true);
-        
-        // If no exact match, try a non-exact search
-        if (searchResults.length === 0) {
-            searchResults = await searchBgg(name, false);
-        }
-
-        if (searchResults.length > 0) {
-            const ids = searchResults.map(r => r.id);
-            const allDetails = await getBggDetails(ids.join(','));
-
-            if (allDetails.length > 0) {
-                details = allDetails.reduce((prev, current) => {
-                    return (prev.ratingCount || 0) > (current.ratingCount || 0) ? prev : current;
-                });
-            }
+        const bggDetails = await getBggDetails(bggId);
+        if (bggDetails.length > 0) {
+            details = bggDetails[0];
         }
     } catch (bggError) {
         console.error("BGG data fetching failed:", bggError);
+        throw new Error("Failed to fetch data from BoardGameGeek.");
     }
     
+    if (!details) {
+        throw new Error(`Could not find details for BGG ID ${bggId}.`);
+    }
+
     const newGame: Game = {
         id: `g${Date.now()}`,
-        name: decodeHtmlEntities(details?.name || name),
+        name: details?.name || name,
         category: details?.category || [],
         mechanics: details?.mechanics || [],
         minPlayers: details?.minPlayers || 1,

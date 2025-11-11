@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -29,6 +28,8 @@ import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
+import { searchBggAction } from '@/lib/actions';
+import { GameSearchResultsDialog } from './game-search-results-dialog';
 
 interface AddGameDialogProps {
   open: boolean;
@@ -44,6 +45,9 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isManualAddDialogOpen, setManualAddDialogOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
+  const [isSearchResultsOpen, setSearchResultsOpen] = useState(false);
+
   const { addGame } = useGames();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,24 +60,37 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const handleGameAdded = () => {
     setScanDialogOpen(false);
     setManualAddDialogOpen(false);
+    setSearchResultsOpen(false);
     handleClose();
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      const newGame = await addGame({ name: values.name });
-      toast({
-        title: 'Game Added!',
-        description: `${newGame.name} has been added to your collection.`,
-      });
-      handleClose();
+      const results = await searchBggAction(values.name);
+      if (results.length === 1) {
+        await addGame({ name: results[0].name, bggId: results[0].id });
+        toast({
+          title: 'Game Added!',
+          description: `${results[0].name} has been added to your collection.`,
+        });
+        handleGameAdded();
+      } else if (results.length > 1) {
+        setSearchResults(results);
+        setSearchResultsOpen(true);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Game not found',
+          description: 'Could not find a match on BoardGameGeek. Try a different name or add it manually.',
+        });
+      }
     } catch (error: any) {
-      console.error('Error adding game:', error);
+      console.error('Error searching game:', error);
       toast({
         variant: 'destructive',
-        title: 'Error Adding Game',
-        description: error.message || 'Could not add the new game. Please check the name and try again.',
+        title: 'Error Searching Game',
+        description: error.message || 'Could not search for the game. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
@@ -96,6 +113,12 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         open={isManualAddDialogOpen}
         onOpenChange={setManualAddDialogOpen}
         onGameAdded={handleGameAdded}
+      />
+      <GameSearchResultsDialog
+        open={isSearchResultsOpen}
+        onOpenChange={setSearchResultsOpen}
+        results={searchResults}
+        onGameSelected={handleGameAdded}
       />
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
@@ -143,7 +166,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>Cancel</Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Search and Add Game
+                  Search BGG
                 </Button>
               </DialogFooter>
             </form>
