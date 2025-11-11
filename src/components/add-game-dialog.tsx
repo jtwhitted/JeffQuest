@@ -12,8 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Scan, Search } from 'lucide-react';
-import React, { useState } from 'react';
+import { Loader2, Scan } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Form,
   FormControl,
@@ -21,7 +21,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,6 +45,20 @@ const formSchema = z.object({
 
 type BggSearchResult = { id: string; name: string };
 
+// Custom hook for debouncing
+function useDebounce(value: string, delay: number) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [value, delay]);
+    return debouncedValue;
+}
+
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,15 +74,13 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       bggId: '',
     },
   });
+  
+  const gameNameQuery = form.watch('name');
+  const debouncedGameName = useDebounce(gameNameQuery, 500);
 
-  const handleSearch = async () => {
-    const query = form.getValues('name');
+  const handleSearch = useCallback(async (query: string) => {
     if (!query) {
-      toast({
-        variant: 'destructive',
-        title: 'Search Error',
-        description: 'Please enter a game name to search.',
-      });
+      setSearchResults([]);
       return;
     }
     setIsSearching(true);
@@ -93,8 +104,14 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     } finally {
       setIsSearching(false);
     }
-  };
+  }, [form, toast]);
   
+  useEffect(() => {
+      if (debouncedGameName) {
+        handleSearch(debouncedGameName);
+      }
+  }, [debouncedGameName, handleSearch]);
+
   const handleNewGameScanned = (details: GetGameTitleOutput) => {
     form.setValue('name', details.title);
     toast({
@@ -102,7 +119,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         description: 'Now searching BGG for matching games...',
     });
     // Automatically trigger search after scan
-    handleSearch();
+    handleSearch(details.title);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -146,7 +163,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Scan, search, or manually enter a game. Searching BGG will autofill details.
+                  Scan or enter a game name. We'll search BGG to autofill details.
                 </DialogDescription>
               </DialogHeader>
 
@@ -167,14 +184,11 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Game Name</FormLabel>
-                    <div className="flex gap-2">
+                    <div className="relative">
                       <FormControl>
                         <Input {...field} placeholder="e.g. Catan, Wingspan..."/>
                       </FormControl>
-                      <Button type="button" size="icon" variant="outline" onClick={handleSearch} disabled={isSearching}>
-                        {isSearching ? <Loader2 className="h-4 w-4 animate-spin"/> : <Search className="h-4 w-4" />}
-                        <span className="sr-only">Search</span>
-                      </Button>
+                      {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin"/>}
                     </div>
                     <FormMessage />
                   </FormItem>
