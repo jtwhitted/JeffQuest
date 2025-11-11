@@ -8,7 +8,6 @@ import {
     addGameToDB,
     addSessionToDB,
     addPlayerToDB,
-    deleteGameFromDB,
     deletePlayerFromDB
 } from './data';
 import { searchBgg, getBggDetails } from './bgg';
@@ -125,15 +124,6 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     revalidatePath('/sessions/new');
     
     return newGame;
-}
-
-export async function deleteGame(gameId: string) {
-    await deleteGameFromDB(gameId);
-    
-    revalidatePath('/games');
-    revalidatePath(`/games/${gameId}`);
-    revalidatePath('/');
-    revalidatePath('/sessions');
 }
 
 const playerFormSchema = z.object({

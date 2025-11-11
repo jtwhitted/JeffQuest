@@ -10,7 +10,6 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { DeleteGameButton } from './_components/delete-game-button';
 import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
 
@@ -50,7 +49,6 @@ export default function GameDetailPage() {
                 Back to Games
             </Link>
             </Button>
-            <DeleteGameButton gameId={game.id} gameName={game.name} />
         </div>
       </PageHeader>
       

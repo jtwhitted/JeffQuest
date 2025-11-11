@@ -9,36 +9,13 @@ import { useState } from 'react';
 import type { Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddGameDialog } from '@/components/add-game-dialog';
-import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
-import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { useGames } from '@/context/game-context';
 
 export default function GamesPage() {
-  const { toast } = useToast();
-  const { games, sessions, players, isLoading: areGamesLoading, deleteGame } = useGames();
+  const { games, sessions, players, isLoading: areGamesLoading } = useGames();
   const [isAddGameOpen, setAddGameOpen] = useState(false);
-  const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
-
-  const handleDeleteGame = async () => {
-    if (!gameToDelete) return;
-    try {
-      await deleteGame(gameToDelete.id);
-      toast({
-        title: "Game Deleted",
-        description: `${gameToDelete.name} has been removed from your collection.`
-      });
-    } catch(e) {
-       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete game."
-      });
-    } finally {
-      setGameToDelete(null);
-    }
-  }
 
   const gamesWithStats = games.map(game => {
     const gameSessions = sessions.filter(s => s.gameId === game.id);
@@ -66,13 +43,6 @@ export default function GamesPage() {
   return (
     <>
     <AddGameDialog open={isAddGameOpen} onOpenChange={setAddGameOpen} />
-    <DeleteConfirmationDialog 
-      open={!!gameToDelete}
-      onOpenChange={() => setGameToDelete(null)}
-      onConfirm={handleDeleteGame}
-      title="Delete Game"
-      description={`Are you sure you want to delete ${gameToDelete?.name}? All associated session data will also be affected.`}
-    />
     <div className="space-y-8">
       <PageHeader
         title="Game Library"
