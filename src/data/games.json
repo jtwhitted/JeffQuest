@@ -1,4 +1,3 @@
-
 [
   {
     "id": "g1762367078952",
@@ -31,37 +30,5 @@
       "Angames"
     ],
     "imageUrl": "https://cf.geekdo-images.com/yLZJ2d408TO3spC_gUZMzA__original/img/cI782Zis9cT1gL5-2-0J_K2_IeI=/0x0/filters:format(jpeg)/pic4458123.jpg"
-  },
-  {
-    "id": "g1762367078953",
-    "name": "Catan",
-    "category": "Economic",
-    "mechanics": [
-      "Dice Rolling",
-      "Hexagon Grid",
-      "Modular Board",
-      "Route/Network Building",
-      "Trading"
-    ],
-    "minPlayers": 3,
-    "maxPlayers": 4,
-    "difficulty": "Intermediate",
-    "yearPublished": 1995,
-    "description": "In Catan, players try to be the dominant force on the island of Catan by building settlements, cities, and roads. On each turn dice are rolled to determine what resources the island produces. Players collect these resources (wood, grain, brick, sheep, or ore) to build up their civilizations to get to 10 victory points and win the game.",
-    "minPlaytime": 60,
-    "maxPlaytime": 120,
-    "rating": 7.1,
-    "ratingCount": 115000,
-    "complexity": 2.31,
-    "designers": [
-      "Klaus Teuber"
-    ],
-    "publishers": [
-      "KOSMOS",
-      "Catan Studio",
-      "999 Games",
-      "Albi"
-    ],
-    "imageUrl": "https://cf.geekdo-images.com/W3_QLKR_SxDbaKFp03cplw__original/img/sQ3hT05g_2Yn9ZitS49sY293B2I=/0x0/filters:format(jpeg)/pic2419375.jpg"
   }
 ]

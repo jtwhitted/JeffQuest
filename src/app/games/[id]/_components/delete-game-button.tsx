@@ -1,12 +1,13 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
-import { deleteGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2 } from 'lucide-react';
+import { useGames } from '@/context/game-context';
 
 interface DeleteGameButtonProps {
   gameId: string;
@@ -16,17 +17,22 @@ interface DeleteGameButtonProps {
 export function DeleteGameButton({ gameId, gameName }: DeleteGameButtonProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const { deleteGame } = useGames();
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     try {
+      // First, navigate away to prevent 404s
+      router.push('/games');
+      
+      // Then, delete the game data
       await deleteGame(gameId);
+
       toast({
         title: 'Game Deleted',
         description: `${gameName} has been removed from your collection.`,
       });
-      router.push('/games');
-      router.refresh(); // To ensure the list is updated
+      
     } catch (e) {
       toast({
         variant: 'destructive',

@@ -10,7 +10,6 @@ import type { Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddGameDialog } from '@/components/add-game-dialog';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
-import { deleteGame } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -18,23 +17,17 @@ import { useGames } from '@/context/game-context';
 
 export default function GamesPage() {
   const { toast } = useToast();
-  const { games, sessions, players, isLoading: areGamesLoading } = useGames();
+  const { games, sessions, players, isLoading: areGamesLoading, deleteGame } = useGames();
   const [isAddGameOpen, setAddGameOpen] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
-  
-  // This is a local refetch function for the context, not used in this component but demonstrates pattern
-  // const { refetchGames } = useGames();
 
   const handleDeleteGame = async () => {
     if (!gameToDelete) return;
     try {
       await deleteGame(gameToDelete.id);
-      // The context is not automatically updated on deletes, so a refetch or manual removal is needed.
-      // For now, we'll just show a toast and let the user see the change on next refresh.
-      // A more robust solution would update the context state.
       toast({
         title: "Game Deleted",
-        description: `${gameToDelete.name} has been removed from your collection. The list will update on next refresh.`
+        description: `${gameToDelete.name} has been removed from your collection.`
       });
     } catch(e) {
        toast({
