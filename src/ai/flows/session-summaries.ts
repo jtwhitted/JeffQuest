@@ -46,6 +46,7 @@ const prompt = ai.definePrompt({
   name: 'sessionSummaryPrompt',
   input: {schema: SessionSummaryInputSchema.extend({ scores: z.string() })},
   output: {schema: SessionSummaryOutputSchema},
+  model: 'googleai/gemini-2.5-flash',
   prompt: `You are a seasoned tabletop gamer, skilled at creating engaging session reports.
   Your task is to generate a {{summaryType}} summary of the game session provided.
 

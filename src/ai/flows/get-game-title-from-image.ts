@@ -33,6 +33,7 @@ const getGameTitlePrompt = ai.definePrompt({
     name: 'getGameTitlePrompt',
     input: { schema: GetGameTitleInputSchema },
     output: { schema: GetGameTitleOutputSchema },
+    model: 'googleai/gemini-2.5-flash',
     prompt: `Analyze the provided image of a board game box and identify the main title of the game. Return only the title.
   
   Image: {{media url=photoDataUri}}`,
