@@ -138,18 +138,20 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
 
     try {
-        const searchResults = await searchBgg(name);
+        // First try an exact search
+        let searchResults = await searchBgg(name, true);
+        
+        // If no exact match, try a non-exact search
+        if (searchResults.length === 0) {
+            searchResults = await searchBgg(name, false);
+        }
+
         if (searchResults.length > 0) {
             const ids = searchResults.map(r => r.id);
             const allDetails = await getBggDetails(ids.join(','));
 
             if (allDetails.length > 0) {
-                // Find the best match - often the one with the most ratings
                 details = allDetails.reduce((prev, current) => {
-                    // Prefer exact name match if available
-                    if (current.name.toLowerCase() === name.toLowerCase()) return current;
-                    if (prev.name.toLowerCase() === name.toLowerCase()) return prev;
-                    // Otherwise, pick the one with more ratings
                     return (prev.ratingCount || 0) > (current.ratingCount || 0) ? prev : current;
                 });
             }
