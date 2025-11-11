@@ -58,7 +58,11 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       const newGame = await addGameAction(gameData);
       setGames(prevGames => [...prevGames, newGame]);
       return newGame;
-    } finally {
+    } catch (error) {
+        // Re-throw the error to be caught by the calling component
+        throw error;
+    } 
+    finally {
       setIsLoading(false);
     }
   }, []);

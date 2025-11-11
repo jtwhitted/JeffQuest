@@ -68,12 +68,12 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         description: `${newGame.name} has been added to your collection.`,
       });
       handleClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding game:', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Could not add the new game. Please check the name and try again.',
+        title: 'Error Adding Game',
+        description: error.message || 'Could not add the new game. Please check the name and try again.',
       });
     } finally {
       setIsSubmitting(false);

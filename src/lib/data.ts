@@ -53,6 +53,10 @@ export async function getInitialData() {
 
 export async function addGameToDB(game: Game): Promise<void> {
     const games = await readData<Game>(GAMES_PATH);
+    const existingGame = games.find(g => g.name.toLowerCase() === game.name.toLowerCase());
+    if (existingGame) {
+        throw new Error(`A game named "${game.name}" already exists in your collection.`);
+    }
     games.push(game);
     await writeData(GAMES_PATH, games);
 }
