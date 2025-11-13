@@ -49,29 +49,45 @@ export default function SessionDetailsClient({ session, game, players, winner }:
     }
 
     setState({ loading: true, error: null, summary: null });
-    try {
-      const result = await generateSessionSummary({
-        gameName: game.name,
-        gameDetails,
-        datePlayed: session.date,
-        players: players.map(p => p.name),
-        winner: winner?.name,
-        cooperativeResult: session.cooperativeResult,
-        scores: session.scores,
-        interestingEvents: interestingEvents,
-        summaryType,
-      });
-      setState({ loading: false, error: null, summary: result.summary });
-    } catch (error) {
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-      setState({ loading: false, error: errorMessage, summary: null });
-      toast({
+    
+    const retries = 3;
+    let delayMs = 1000;
+    let lastError: any = null;
+
+    for (let i = 0; i < retries; i++) {
+        try {
+            const result = await generateSessionSummary({
+                gameName: game.name,
+                gameDetails,
+                datePlayed: session.date,
+                players: players.map(p => p.name),
+                winner: winner?.name,
+                cooperativeResult: session.cooperativeResult,
+                scores: session.scores,
+                interestingEvents: interestingEvents,
+                summaryType,
+            });
+            setState({ loading: false, error: null, summary: result.summary });
+            return; // Success, exit the function
+        } catch (error) {
+            lastError = error;
+            if (i < retries - 1) {
+                console.log(`Summary generation failed, retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
+                await new Promise(res => setTimeout(res, delayMs));
+                delayMs *= 2; // Exponential backoff
+            }
+        }
+    }
+
+    // If all retries failed
+    console.error(lastError);
+    const errorMessage = lastError instanceof Error ? lastError.message : 'An unknown error occurred.';
+    setState({ loading: false, error: errorMessage, summary: null });
+    toast({
         variant: 'destructive',
         title: 'Error Generating Summary',
         description: errorMessage,
-      });
-    }
+    });
   };
 
 
