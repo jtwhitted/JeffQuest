@@ -99,7 +99,9 @@ export default function GameLogForm() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: {
+      playerIds: [],
+    },
   });
   
   // Set default form values on the client to avoid hydration errors
