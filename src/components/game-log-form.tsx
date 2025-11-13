@@ -269,15 +269,16 @@ export default function GameLogForm() {
   };
 
   const handleExtractDetails = async () => {
-    if (!transcribedText) return;
+    const notes = form.getValues('notes');
+    if (!notes) return;
     setIsExtracting(true);
     try {
-        const result = await extractSessionDetails({ transcription: transcribedText });
+        const result = await extractSessionDetails({ transcription: notes });
 
         if (result.gameId) {
             form.setValue('gameId', result.gameId, { shouldValidate: true });
         }
-        if (result.playerIds) {
+        if (result.playerIds && result.playerIds.length > 0) {
             form.setValue('playerIds', result.playerIds, { shouldValidate: true });
         }
         if (result.isCooperative !== undefined) {
@@ -295,7 +296,15 @@ export default function GameLogForm() {
         }
         
         if (result.scores && result.scores.length > 0) {
-            form.setValue('scores', result.scores, { shouldValidate: true });
+            // Need to update scores based on the new playerIds, if they changed.
+            const finalPlayerIds = result.playerIds && result.playerIds.length > 0 ? result.playerIds : form.getValues('playerIds');
+            
+            const newScores = finalPlayerIds.map(pid => {
+                const foundScore = result.scores?.find(s => s.playerId === pid);
+                return { playerId: pid, score: foundScore ? foundScore.score : undefined };
+            });
+
+            form.setValue('scores', newScores, { shouldValidate: true });
         }
         
         toast({ title: 'Details Extracted!', description: 'The form has been updated with the details from your notes.' });
@@ -621,7 +630,7 @@ export default function GameLogForm() {
                                 )}
                                 {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
                             </Button>
-                            {transcribedText && (
+                            {(form.getValues('notes') || transcribedText) && (
                                 <Button
                                     type="button"
                                     size="sm"
