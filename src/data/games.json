@@ -501,54 +501,6 @@
     "imageUrl": "https://cf.geekdo-images.com/B5F5ulz0UivNgrI9Ky0euA__original/img/guEKCewM_2e5ugltSN3dTSwdZJI=/0x0/filters:format(jpeg)/pic3122349.jpg"
   },
   {
-    "id": "g1762899045910",
-    "name": "Arcs",
-    "category": [
-      "Science Fiction",
-      "Space Exploration",
-      "Wargame"
-    ],
-    "mechanics": [
-      "Area Majority / Influence",
-      "Area Movement",
-      "Campaign / Battle Card Driven",
-      "Dice Rolling",
-      "Die Icon Resolution",
-      "Hand Management",
-      "Negotiation",
-      "Resource to Move",
-      "Trick-taking",
-      "Turn Order: Claim Action",
-      "Variable Player Powers"
-    ],
-    "minPlayers": 2,
-    "maxPlayers": 4,
-    "difficulty": "Advanced",
-    "yearPublished": 2024,
-    "description": "Arcs is a sharp, tactical space opera game set in a dark yet silly universe. Players represent officials from a distant, decaying and neglectful Empire who are now free to vie for dominance whether through battle, gathering scarce resources or diplomatic intrigue. Ready yourself for dramatic twists and turns as you launch into this galactic struggle.\n\nA deck of cards in 4 suits with ranks from 1-7 (2-6 for fewer than 4 players) defines the action selection system. These cards are played in a trick-taking adjacent system to select actions, take the initiative and declare Ambitions. The 3 declared Ambitions are what will score in that deal. Timing is everything. Bad hands must be mitigated by careful card play and benefitting from other players' card play.\n\nBattles are resolved quickly with the attacker choosing their level of risk. The defenders must be prepared with adequate defensive ships and cards in their tableau.\n\nEach game contains a hundred wooden ships and agents, 18 custom engraved dice, a beautiful six-panel board, and tons of cards with over 60 pieces of unique art. The base game may be played without the optional Leaders and Lore cards (for an easier teach) or with them for a richer, fuller and asymmetric game. It is also the core of the campaign game (requiring the Blighted Reach Expansion), which provides an epic, more thematic experience.",
-    "minPlaytime": 60,
-    "maxPlaytime": 120,
-    "rating": 8.047,
-    "ratingCount": 13790,
-    "complexity": 3.422,
-    "designers": [
-      "Cole Wehrle"
-    ],
-    "publishers": [
-      "Leder Games",
-      "2Tomatoes Games",
-      "CMON Global Limited",
-      "CrowD Games",
-      "Fox in the Box",
-      "HIT Games",
-      "Matagot",
-      "MeepleBR",
-      "Portal Games",
-      "Spielworxx"
-    ],
-    "imageUrl": "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__original/img/43ianMZOks7UHlZILx0VBRntOmM=/0x0/filters:format(png)/pic8145530.png"
-  },
-  {
     "id": "g1763014225374",
     "name": "Moon Colony Bloodbath",
     "category": [
@@ -579,5 +531,60 @@
       "Rio Grande Games"
     ],
     "imageUrl": "https://cf.geekdo-images.com/KDrRxEKQMmHyM0QQ2ONX4Q__original/img/XD-aeaMShk-TN_n0n6O9kbczxNY=/0x0/filters:format(jpeg)/pic8638247.jpg"
+  },
+  {
+    "id": "g1763064170958",
+    "name": "The Crew: The Quest for Planet Nine",
+    "category": [
+      "Card Game",
+      "Science Fiction",
+      "Space Exploration"
+    ],
+    "mechanics": [
+      "Communication Limits",
+      "Cooperative Game",
+      "Hand Management",
+      "Scenario / Mission / Campaign Game",
+      "Trick-taking"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "difficulty": "Beginner",
+    "yearPublished": 2019,
+    "description": "In the co-operative trick-taking game The Crew: The Quest for Planet Nine, the players set out as astronauts on an uncertain space adventure. What are the rumors regarding the unknown planet about? The eventful journey through space extends over 50 exciting missions. But this game can only be defeated by meeting common individual tasks of each player. In order to meet the varied challenges communication is essential in the team. But this is more difficult than expected in space.\n\nWith each mission the game becomes more difficult. After each mission the game can be paused and continued later. During each mission it is not the number of tricks but the right tricks at the right time that count.\n\nThe team completes a mission only if every single player is successful in fulfilling their tasks.\n\nThe game comes with 50 missions, with three additional missions published in spielbox 2/2020.",
+    "minPlaytime": 20,
+    "maxPlaytime": 20,
+    "rating": 7.767,
+    "ratingCount": 46870,
+    "complexity": 1.962,
+    "designers": [
+      "Thomas Sing"
+    ],
+    "publishers": [
+      "KOSMOS",
+      "999 Games",
+      "Black Sea Games",
+      "Brain Games",
+      "CoolPlay",
+      "Devir",
+      "Galakta",
+      "Geekach LLC",
+      "Giochi Uniti",
+      "GP Games",
+      "HaKubia",
+      "Ideal Board Games",
+      "IELLO",
+      "Igroljub",
+      "Kaissa Chess & Games",
+      "Korea Boardgames",
+      "Lautapelit.fi",
+      "MINDOK",
+      "NeoTroy Games",
+      "Piatnik",
+      "Swan Panasia Co., Ltd.",
+      "Thames & Kosmos",
+      "Zvezda"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/98LnQShydr11OBKS46xY-Q__original/img/Q-ZkgnuBu9OTBr7J3qnqPjqamAE=/0x0/filters:format(jpeg)/pic5687013.jpg"
   }
 ]

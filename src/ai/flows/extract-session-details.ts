@@ -74,14 +74,19 @@ export type ExtractSessionDetailsInput = z.infer<typeof ExtractSessionDetailsInp
 // Caching game and player data to avoid re-reading files on every call
 let allGames: Game[] = [];
 let allPlayers: Player[] = [];
+let dataLoaded = false;
 
 async function loadData() {
-    if (allGames.length === 0 || allPlayers.length === 0) {
+    if (!dataLoaded) {
         const data = await getInitialData();
         allGames = data.games;
         allPlayers = data.players;
+        dataLoaded = true;
     }
 }
+// Load data at startup
+loadData();
+
 
 // Tool to find a game by name
 const findGameByName = ai.defineTool(
@@ -92,7 +97,6 @@ const findGameByName = ai.defineTool(
       outputSchema: z.object({ gameId: z.string() }),
     },
     async ({ name }) => {
-        await loadData();
         const gameNames = allGames.map(g => g.name);
         const bestMatch = findBestMatch(name, gameNames);
         const matchedGame = allGames.find(g => g.name === bestMatch.bestMatch?.target);
@@ -109,7 +113,6 @@ const findPlayersByNames = ai.defineTool(
       outputSchema: z.object({ playerIds: z.array(z.string()) }),
     },
     async ({ names }) => {
-        await loadData();
         const playerIds: string[] = [];
         const playerNames = allPlayers.map(p => p.name);
         names.forEach(name => {
@@ -155,9 +158,6 @@ const extractDetailsFlow = ai.defineFlow(
     outputSchema: ExtractSessionDetailsOutputSchema,
   },
   async (input) => {
-    // Ensure data is loaded before running the flow
-    await loadData();
-    
     const { output } = await extractDetailsPrompt(input);
     if (!output) {
       throw new Error("The AI failed to extract any details from the transcription.");
