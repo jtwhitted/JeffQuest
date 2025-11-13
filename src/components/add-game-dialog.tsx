@@ -68,41 +68,36 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     setSearchResultsOpen(false);
   };
   
-  const handleSearchResults = (results: SearchResult[], query: string) => {
-    setScanDialogOpen(false); // Close scan dialog if open
-    if (results.length === 1) {
-        addGame({ name: results[0].name, bggId: results[0].id }).then(() => {
-            toast({
-              title: 'Game Added!',
-              description: `${results[0].name} has been added to your collection.`,
-            });
-            handleGameAdded();
-        }).catch((error) => {
-            toast({
-              variant: 'destructive',
-              title: 'Error Adding Game',
-              description: error.message || 'Could not add the game.',
-            });
-        });
-    } else if (results.length > 1) {
-        setSearchResults(results);
-        setSearchResultsOpen(true);
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Game not found',
-            description: `No match found for "${query}". Try adding it manually.`,
-        });
-        setManualAddDefaultName(query);
-        setManualAddDialogOpen(true);
-    }
+  const handleScanComplete = () => {
+    // This is now handled inside GameScanDialog
+    handleGameAdded();
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
       const results = await searchBggAction(values.name);
-      handleSearchResults(results, values.name);
+      
+      if (results.length === 1) {
+        await addGame({ name: results[0].name, bggId: results[0].id });
+        toast({
+            title: 'Game Added!',
+            description: `${results[0].name} has been added to your collection.`,
+        });
+        handleGameAdded();
+      } else if (results.length > 1) {
+          setSearchResults(results);
+          setSearchResultsOpen(true);
+      } else {
+          toast({
+              variant: 'destructive',
+              title: 'Game not found',
+              description: `No match found for "${values.name}". Try adding it manually.`,
+          });
+          setManualAddDefaultName(values.name);
+          setManualAddDialogOpen(true);
+      }
+
     } catch (error: any) {
       console.error('Error searching game:', error);
       toast({
@@ -125,7 +120,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       <GameScanDialog
           open={isScanDialogOpen}
           onOpenChange={setScanDialogOpen}
-          onScanComplete={handleSearchResults}
+          onGameAdded={handleScanComplete}
       />
       <ManualAddGameDialog
         open={isManualAddDialogOpen}
@@ -146,7 +141,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
               <DialogHeader>
                 <DialogTitle>Add New Game</DialogTitle>
                 <DialogDescription>
-                  Scan a box, enter a name to search BGG, or add a game manually.
+                  Scan a box, search BGG by name, or add a game manually.
                 </DialogDescription>
               </DialogHeader>
 

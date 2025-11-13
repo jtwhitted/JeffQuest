@@ -9,7 +9,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const apiKey = process.env.BGG_API_KEY;
 
-async function bggFetch(path: string, params: Record<string, string>) {
+export async function bggFetch(path: string, params: Record<string, string>) {
     const url = new URL(`${BGG_API_URL}/${path}`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
@@ -33,7 +33,7 @@ async function bggFetch(path: string, params: Record<string, string>) {
     return response.text();
 }
 
-const parser = new XMLParser({
+export const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '',
     textNodeName: '_value',
@@ -78,8 +78,10 @@ export async function getBggDetails(ids: string) {
         console.warn(`Could not find details for BGG ID(s) ${ids}`);
         return [];
     }
+    
+    const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
 
-    return parsed.items.item.map((item: any) => {
+    return items.map((item: any) => {
         const getPrimaryName = (names: any[]) => {
             if (!names) return 'Unknown';
             const primary = names.find(n => n.type === 'primary');

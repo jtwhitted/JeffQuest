@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to extract a board game title from an image.
@@ -22,6 +21,9 @@ export type GetGameTitleInput = z.infer<typeof GetGameTitleInputSchema>;
 
 const GetGameTitleOutputSchema = z.object({
   title: z.string().describe('The title of the board game identified in the image.'),
+  photoDataUri: z
+    .string()
+    .describe('The original photo data URI that was provided as input.'),
 });
 export type GetGameTitleOutput = z.infer<typeof GetGameTitleOutputSchema>;
 
@@ -32,8 +34,8 @@ export async function getGameTitleFromImage(input: GetGameTitleInput): Promise<G
 const getGameTitlePrompt = ai.definePrompt({
     name: 'getGameTitlePrompt',
     input: { schema: GetGameTitleInputSchema },
-    output: { schema: GetGameTitleOutputSchema },
-    model: 'googleai/gemini-2.0-flash',
+    output: { schema: z.object({ title: z.string() }) },
+    model: 'googleai/gemini-1.5-flash',
     prompt: `You are an expert at identifying board games from images of their box art.
 Your task is to analyze the provided image and extract the main title of the game.
 
@@ -51,12 +53,13 @@ const getGameTitleFlow = ai.defineFlow(
     outputSchema: GetGameTitleOutputSchema,
   },
   async (input) => {
-    // This flow now only gets the title from the image.
-    // All BGG data fetching will be handled in the server action.
     const { output } = await getGameTitlePrompt(input);
-    if (!output) {
+    if (!output?.title) {
         throw new Error("Could not determine game title from the image.");
     }
-    return output;
+    return {
+        title: output.title,
+        photoDataUri: input.photoDataUri,
+    };
   }
 );

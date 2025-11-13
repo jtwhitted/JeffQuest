@@ -121,16 +121,12 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
 
     const { name, bggId } = validatedFields.data;
     if (!bggId) {
-        // This can happen if a search yields no results.
-        // Return null to indicate the game wasn't found and let the client handle it (e.g., open manual add dialog)
         const exactMatch = await searchBgg(name, true);
         if (exactMatch.length === 0) {
             return null;
         }
-        // If there was an exact match we didn't use, fetch its details.
         const details = await getBggDetails(exactMatch[0].id);
         if (!details || details.length === 0) return null;
-        // continue with details[0]
     }
     
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
@@ -225,20 +221,29 @@ export async function deletePlayer(playerId: string) {
 export async function searchBggAction(query: string): Promise<{ id: string; name: string }[]> {
   if (!query) return [];
   try {
-    // First, try an exact search
     const exactResults = await searchBgg(query, true);
     if (exactResults.length > 0) {
-        // If we get exact matches, we can be more confident. Return them.
-        // Often BGG returns one item for an exact match.
         return exactResults;
     }
     
-    // If no exact match, perform a broader search
     const results = await searchBgg(query);
     return results;
 
   } catch (error) {
     console.error('BGG search action failed:', error);
+    return [];
+  }
+}
+
+export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {id: string}>[]> {
+  if (!ids) return [];
+  try {
+    const details = await getBggDetails(ids);
+    // Add the BGG ID to the returned object so we can reference it client-side
+    const parsed = parser.parse(await bggFetch('thing', { id: ids, stats: '1' }));
+    return details.map((d, i) => ({ ...d, id: parsed.items.item[i].id.toString() }));
+  } catch (error) {
+    console.error('BGG details action failed:', error);
     return [];
   }
 }

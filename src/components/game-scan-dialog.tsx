@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -15,22 +14,25 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
-import { searchBggAction } from '@/lib/actions';
+import { searchBggAction, getBggDetailsAction } from '@/lib/actions';
+import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
+import { useGames } from '@/context/game-context';
 
 type SearchResult = { id: string; name: string };
 
 interface GameScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onScanComplete: (results: SearchResult[], query: string) => void;
+  onGameAdded: () => void;
 }
 
 export function GameScanDialog({
   open,
   onOpenChange,
-  onScanComplete,
+  onGameAdded,
 }: GameScanDialogProps) {
   const { toast } = useToast();
+  const { addGame } = useGames();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<
@@ -75,38 +77,97 @@ export function GameScanDialog({
     };
   }, [open, toast]);
 
-  const handleCaptureAndSearch = useCallback(async () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-      const dataUrl = canvas.toDataURL('image/jpeg');
-      
+  const handleAddGameById = useCallback(async (bggId: string, name: string) => {
+    try {
+      setLoadingMessage(`Adding ${name} to your collection...`);
       setIsLoading(true);
-      try {
-        setLoadingMessage('Identifying game from image...');
-        const titleResult = await getGameTitleFromImage({ photoDataUri: dataUrl });
-
-        setLoadingMessage(`Searching BGG for "${titleResult.title}"...`);
-        const searchResults = await searchBggAction(titleResult.title);
-        
-        onScanComplete(searchResults, titleResult.title);
-        
-      } catch (error: any) {
-        console.error('Error identifying or searching for game:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error Scanning Game',
-          description: error.message || 'Could not identify or find the game. Please try again or add it manually.',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      await addGame({ bggId, name });
+      toast({
+        title: 'Game Added!',
+        description: `${name} has been added to your collection.`,
+      });
+      onGameAdded();
+    } catch (e: any) {
+      console.error("Error adding game by ID", e);
+      toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not add the game.' });
+    } finally {
+      setIsLoading(false);
     }
-  }, [onScanComplete, toast]);
+  }, [addGame, onGameAdded, toast]);
+
+
+  const handleCaptureAndSearch = useCallback(async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
+    context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+    const originalPhotoDataUri = canvas.toDataURL('image/jpeg');
+    
+    setIsLoading(true);
+    try {
+      setLoadingMessage('Identifying game from image...');
+      const { title, photoDataUri } = await getGameTitleFromImage({ photoDataUri: originalPhotoDataUri });
+
+      setLoadingMessage(`Searching BGG for "${title}"...`);
+      const searchResults = await searchBggAction(title);
+      
+      if (searchResults.length === 0) {
+        toast({ variant: 'destructive', title: 'Game Not Found', description: `No BGG matches found for "${title}".` });
+        return;
+      }
+
+      if (searchResults.length === 1) {
+        await handleAddGameById(searchResults[0].id, searchResults[0].name);
+        return;
+      }
+
+      // Multiple results - time for visual AI matching!
+      setLoadingMessage('Multiple results found. Fetching box art...');
+      const candidateIds = searchResults.slice(0, 5).map(r => r.id); // Limit to 5 candidates to be safe
+      const candidatesDetails = await getBggDetailsAction(candidateIds.join(','));
+
+      const validCandidates = candidatesDetails.filter(c => c.imageUrl);
+
+      if (validCandidates.length <= 1) {
+        // If we can't get enough images, fall back to adding the first result
+        await handleAddGameById(searchResults[0].id, searchResults[0].name);
+        return;
+      }
+      
+      setLoadingMessage('Visually analyzing box art to find the best match...');
+      const { bestMatchBggId } = await selectGameFromImages({
+        originalPhotoDataUri: photoDataUri,
+        candidates: validCandidates.map(c => ({
+          bggId: c.id!, // The action will populate this
+          name: c.name,
+          imageUrl: c.imageUrl!
+        }))
+      });
+
+      const bestMatch = candidatesDetails.find(c => c.id === bestMatchBggId);
+      if (bestMatch) {
+        await handleAddGameById(bestMatch.id!, bestMatch.name);
+      } else {
+        // Fallback if AI fails to return a valid ID
+        await handleAddGameById(searchResults[0].id, searchResults[0].name);
+      }
+      
+    } catch (error: any) {
+      console.error('Error during scan and search process:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error Scanning Game',
+        description: error.message || 'Could not identify or find the game.',
+      });
+    } finally {
+      setIsLoading(false);
+      onOpenChange(false); // Close dialog on completion
+    }
+  }, [onOpenChange, toast, handleAddGameById]);
   
   const handleClose = () => {
     onOpenChange(false);
@@ -161,7 +222,7 @@ export function GameScanDialog({
         <DialogHeader>
           <DialogTitle>Scan Game Box</DialogTitle>
           <DialogDescription>
-            Center the game box cover in the frame to identify and search for it.
+            Center the game box cover in the frame to identify it.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,7 +251,7 @@ export function GameScanDialog({
               ) : (
                 <Camera className="mr-2 h-4 w-4" />
               )}
-              Capture and Search
+              Capture and Identify
             </Button>
         </DialogFooter>
       </DialogContent>
