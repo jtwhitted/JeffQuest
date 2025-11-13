@@ -45,7 +45,7 @@ import { useGames } from '@/context/game-context';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
-import { extractSessionDetails } from '@/ai/flows/extract-session-details';
+import { extractSessionDetails, type ExtractSessionDetailsOutput } from '@/ai/flows/extract-session-details';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -268,12 +268,32 @@ export default function GameLogForm() {
     }
   };
 
+  async function extractDetailsWithRetry(transcription: string, retries = 3, delayMs = 1000): Promise<ExtractSessionDetailsOutput | undefined> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const result = await extractSessionDetails({ transcription });
+        return result; // Success
+      } catch (e: any) {
+        if (i === retries - 1) {
+          throw e; // Last retry failed, throw error
+        }
+        console.log(`Extraction failed, retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
+        await new Promise(res => setTimeout(res, delayMs));
+        delayMs *= 2; // Exponential backoff
+      }
+    }
+  }
+
   const handleExtractDetails = async () => {
     const notes = form.getValues('notes');
     if (!notes) return;
     setIsExtracting(true);
     try {
-        const result = await extractSessionDetails({ transcription: notes });
+        const result = await extractDetailsWithRetry(notes);
+
+        if (!result) {
+            throw new Error("The AI failed to extract any details from the transcription.");
+        }
 
         if (result.gameId) {
             form.setValue('gameId', result.gameId, { shouldValidate: true });
@@ -296,7 +316,6 @@ export default function GameLogForm() {
         }
         
         if (result.scores && result.scores.length > 0) {
-            // Need to update scores based on the new playerIds, if they changed.
             const finalPlayerIds = result.playerIds && result.playerIds.length > 0 ? result.playerIds : form.getValues('playerIds');
             
             const newScores = finalPlayerIds.map(pid => {
