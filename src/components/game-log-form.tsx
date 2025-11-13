@@ -489,7 +489,7 @@ export default function GameLogForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Winner</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValuevChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select the winner..." />
@@ -554,25 +554,25 @@ export default function GameLogForm() {
             name="notes"
             render={({ field }) => (
                 <FormItem>
-                <div className="flex items-center justify-between">
-                    <FormLabel>Notes (Optional)</FormLabel>
-                    <Button
-                        type="button"
-                        variant={isRecording ? 'destructive' : 'outline'}
-                        size="sm"
-                        onClick={handleToggleRecording}
-                        disabled={isTranscribing}
-                    >
-                        {isTranscribing ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : isRecording ? (
-                            <Square className="mr-2 h-4 w-4" />
-                        ) : (
-                            <Mic className="mr-2 h-4 w-4" />
-                        )}
-                        {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
-                    </Button>
-                </div>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Notes (Optional)</FormLabel>
+                        <Button
+                            type="button"
+                            variant={isRecording ? 'destructive' : 'outline'}
+                            size="sm"
+                            onClick={handleToggleRecording}
+                            disabled={isTranscribing}
+                        >
+                            {isTranscribing ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : isRecording ? (
+                                <Square className="mr-2 h-4 w-4" />
+                            ) : (
+                                <Mic className="mr-2 h-4 w-4" />
+                            )}
+                            {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
+                        </Button>
+                    </div>
                 <FormControl>
                     <Textarea
                         placeholder="Any memorable moments, strategies, or house rules? You can also record audio notes."
