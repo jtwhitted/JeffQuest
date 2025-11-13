@@ -11,7 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getInitialData } from '@/lib/data';
-import * as stringManager from 'string-manager';
+import stringManager from 'string-manager';
 import type { Game, Player } from '@/lib/types';
 
 // Define the schema for the data we want to extract
