@@ -11,8 +11,44 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getInitialData } from '@/lib/data';
-import stringManager from 'string-manager';
 import type { Game, Player } from '@/lib/types';
+
+// Helper function to find the best match for a string in an array of strings.
+// This replaces the problematic string-manager library.
+function findBestMatch(str: string, target: string[]): { bestMatch: { target: string } | null } {
+    if (!str || !target || target.length === 0) {
+        return { bestMatch: null };
+    }
+
+    let bestMatch = { target: '', rating: 0 };
+    const lowerCaseStr = str.toLowerCase();
+
+    for (const t of target) {
+        const lowerCaseTarget = t.toLowerCase();
+        let rating = 0;
+        
+        // Simple similarity check: count common characters
+        const strChars = new Set(lowerCaseStr.split(''));
+        const targetChars = new Set(lowerCaseTarget.split(''));
+        
+        for (const char of strChars) {
+            if (targetChars.has(char)) {
+                rating++;
+            }
+        }
+        
+        // Prefer substrings
+        if (lowerCaseTarget.includes(lowerCaseStr) || lowerCaseStr.includes(lowerCaseTarget)) {
+            rating += 10;
+        }
+
+        if (rating > bestMatch.rating) {
+            bestMatch = { target: t, rating: rating };
+        }
+    }
+
+    return bestMatch.rating > 0 ? { bestMatch: { target: bestMatch.target } } : { bestMatch: null };
+}
 
 // Define the schema for the data we want to extract
 const ScoreSchema = z.object({
@@ -58,7 +94,7 @@ const findGameByName = ai.defineTool(
     async ({ name }) => {
         await loadData();
         const gameNames = allGames.map(g => g.name);
-        const bestMatch = stringManager.find(name, gameNames);
+        const bestMatch = findBestMatch(name, gameNames);
         const matchedGame = allGames.find(g => g.name === bestMatch.bestMatch?.target);
         return { gameId: matchedGame?.id || '' };
     }
@@ -77,7 +113,7 @@ const findPlayersByNames = ai.defineTool(
         const playerIds: string[] = [];
         const playerNames = allPlayers.map(p => p.name);
         names.forEach(name => {
-            const bestMatch = stringManager.find(name, playerNames);
+            const bestMatch = findBestMatch(name, playerNames);
             const matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
             if (matchedPlayer) {
                 playerIds.push(matchedPlayer.id);
