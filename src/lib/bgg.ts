@@ -38,6 +38,7 @@ const parser = new XMLParser({
     attributeNamePrefix: '',
     textNodeName: '_value',
     parseAttributeValue: true,
+    decodeHTMLchar: true, // This is the key change
     isArray: (name, jpath) => {
         // These keys should always be arrays, even if there's only one.
         return ['item', 'link', 'result', 'name', 'poll'].includes(name);
@@ -94,7 +95,7 @@ export async function getBggDetails(ids: string) {
             return typeof value === 'number' ? parseFloat(value.toPrecision(4)) : undefined;
         };
         
-        const description = item.description?.replace(/&#10;/g, '\n') || 'No description available.';
+        const description = item.description || 'No description available.';
     
         const complexity = getStat('averageweight');
         let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
