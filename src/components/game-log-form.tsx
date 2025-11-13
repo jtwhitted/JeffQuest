@@ -103,13 +103,24 @@ export default function GameLogForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      date: new Date(),
       playerIds: [],
       isCooperative: false,
       scores: [],
       notes: '',
     },
   });
+
+  // Set default form values on the client to avoid hydration errors
+  useEffect(() => {
+    form.reset({
+      date: new Date(),
+      playerIds: [],
+      isCooperative: false,
+      scores: [],
+      notes: '',
+    });
+  }, [form]);
+
 
   const selectedPlayerIds = form.watch('playerIds');
   const scores = form.watch('scores');
@@ -386,23 +397,7 @@ export default function GameLogForm() {
                 <div className="flex items-center justify-between">
                     <FormLabel>Players</FormLabel>
                     <div className='flex items-center gap-2'>
-                       <Button
-                            type="button"
-                            variant={isRecording ? 'destructive' : 'outline'}
-                            size="sm"
-                            onClick={handleToggleRecording}
-                            disabled={isTranscribing}
-                        >
-                            {isTranscribing ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : isRecording ? (
-                                <Square className="mr-2 h-4 w-4" />
-                            ) : (
-                                <Mic className="mr-2 h-4 w-4" />
-                            )}
-                            {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => setAddPlayerDialogOpen(true)}>
+                       <Button type="button" variant="outline" size="sm" onClick={() => setAddPlayerDialogOpen(true)}>
                             <UserPlus className="mr-2 h-4 w-4" />
                             Add Player
                         </Button>
@@ -571,7 +566,25 @@ export default function GameLogForm() {
             name="notes"
             render={({ field }) => (
                 <FormItem>
-                      <FormLabel>Notes (Optional)</FormLabel>
+                    <div className="flex items-center justify-between">
+                        <FormLabel>Notes (Optional)</FormLabel>
+                        <Button
+                            type="button"
+                            variant={isRecording ? 'destructive' : 'outline'}
+                            size="sm"
+                            onClick={handleToggleRecording}
+                            disabled={isTranscribing}
+                        >
+                            {isTranscribing ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : isRecording ? (
+                                <Square className="mr-2 h-4 w-4" />
+                            ) : (
+                                <Mic className="mr-2 h-4 w-4" />
+                            )}
+                            {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
+                        </Button>
+                    </div>
                 <FormControl>
                     <Textarea
                         placeholder="Any memorable moments, strategies, or house rules? You can also record audio notes."
