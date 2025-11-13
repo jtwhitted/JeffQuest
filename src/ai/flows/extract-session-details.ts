@@ -11,7 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getInitialData } from '@/lib/data';
-import { find as findBestMatch } from 'string-manager';
+import { find } from 'string-manager';
 import type { Game, Player } from '@/lib/types';
 
 // Define the schema for the data we want to extract
@@ -58,7 +58,7 @@ const findGameByName = ai.defineTool(
     async ({ name }) => {
         await loadData();
         const gameNames = allGames.map(g => g.name);
-        const bestMatch = findBestMatch(name, gameNames);
+        const bestMatch = find(name, gameNames);
         const matchedGame = allGames.find(g => g.name === bestMatch.bestMatch?.target);
         return { gameId: matchedGame?.id || '' };
     }
@@ -77,7 +77,7 @@ const findPlayersByNames = ai.defineTool(
         const playerIds: string[] = [];
         const playerNames = allPlayers.map(p => p.name);
         names.forEach(name => {
-            const bestMatch = findBestMatch(name, playerNames);
+            const bestMatch = find(name, playerNames);
             const matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
             if (matchedPlayer) {
                 playerIds.push(matchedPlayer.id);
