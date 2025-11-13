@@ -39,7 +39,6 @@ import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
-import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
 import { Label } from "./ui/label"
 import { useGames } from '@/context/game-context';
@@ -386,10 +385,28 @@ export default function GameLogForm() {
             <FormItem>
                 <div className="flex items-center justify-between">
                     <FormLabel>Players</FormLabel>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setAddPlayerDialogOpen(true)}>
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Add Player
-                    </Button>
+                    <div className='flex items-center gap-2'>
+                       <Button
+                            type="button"
+                            variant={isRecording ? 'destructive' : 'outline'}
+                            size="sm"
+                            onClick={handleToggleRecording}
+                            disabled={isTranscribing}
+                        >
+                            {isTranscribing ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : isRecording ? (
+                                <Square className="mr-2 h-4 w-4" />
+                            ) : (
+                                <Mic className="mr-2 h-4 w-4" />
+                            )}
+                            {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setAddPlayerDialogOpen(true)}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Add Player
+                        </Button>
+                    </div>
                 </div>
               <div className="space-y-2 rounded-md border p-4">
               {players.map((player) => (
@@ -489,7 +506,7 @@ export default function GameLogForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Winner</FormLabel>
-                  <Select onValuevChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select the winner..." />
@@ -554,25 +571,7 @@ export default function GameLogForm() {
             name="notes"
             render={({ field }) => (
                 <FormItem>
-                    <div className="flex items-center justify-between">
                       <FormLabel>Notes (Optional)</FormLabel>
-                        <Button
-                            type="button"
-                            variant={isRecording ? 'destructive' : 'outline'}
-                            size="sm"
-                            onClick={handleToggleRecording}
-                            disabled={isTranscribing}
-                        >
-                            {isTranscribing ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : isRecording ? (
-                                <Square className="mr-2 h-4 w-4" />
-                            ) : (
-                                <Mic className="mr-2 h-4 w-4" />
-                            )}
-                            {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
-                        </Button>
-                    </div>
                 <FormControl>
                     <Textarea
                         placeholder="Any memorable moments, strategies, or house rules? You can also record audio notes."
@@ -596,3 +595,5 @@ export default function GameLogForm() {
     </>
   );
 }
+
+    
