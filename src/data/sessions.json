@@ -16,5 +16,32 @@
       }
     ],
     "notes": "Jeffrey won Vantage with 109 points."
+  },
+  {
+    "id": "s1763058653075",
+    "gameId": "g1762881557498",
+    "date": "2025-11-13T18:25:49.343Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1762879138303",
+      "p1762879138303"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "win",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 11
+      },
+      {
+        "playerId": "p1762879138303",
+        "score": 11
+      },
+      {
+        "playerId": "p1762879138303",
+        "score": 11
+      }
+    ],
+    "notes": "Jeffrey, a new player named Brian, and a new player named Frank, played Just One on November 12th and did a cooperative win with 11 points each."
   }
 ]

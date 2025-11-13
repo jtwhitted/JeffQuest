@@ -50,7 +50,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a seasoned tabletop gamer, skilled at creating engaging session reports.
   Your task is to generate a {{summaryType}} summary of the game session provided.
 
-  {{#if (eq summaryType 'quick')}}
+  {{#if (if summaryType 'quick')}}
   Generate a brief, exciting summary, 2-3 sentences long, perfect for a quick update.
   {{else}}
   Generate a captivating and detailed narrative-style match report, designed to excite and inform friends who were unable to attend. Incorporate details about the game itself (like its category and complexity) to give more context. Include highlights of key moments, player achievements, and any unexpected twists.
@@ -71,7 +71,7 @@ const prompt = ai.definePrompt({
   - Winning Player: {{{winner}}}
   {{/if}}
   {{#if cooperativeResult}}
-  - Cooperative Result: {{#if (eq cooperativeResult 'win')}}The team won!{{else}}The team lost.{{/if}}
+  - Cooperative Result: {{#if (if cooperativeResult 'win')}}The team won!{{else}}The team lost.{{/if}}
   {{/if}}
   - Scores: {{{scores}}}
   - Interesting Events: {{{interestingEvents}}}
