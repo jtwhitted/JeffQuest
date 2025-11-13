@@ -76,7 +76,7 @@ export default function SessionCard({ session, game, players, winner, onDelete }
           unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="absolute bottom-0 left-0 p-4">
+        <div className="absolute bottom-0 w-full p-4">
             <CardTitle className="text-xl font-bold text-white">{game.name}</CardTitle>
             <p className="text-sm text-gray-300">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
         </div>
