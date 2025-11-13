@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -117,32 +118,35 @@ export function GameScanDialog({
       
       if (searchResults.length === 0) {
         toast({ variant: 'destructive', title: 'Game Not Found', description: `No BGG matches found for "${title}".` });
+        setIsLoading(false);
+        onOpenChange(false);
         return;
       }
 
-      if (searchResults.length === 1) {
-        await handleAddGameById(searchResults[0].id, searchResults[0].name);
-        return;
-      }
-
-      // Multiple results - time for visual AI matching!
       setLoadingMessage('Multiple results found. Fetching box art...');
-      const candidateIds = searchResults.slice(0, 5).map(r => r.id); // Limit to 5 candidates to be safe
+      const candidateIds = searchResults.slice(0, 5).map(r => r.id);
       const candidatesDetails = await getBggDetailsAction(candidateIds.join(','));
 
       const validCandidates = candidatesDetails.filter(c => c.imageUrl);
 
-      if (validCandidates.length <= 1) {
-        // If we can't get enough images, fall back to adding the first result
-        await handleAddGameById(searchResults[0].id, searchResults[0].name);
-        return;
+      if (validCandidates.length === 0) {
+          toast({ variant: 'destructive', title: 'Could Not Verify', description: `Found matches for "${title}" but could not fetch box art for visual comparison.` });
+          setIsLoading(false);
+          onOpenChange(false);
+          return;
+      }
+      
+      if (validCandidates.length === 1) {
+          // If only one candidate has an image, just add it.
+          await handleAddGameById(validCandidates[0].id!, validCandidates[0].name);
+          return;
       }
       
       setLoadingMessage('Visually analyzing box art to find the best match...');
       const { bestMatchBggId } = await selectGameFromImages({
         originalPhotoDataUri: photoDataUri,
         candidates: validCandidates.map(c => ({
-          bggId: c.id!, // The action will populate this
+          bggId: c.id!,
           name: c.name,
           imageUrl: c.imageUrl!
         }))
@@ -152,7 +156,7 @@ export function GameScanDialog({
       if (bestMatch) {
         await handleAddGameById(bestMatch.id!, bestMatch.name);
       } else {
-        // Fallback if AI fails to return a valid ID
+        // Fallback if AI fails to return a valid ID from the list, add the top search result
         await handleAddGameById(searchResults[0].id, searchResults[0].name);
       }
       
