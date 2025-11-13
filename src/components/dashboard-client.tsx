@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
 import { WinLossChart } from '@/components/charts/win-loss-chart';
 import { DataExporter } from './data-exporter';
-import { Swords, Users, Dices, Crown } from 'lucide-react';
+import { Swords, Users, Dices, Crown, Medal } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlayerDetailsDialog, type PlayerWithFullStats } from './player-details-dialog';
 import { useGames } from '@/context/game-context';
+import Link from 'next/link';
+import Image from 'next/image';
 
 interface DashboardClientProps {
   sessions: Session[];
@@ -23,7 +25,6 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
 
   const totalSessions = sessions.length;
   const totalPlayers = players.length;
-  const totalGames = games.length;
   
   const winsByPlayer = sessions.reduce((acc, session) => {
     if (session.winnerId) {
@@ -34,6 +35,15 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
 
   const topPlayerEntry = Object.entries(winsByPlayer).sort(([, a], [, b]) => b - a)[0];
   const topPlayer = topPlayerEntry ? players.find(p => p.id === topPlayerEntry[0]) : null;
+
+  const playsByGame = sessions.reduce((acc, session) => {
+    acc[session.gameId] = (acc[session.gameId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const mostPlayedGameEntry = Object.entries(playsByGame).sort(([, a], [, b]) => b - a)[0];
+  const mostPlayedGame = mostPlayedGameEntry ? games.find(g => g.id === mostPlayedGameEntry[0]) : null;
+
 
   const getFullPlayerStats = (player: Player | null): PlayerWithFullStats | null => {
     if (!player) return null;
@@ -109,16 +119,32 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
               <p className="text-xs text-muted-foreground">games played</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className={mostPlayedGame ? 'cursor-pointer transition-shadow hover:shadow-lg' : ''}
+           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Unique Games</CardTitle>
-              <Dices className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Most Played</CardTitle>
+                <Medal className="h-4 w-4 text-amber-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalGames}</div>
-              <p className="text-xs text-muted-foreground">different games logged</p>
+                {mostPlayedGame ? (
+                <Link href={`/games/${mostPlayedGame.id}`} className="flex items-center gap-4 group">
+                    <div className="relative">
+                        <Image src={mostPlayedGame.imageUrl} alt={mostPlayedGame.name} width={48} height={48} className="rounded-md object-cover h-12 w-12" data-ai-hint={`${mostPlayedGame.name} boardgame`} unoptimized/>
+                    </div>
+                    <div>
+                        <div className="text-xl font-bold group-hover:underline">{mostPlayedGame.name}</div>
+                        <p className="text-xs text-muted-foreground">{mostPlayedGameEntry?.[1] || 0} plays</p>
+                    </div>
+                </Link>
+                ) : (
+                    <>
+                        <div className="text-2xl font-bold">N/A</div>
+                        <p className="text-xs text-muted-foreground">No games played yet</p>
+                    </>
+                )}
             </CardContent>
-          </Card>
+           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Players</CardTitle>
