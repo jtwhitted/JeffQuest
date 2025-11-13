@@ -9,7 +9,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const apiKey = process.env.BGG_API_KEY;
 
-export async function bggFetch(path: string, params: Record<string, string>) {
+async function bggFetch(path: string, params: Record<string, string>) {
     const url = new URL(`${BGG_API_URL}/${path}`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
@@ -33,7 +33,7 @@ export async function bggFetch(path: string, params: Record<string, string>) {
     return response.text();
 }
 
-export const parser = new XMLParser({
+const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '',
     textNodeName: '_value',
@@ -106,6 +106,7 @@ export async function getBggDetails(ids: string) {
         }
     
         return {
+            id: item.id.toString(),
             name: getPrimaryName(item.name),
             imageUrl: item.image || '',
             description: description,

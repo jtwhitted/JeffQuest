@@ -239,9 +239,7 @@ export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {
   if (!ids) return [];
   try {
     const details = await getBggDetails(ids);
-    // Add the BGG ID to the returned object so we can reference it client-side
-    const parsed = parser.parse(await bggFetch('thing', { id: ids, stats: '1' }));
-    return details.map((d, i) => ({ ...d, id: parsed.items.item[i].id.toString() }));
+    return details;
   } catch (error) {
     console.error('BGG details action failed:', error);
     return [];
