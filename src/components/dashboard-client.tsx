@@ -7,12 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
 import { WinLossChart } from '@/components/charts/win-loss-chart';
 import { DataExporter } from './data-exporter';
-import { Swords, Users, Dices, Crown, Medal, TrendingDown } from 'lucide-react';
+import { Swords, Users, Dices, Crown, Medal, TrendingDown, ShieldCheck, ShieldX } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlayerDetailsDialog, type PlayerWithFullStats } from './player-details-dialog';
 import { useGames } from '@/context/game-context';
 import Link from 'next/link';
 import Image from 'next/image';
+import { format } from 'date-fns';
 
 interface DashboardClientProps {
   sessions: Session[];
@@ -97,6 +98,10 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
 
   const topPlayerWithStats = playersWithStats.sort((a, b) => b.winRate - a.winRate || b.wins - a.wins)[0] || null;
   const bottomPlayerWithStats = playersWithStats.sort((a, b) => a.winRate - b.winRate || a.gamesPlayed - b.gamesPlayed)[0] || null;
+
+  const recentSessions = [...sessions]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 4);
 
   return (
     <>
@@ -221,25 +226,92 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
-          <Card className="col-span-1 lg:col-span-4">
-            <CardHeader>
-              <CardTitle>Sessions Overview</CardTitle>
-              <CardDescription>Number of games played per month.</CardDescription>
-            </CardHeader>
-            <CardContent className="pl-2">
-              <GamesOverTimeChart sessions={sessions} />
-            </CardContent>
-          </Card>
-          <Card className="col-span-1 lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Player Performance</CardTitle>
-               <CardDescription>Win/loss ratio for each player.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <WinLossChart sessions={sessions} players={players} />
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Sessions</CardTitle>
+                 <CardDescription>Your latest game plays.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                 {recentSessions.length > 0 ? (
+                    <ul className="space-y-4">
+                        {recentSessions.map(session => {
+                            const game = games.find(g => g.id === session.gameId);
+                            const sessionPlayers = players.filter(p => session.playerIds.includes(p.id));
+                            const winner = players.find(p => p.id === session.winnerId);
+                            if (!game) return null;
+                            return (
+                                <li key={session.id}>
+                                    <Link href={`/sessions/${session.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                                        <div className="flex items-start gap-4">
+                                            <Image src={game.imageUrl} alt={game.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" data-ai-hint={`${game.name} boardgame`} unoptimized />
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{game.name}</h4>
+                                                        <p className="text-sm text-muted-foreground">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+                                                    </div>
+                                                    <div className="flex -space-x-2 overflow-hidden">
+                                                        {sessionPlayers.map((player) => (
+                                                            <Avatar key={player.id} className="h-7 w-7 border-2 border-card">
+                                                            <AvatarImage src={player.avatarUrl} alt={player.name} />
+                                                            <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2">
+                                                    {session.cooperativeResult ? (
+                                                        <div className={`flex items-center text-xs font-medium ${session.cooperativeResult === 'win' ? 'text-green-400' : 'text-red-400'}`}>
+                                                            {session.cooperativeResult === 'win' ? <ShieldCheck className="mr-1.5 h-4 w-4"/> : <ShieldX className="mr-1.5 h-4 w-4"/>}
+                                                            Cooperative {session.cooperativeResult === 'win' ? 'Win' : 'Loss'}
+                                                        </div>
+                                                    ) : winner ? (
+                                                        <div className="flex items-center text-xs font-medium text-amber-400">
+                                                            <Crown className="mr-1.5 h-4 w-4" />
+                                                            <span>{winner.name} won</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center text-xs font-medium text-muted-foreground">
+                                                            <Users className="mr-1.5 h-4 w-4" />
+                                                            <span>Game played</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </li>
+                            )
+                        })}
+                    </ul>
+                ) : (
+                    <p className="text-center text-muted-foreground py-8">No sessions logged yet.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid grid-cols-1 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sessions Overview</CardTitle>
+                <CardDescription>Number of games played per month.</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <GamesOverTimeChart sessions={sessions} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Player Performance</CardTitle>
+                <CardDescription>Win/loss ratio for each player.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WinLossChart sessions={sessions} players={players} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </>
