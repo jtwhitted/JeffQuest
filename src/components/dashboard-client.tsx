@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -226,6 +227,26 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
           </Card>
         </div>
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sessions Overview</CardTitle>
+                <CardDescription>Number of games played per month.</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                <GamesOverTimeChart sessions={sessions} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Player Performance</CardTitle>
+                <CardDescription>Win/loss ratio for each player.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WinLossChart sessions={sessions} players={players} />
+              </CardContent>
+            </Card>
+          </div>
           <div>
             <Card>
               <CardHeader>
@@ -288,26 +309,6 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                 ) : (
                     <p className="text-center text-muted-foreground py-8">No sessions logged yet.</p>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-          <div className="grid grid-cols-1 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sessions Overview</CardTitle>
-                <CardDescription>Number of games played per month.</CardDescription>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <GamesOverTimeChart sessions={sessions} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Player Performance</CardTitle>
-                <CardDescription>Win/loss ratio for each player.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WinLossChart sessions={sessions} players={players} />
               </CardContent>
             </Card>
           </div>
