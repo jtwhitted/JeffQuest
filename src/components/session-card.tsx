@@ -7,16 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Session, Game, Player } from '@/lib/types';
 import { format } from 'date-fns';
-import { Crown, ArrowRight, Users, ShieldCheck, ShieldX } from 'lucide-react';
+import { Crown, ArrowRight, Users, ShieldCheck, ShieldX, Trash2 } from 'lucide-react';
 
 interface SessionCardProps {
   session: Session;
   game: Game;
   players: Player[];
   winner?: Player;
+  onDelete: () => void;
 }
 
-export default function SessionCard({ session, game, players, winner }: SessionCardProps) {
+export default function SessionCard({ session, game, players, winner, onDelete }: SessionCardProps) {
   const isCooperative = session.cooperativeResult;
 
   const renderWinner = () => {
@@ -51,8 +52,21 @@ export default function SessionCard({ session, game, players, winner }: SessionC
   };
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
+    <Card className="group/card flex flex-col overflow-hidden transition-all hover:shadow-lg">
       <CardHeader className="relative h-40 p-0">
+         <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity bg-background/70 hover:bg-background"
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete();
+            }}
+            >
+            <Trash2 className="h-4 w-4 text-destructive" />
+            <span className="sr-only">Delete session</span>
+        </Button>
         <Image
           src={game.imageUrl}
           alt={game.name}

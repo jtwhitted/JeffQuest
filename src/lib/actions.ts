@@ -9,7 +9,8 @@ import {
     addSessionToDB,
     addPlayerToDB,
     deleteGameFromDB,
-    deletePlayerFromDB
+    deletePlayerFromDB,
+    deleteSessionFromDB
 } from './data';
 import { searchBgg, getBggDetails } from './bgg';
 
@@ -215,6 +216,15 @@ export async function deletePlayer(playerId: string) {
     revalidatePath('/players');
     revalidatePath('/');
     revalidatePath('/sessions');
+}
+
+export async function deleteSessionAction(sessionId: string) {
+    await deleteSessionFromDB(sessionId);
+
+    revalidatePath('/sessions');
+    revalidatePath('/');
+    revalidatePath('/games');
+    revalidatePath('/players');
 }
 
 

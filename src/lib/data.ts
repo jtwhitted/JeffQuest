@@ -105,3 +105,9 @@ export async function deletePlayerFromDB(playerId: string): Promise<void> {
     });
     await writeData(SESSIONS_PATH, sessions);
 }
+
+export async function deleteSessionFromDB(sessionId: string): Promise<void> {
+    let sessions = await readData<Session>(SESSIONS_PATH);
+    sessions = sessions.filter(s => s.id !== sessionId);
+    await writeData(SESSIONS_PATH, sessions);
+}

@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
-import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction } from '@/lib/actions';
+import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction, deleteSessionAction } from '@/lib/actions';
 import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 
 type GameData = {
@@ -32,6 +32,7 @@ interface GameContextType {
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
+  deleteSession: (sessionId: string) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -118,9 +119,19 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
+  const deleteSession = useCallback(async (sessionId: string) => {
+    setIsLoading(true);
+    try {
+      await deleteSessionAction(sessionId);
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, addSession, deleteGame, deletePlayer, isLoading }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading }}>
       {children}
     </GameContext.Provider>
   );
