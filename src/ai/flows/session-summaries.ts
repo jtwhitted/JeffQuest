@@ -44,13 +44,17 @@ export async function generateSessionSummary(input: SessionSummaryInput): Promis
 
 const prompt = ai.definePrompt({
   name: 'sessionSummaryPrompt',
-  input: {schema: SessionSummaryInputSchema.extend({ scores: z.string() })},
+  input: {schema: SessionSummaryInputSchema.extend({ 
+      scores: z.string(),
+      isQuickSummary: z.boolean(),
+      isWin: z.boolean().optional(),
+    })},
   output: {schema: SessionSummaryOutputSchema},
   model: 'googleai/gemini-2.5-flash',
   prompt: `You are a seasoned tabletop gamer, skilled at creating engaging session reports.
   Your task is to generate a {{summaryType}} summary of the game session provided.
 
-  {{#if (if summaryType 'quick')}}
+  {{#if isQuickSummary}}
   Generate a brief, exciting summary, 2-3 sentences long, perfect for a quick update.
   {{else}}
   Generate a captivating and detailed narrative-style match report, designed to excite and inform friends who were unable to attend. Incorporate details about the game itself (like its category and complexity) to give more context. Include highlights of key moments, player achievements, and any unexpected twists.
@@ -71,7 +75,7 @@ const prompt = ai.definePrompt({
   - Winning Player: {{{winner}}}
   {{/if}}
   {{#if cooperativeResult}}
-  - Cooperative Result: {{#if (if cooperativeResult 'win')}}The team won!{{else}}The team lost.{{/if}}
+  - Cooperative Result: {{#if isWin}}The team won!{{else}}The team lost.{{/if}}
   {{/if}}
   - Scores: {{{scores}}}
   - Interesting Events: {{{interestingEvents}}}
@@ -89,6 +93,8 @@ const sessionSummaryFlow = ai.defineFlow(
     const {output} = await prompt({
         ...input,
         scores: JSON.stringify(input.scores, null, 2),
+        isQuickSummary: input.summaryType === 'quick',
+        isWin: input.cooperativeResult === 'win',
     });
     return output!;
   }
