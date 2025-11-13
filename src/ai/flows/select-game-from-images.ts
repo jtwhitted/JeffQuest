@@ -66,7 +66,7 @@ Here is the user's photo:`,
     promptParts.push({ text: "\n\nNow, based on your visual analysis, which candidate is the correct one? Return only the bggId of the best match." });
 
     const { output } = await ai.generate({
-      model: 'gemini-pro-vision',
+      model: 'googleai/gemini-2.0-flash',
       prompt: promptParts,
       output: { schema: SelectGameOutputSchema },
       config: { temperature: 0.1 }

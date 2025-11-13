@@ -36,7 +36,7 @@ const getGameTitlePrompt = ai.definePrompt({
     name: 'getGameTitlePrompt',
     input: { schema: GetGameTitleInputSchema },
     output: { schema: z.object({ title: z.string() }) },
-    model: 'gemini-pro-vision',
+    model: 'googleai/gemini-2.0-flash',
     prompt: `You are an expert at identifying board games from images of their box art.
 Your task is to analyze the provided image and extract the main title of the game.
 
