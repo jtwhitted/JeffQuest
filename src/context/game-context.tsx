@@ -27,7 +27,7 @@ interface GameContextType {
   games: Game[];
   players: Player[];
   sessions: Session[];
-  addGame: (gameData: GameData) => Promise<Game>;
+  addGame: (gameData: GameData) => Promise<Game | null>;
   addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
@@ -52,11 +52,13 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addGame = useCallback(async (gameData: GameData): Promise<Game> => {
+  const addGame = useCallback(async (gameData: GameData): Promise<Game | null> => {
     setIsLoading(true);
     try {
       const newGame = await addGameAction(gameData);
-      setGames(prevGames => [...prevGames, newGame]);
+      if (newGame) {
+        setGames(prevGames => [...prevGames, newGame]);
+      }
       return newGame;
     } catch (error) {
         // Re-throw the error to be caught by the calling component
@@ -92,7 +94,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const deleteGame = useCallback(async (gameId: string) => {
     setIsLoading(true);
     try {
-      await deleteGameFromDB(gameId);
+      await deleteGameAction(gameId);
       setGames(prev => prev.filter(g => g.id !== gameId));
       setSessions(prev => prev.filter(s => s.gameId !== gameId));
     } finally {
@@ -103,7 +105,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const deletePlayer = useCallback(async (playerId: string) => {
     setIsLoading(true);
     try {
-      await deletePlayerFromDB(playerId);
+      await deletePlayerAction(playerId);
       setPlayers(prev => prev.filter(p => p.id !== playerId));
       // This is a simplified update. A full implementation would re-evaluate winners, etc.
       setSessions(prev => prev.map(s => ({

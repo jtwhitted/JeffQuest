@@ -634,5 +634,102 @@
       "Spielworxx"
     ],
     "imageUrl": "https://cf.geekdo-images.com/XWImAu_3RK61wbzcKboVdA__original/img/43ianMZOks7UHlZILx0VBRntOmM=/0x0/filters:format(png)/pic8145530.png"
+  },
+  {
+    "id": "g1762996830070",
+    "name": "Brass: Birmingham",
+    "category": [
+      "Age of Reason",
+      "Economic",
+      "Industry / Manufacturing",
+      "Post-Napoleonic",
+      "Trains",
+      "Transportation"
+    ],
+    "mechanics": [
+      "Chaining",
+      "End Game Bonuses",
+      "Hand Management",
+      "Income",
+      "Loans",
+      "Market",
+      "Multi-Use Cards",
+      "Network and Route Building",
+      "Ownership",
+      "Tags",
+      "Tech Trees / Tech Tracks",
+      "Tile Placement",
+      "Turn Order: Stat-Based",
+      "Variable Set-up"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 4,
+    "difficulty": "Advanced",
+    "yearPublished": 2018,
+    "description": "Brass: Birmingham is an economic strategy game sequel to Martin Wallace's 2007 masterpiece, Brass. Brass: Birmingham tells the story of competing entrepreneurs in Birmingham during the industrial revolution between the years of 1770 and 1870.\n\nIt offers a very different story arc and experience from its predecessor. As in its predecessor, you must develop, build and establish your industries and network in an effort to exploit low or high market demands. The game is played over two halves: the canal era (years 1770-1830) and the rail era (years 1830-1870). To win the game, score the most VPs. VPs are counted at the end of each half for the canals, rails and established (flipped) industry tiles.\n\nEach round, players take turns according to the turn order track, receiving two actions to perform any of the following actions (found in the original game):\n\n1) Build - Pay required resources and place an industry tile.\n2) Network - Add a rail / canal link, expanding your network.\n3) Develop - Increase the VP value of an industry.\n4) Sell - Sell your cotton, manufactured goods and pottery.\n5) Loan - Take a &pound;30 loan and reduce your income.\n\nBrass: Birmingham also features a new sixth action:\n\n6) Scout - Discard three cards and take a wild location and wild industry card. (This action replaces Double Action Build in original Brass.)",
+    "minPlaytime": 60,
+    "maxPlaytime": 120,
+    "rating": 8.572,
+    "ratingCount": 54860,
+    "complexity": 3.868,
+    "designers": [
+      "Gavan Brown",
+      "Matt Tolman",
+      "Martin Wallace"
+    ],
+    "publishers": [
+      "Roxley",
+      "Arclight Games",
+      "Board Game Rookie",
+      "BoardM Factory",
+      "CMON Global Limited",
+      "Conclave Editora",
+      "CoolPlay",
+      "CrowD Games",
+      "Dexker Games",
+      "Funforge",
+      "Gém Klub Kft.",
+      "Ghenos Games",
+      "Giant Roc",
+      "Lanlalen",
+      "Lord of Boards",
+      "Maldito Games",
+      "PHALANX",
+      "Rebel Sp. z o.o.",
+      "TLAMA games",
+      "White Goblin Games",
+      "盒拍工作室 Hepa Studio"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/x3zxjr-Vw5iU4yDPg70Jgw__original/img/FpyxH41Y6_ROoePAilPNEhXnzO8=/0x0/filters:format(jpeg)/pic3490053.jpg"
+  },
+  {
+    "id": "g1762996861002",
+    "name": "Seti",
+    "category": [
+      "Abstract Strategy",
+      "Ancient"
+    ],
+    "mechanics": [
+      "Grid Movement"
+    ],
+    "minPlayers": 2,
+    "maxPlayers": 2,
+    "difficulty": "Beginner",
+    "yearPublished": 1979,
+    "description": "Seti is an attempt to make a playable game based on the extremely limited information we have on a particular ancient Egyptian game.\n\nIt's an abstract strategy game - each player has pharaoh and high priest pieces which move in familiar fashions.  The object is to get a piece to the opposite end of the board.\n\nThe basic game is played on a 3&times;10 board and has an addition type of piece, the ship of the dead, which can be used to make a piece invulnerable (temporarily, it is to be supposed).  The advanced game is played on a 5&times;10 board and does not use these pieces.\n\nThe Bütehorn Spiele (Buchholz Verlag) edition was published in 1979 and won the Spiel des Jahres special award for the most beautiful game in that year.\n\nHexagames (I) reprinted it in 1983/86 with revised rules by Manuel A. Widmaier (concerning the basic movement of the High Priest and the variation Seti-Beth , now with 2 Pharaohs for each player instead of one !).",
+    "minPlaytime": 30,
+    "maxPlaytime": 30,
+    "rating": 5.702,
+    "ratingCount": 45,
+    "complexity": 1.25,
+    "designers": [
+      "Andreas Steiner",
+      "Hartmut Witt"
+    ],
+    "publishers": [
+      "Bütehorn Spiele (Buchholz Verlag)",
+      "Hexagames (I)"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/Rbu-96XteuIFWkC5RZnEpg__original/img/2C23zUOIvmMIT-P9FTlYKBWvtsE=/0x0/filters:format(jpeg)/pic78884.jpg"
   }
 ]
