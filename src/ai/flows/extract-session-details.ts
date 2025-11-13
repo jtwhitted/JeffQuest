@@ -17,7 +17,7 @@ import type { Game, Player } from '@/lib/types';
 // Define the schema for the data we want to extract
 const ScoreSchema = z.object({
   playerId: z.string().describe('The unique ID of the player.'),
-  score: z.coerce.number().describe('The score of the player.'),
+  score: z.coerce.number().optional().describe('The score of the player.'),
 });
 
 const ExtractSessionDetailsOutputSchema = z.object({
