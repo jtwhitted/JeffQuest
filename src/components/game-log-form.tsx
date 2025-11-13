@@ -60,17 +60,23 @@ const formSchema = z.object({
   })).optional(),
   notes: z.string().optional(),
 }).refine(data => {
-    if (data.isCooperative) {
-        return !!data.cooperativeResult;
-    }
-    // For competitive games, a winner is required if there are players selected
-    if (data.playerIds.length > 0) {
+    // If competitive and players are selected, a winner must be chosen.
+    if (!data.isCooperative && data.playerIds.length > 0) {
         return !!data.winnerId;
     }
     return true;
 }, {
-    message: "A winner or a cooperative result must be selected.",
-    path: ['winnerId'], // Show error on one of the fields
+    message: "Please select a winner for the game.",
+    path: ['winnerId'], 
+}).refine(data => {
+    // If cooperative and players are selected, a result must be chosen.
+    if (data.isCooperative && data.playerIds.length > 0) {
+        return !!data.cooperativeResult;
+    }
+    return true;
+}, {
+    message: "Please select the outcome for the cooperative game.",
+    path: ['cooperativeResult'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -356,7 +362,7 @@ export default function GameLogForm() {
     <GameScanDialog
         open={isScanDialogOpen}
         onOpenChange={setScanDialogOpen}
-        onScanComplete={handleScanComplete}
+        onGameAdded={handleScanComplete}
     />
      <ManualAddGameDialog
         open={isManualAddDialogOpen}
@@ -668,3 +674,5 @@ export default function GameLogForm() {
     </>
   );
 }
+
+    
