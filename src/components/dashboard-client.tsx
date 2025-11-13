@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
 import { WinLossChart } from '@/components/charts/win-loss-chart';
 import { DataExporter } from './data-exporter';
-import { Swords, Users, Dices, Crown, Medal } from 'lucide-react';
+import { Swords, Users, Dices, Crown, Medal, TrendingDown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlayerDetailsDialog, type PlayerWithFullStats } from './player-details-dialog';
 import { useGames } from '@/context/game-context';
@@ -43,7 +43,6 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
 
   const mostPlayedGameEntry = Object.entries(playsByGame).sort(([, a], [, b]) => b - a)[0];
   const mostPlayedGame = mostPlayedGameEntry ? games.find(g => g.id === mostPlayedGameEntry[0]) : null;
-
 
   const getFullPlayerStats = (player: Player | null): PlayerWithFullStats | null => {
     if (!player) return null;
@@ -92,15 +91,20 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
     };
   };
 
-  const topPlayerWithStats = getFullPlayerStats(topPlayer);
+  const playersWithStats = players
+    .map(p => getFullPlayerStats(p))
+    .filter(p => p && p.gamesPlayed > 0) as PlayerWithFullStats[];
+
+  const topPlayerWithStats = playersWithStats.sort((a, b) => b.winRate - a.winRate || b.wins - a.wins)[0] || null;
+  const bottomPlayerWithStats = playersWithStats.sort((a, b) => a.winRate - b.winRate || a.gamesPlayed - b.gamesPlayed)[0] || null;
 
   return (
     <>
-      {topPlayerWithStats && (
+      {selectedPlayer && (
         <PlayerDetailsDialog
           open={!!selectedPlayer}
           onOpenChange={() => setSelectedPlayer(null)}
-          player={topPlayerWithStats}
+          player={selectedPlayer}
         />
       )}
       <div className="flex flex-col gap-8">
@@ -145,16 +149,6 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                 )}
             </CardContent>
            </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Players</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalPlayers}</div>
-              <p className="text-xs text-muted-foreground">in your group</p>
-            </CardContent>
-          </Card>
           <Card
             className={topPlayerWithStats ? 'cursor-pointer transition-shadow hover:shadow-lg' : ''}
             onClick={() => topPlayerWithStats && setSelectedPlayer(topPlayerWithStats)}
@@ -164,24 +158,54 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                <Crown className="h-4 w-4 text-amber-400" />
             </CardHeader>
             <CardContent>
-               {topPlayer ? (
+               {topPlayerWithStats ? (
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={topPlayer.avatarUrl} alt={topPlayer.name} />
-                      <AvatarFallback>{topPlayer.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={topPlayerWithStats.avatarUrl} alt={topPlayerWithStats.name} />
+                      <AvatarFallback>{topPlayerWithStats.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <Crown className="absolute -top-2 -right-2 h-5 w-5 text-amber-400 transform -rotate-12" />
                   </div>
                   <div>
-                      <div className="text-xl font-bold">{topPlayer.name}</div>
-                      <p className="text-xs text-muted-foreground">{winsByPlayer[topPlayer.id] || 0} wins</p>
+                      <div className="text-xl font-bold">{topPlayerWithStats.name}</div>
+                      <p className="text-xs text-muted-foreground">{topPlayerWithStats.winRate}% win rate</p>
                   </div>
                 </div>
               ) : (
                   <>
                       <div className="text-2xl font-bold">N/A</div>
                       <p className="text-xs text-muted-foreground">No wins recorded yet</p>
+                  </>
+              )}
+            </CardContent>
+          </Card>
+           <Card
+            className={bottomPlayerWithStats ? 'cursor-pointer transition-shadow hover:shadow-lg' : ''}
+            onClick={() => bottomPlayerWithStats && setSelectedPlayer(bottomPlayerWithStats)}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Biggest Loser</CardTitle>
+               <TrendingDown className="h-4 w-4 text-red-400" />
+            </CardHeader>
+            <CardContent>
+               {bottomPlayerWithStats ? (
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={bottomPlayerWithStats.avatarUrl} alt={bottomPlayerWithStats.name} />
+                      <AvatarFallback>{bottomPlayerWithStats.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div>
+                      <div className="text-xl font-bold">{bottomPlayerWithStats.name}</div>
+                      <p className="text-xs text-muted-foreground">{bottomPlayerWithStats.winRate}% win rate</p>
+                  </div>
+                </div>
+              ) : (
+                  <>
+                      <div className="text-2xl font-bold">N/A</div>
+                      <p className="text-xs text-muted-foreground">No players with losses yet</p>
                   </>
               )}
             </CardContent>
