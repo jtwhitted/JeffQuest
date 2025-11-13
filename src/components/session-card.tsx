@@ -3,11 +3,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Session, Game, Player } from '@/lib/types';
 import { format } from 'date-fns';
-import { Crown, ArrowRight, Users, ShieldCheck, ShieldX, Trash2 } from 'lucide-react';
+import { Crown, ArrowRight, ShieldCheck, ShieldX, Trash2 } from 'lucide-react';
 
 interface SessionCardProps {
   session: Session;
@@ -54,19 +53,6 @@ export default function SessionCard({ session, game, players, winner, onDelete }
   return (
     <Card className="group/card flex flex-col overflow-hidden transition-all hover:shadow-lg">
       <CardHeader className="relative h-40 p-0">
-         <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 z-10 opacity-0 group-hover/card:opacity-100 transition-opacity bg-background/70 hover:bg-background"
-            onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDelete();
-            }}
-            >
-            <Trash2 className="h-4 w-4 text-destructive" />
-            <span className="sr-only">Delete session</span>
-        </Button>
         <Image
           src={game.imageUrl}
           alt={game.name}
@@ -75,10 +61,27 @@ export default function SessionCard({ session, game, players, winner, onDelete }
           data-ai-hint={`${game.category?.[0]} game`}
           unoptimized
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <div className="absolute bottom-0 w-full p-4">
-            <CardTitle className="text-xl font-bold text-white">{game.name}</CardTitle>
-            <p className="text-sm text-gray-300">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="relative flex h-full flex-col justify-between p-4">
+            <div className="flex justify-end">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="z-10 h-8 w-8 opacity-0 group-hover/card:opacity-100 transition-opacity bg-background/70 hover:bg-background"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onDelete();
+                    }}
+                    >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <span className="sr-only">Delete session</span>
+                </Button>
+            </div>
+            <div>
+                <CardTitle className="text-xl font-bold text-white">{game.name}</CardTitle>
+                <p className="text-sm text-gray-300">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+            </div>
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-4">
