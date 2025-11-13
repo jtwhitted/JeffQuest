@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -23,8 +24,17 @@ const chartConfig = {
 export function WinLossChart({ sessions, players }: WinLossChartProps) {
   const data = players.map((player) => {
     const gamesPlayed = sessions.filter((s) => s.playerIds.includes(player.id));
-    const wins = gamesPlayed.filter((s) => s.winnerId === player.id).length;
-    const losses = gamesPlayed.length - wins;
+    
+    const wins = gamesPlayed.filter(s => 
+        (s.winnerId === player.id) || 
+        (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))
+    ).length;
+    
+    const losses = gamesPlayed.filter(s =>
+        (!s.isCooperative && s.winnerId !== player.id) ||
+        (s.cooperativeResult === 'loss' && s.playerIds.includes(player.id))
+    ).length;
+
     return {
       name: player.name,
       wins,

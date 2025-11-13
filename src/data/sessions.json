@@ -43,5 +43,22 @@
       }
     ],
     "notes": "Jeffrey, a new player named Brian, and a new player named Frank, played Just One on November 12th and did a cooperative win with 11 points each."
+  },
+  {
+    "id": "s1763060372536",
+    "gameId": "g1763014225374",
+    "date": "2025-11-13T18:59:00.611Z",
+    "playerIds": [
+      "p1762879138303"
+    ],
+    "isCooperative": false,
+    "winnerId": "p1762879138303",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 49
+      }
+    ],
+    "notes": "Jeffrey played Moon Colony Blood Base by himself, and he scored 49 points to win. He was the winner of the game, and it was so amazing that like everyone went nuts, like crazy nuts, nuts."
   }
 ]
