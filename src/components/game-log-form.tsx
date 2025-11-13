@@ -34,10 +34,10 @@ import type { Player, Game } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Scan, UserPlus } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
 import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 import { Switch } from './ui/switch';
@@ -45,6 +45,7 @@ import { Label } from "./ui/label"
 import { useGames } from '@/context/game-context';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
+import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -85,6 +86,12 @@ export default function GameLogForm() {
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
   const { games, players, addGame, addSession } = useGames();
   const [isClient, setIsClient] = useState(false);
+  
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -128,29 +135,26 @@ export default function GameLogForm() {
     });
     form.setValue('scores', newScores, { shouldValidate: true });
     
-    // If a player is deselected, remove them from winner selection if they were the winner
     const winnerId = form.getValues('winnerId');
     if (winnerId && !selectedPlayerIds.includes(winnerId)) {
       form.setValue('winnerId', undefined);
     }
     
-  // We only want to run this when selectedPlayerIds changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPlayerIds.toString(), form.setValue]);
+  }, [selectedPlayerIds, form]);
 
 
   // This effect automatically determines the winner from scores
   useEffect(() => {
-    if (isCooperative) return;
+    if (isCooperative || !scores) return;
   
-    const validScores = scores?.filter(s => typeof s.score === 'number' && !isNaN(s.score));
+    const validScores = scores.filter(s => typeof s.score === 'number' && !isNaN(s.score));
   
-    if (validScores && validScores.length > 0 && validScores.length === selectedPlayerIds.length) {
+    if (validScores.length > 0 && validScores.length === selectedPlayerIds.length) {
       const winner = validScores.reduce((prev, current) => {
         return (prev.score! > current.score!) ? prev : current;
       });
   
-      if (winner && winner.playerId) {
+      if (winner?.playerId) {
         form.setValue('winnerId', winner.playerId, { shouldValidate: true });
       }
     }
@@ -207,6 +211,57 @@ export default function GameLogForm() {
     const currentPlayerIds = form.getValues('playerIds');
     form.setValue('playerIds', [...currentPlayerIds, newPlayer.id]);
   };
+  
+  const handleToggleRecording = async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+        audioChunksRef.current = [];
+
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorderRef.current.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = async () => {
+            const base64Audio = reader.result as string;
+            if (base64Audio) {
+              setIsTranscribing(true);
+              try {
+                const { text } = await transcribeAudio({ audioDataUri: base64Audio });
+                const currentNotes = form.getValues('notes') || '';
+                form.setValue('notes', currentNotes ? `${currentNotes}\n${text}` : text);
+                toast({ title: 'Transcription Successful', description: 'Your notes have been updated.' });
+              } catch (error: any) {
+                console.error('Transcription error:', error);
+                toast({ variant: 'destructive', title: 'Transcription Failed', description: error.message });
+              } finally {
+                setIsTranscribing(false);
+              }
+            }
+          };
+          // Stop all media tracks to turn off the recording indicator
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error('Error accessing microphone:', err);
+        toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access the microphone.' });
+      }
+    }
+  };
+
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -353,7 +408,7 @@ export default function GameLogForm() {
                             checked={field.value?.includes(player.id)}
                             onCheckedChange={(checked) => {
                               return checked
-                                ? field.onChange([...field.value, player.id])
+                                ? field.onChange([...(field.value || []), player.id])
                                 : field.onChange(
                                     field.value?.filter(
                                       (value) => value !== player.id
@@ -499,10 +554,28 @@ export default function GameLogForm() {
             name="notes"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Notes (Optional)</FormLabel>
+                <div className="flex items-center justify-between">
+                    <FormLabel>Notes (Optional)</FormLabel>
+                    <Button
+                        type="button"
+                        variant={isRecording ? 'destructive' : 'outline'}
+                        size="sm"
+                        onClick={handleToggleRecording}
+                        disabled={isTranscribing}
+                    >
+                        {isTranscribing ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : isRecording ? (
+                            <Square className="mr-2 h-4 w-4" />
+                        ) : (
+                            <Mic className="mr-2 h-4 w-4" />
+                        )}
+                        {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
+                    </Button>
+                </div>
                 <FormControl>
                     <Textarea
-                        placeholder="Any memorable moments, strategies, or house rules?"
+                        placeholder="Any memorable moments, strategies, or house rules? You can also record audio notes."
                         {...field}
                     />
                 </FormControl>
@@ -523,5 +596,3 @@ export default function GameLogForm() {
     </>
   );
 }
-
-    
