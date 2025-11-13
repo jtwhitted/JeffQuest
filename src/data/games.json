@@ -701,35 +701,5 @@
       "盒拍工作室 Hepa Studio"
     ],
     "imageUrl": "https://cf.geekdo-images.com/x3zxjr-Vw5iU4yDPg70Jgw__original/img/FpyxH41Y6_ROoePAilPNEhXnzO8=/0x0/filters:format(jpeg)/pic3490053.jpg"
-  },
-  {
-    "id": "g1762996861002",
-    "name": "Seti",
-    "category": [
-      "Abstract Strategy",
-      "Ancient"
-    ],
-    "mechanics": [
-      "Grid Movement"
-    ],
-    "minPlayers": 2,
-    "maxPlayers": 2,
-    "difficulty": "Beginner",
-    "yearPublished": 1979,
-    "description": "Seti is an attempt to make a playable game based on the extremely limited information we have on a particular ancient Egyptian game.\n\nIt's an abstract strategy game - each player has pharaoh and high priest pieces which move in familiar fashions.  The object is to get a piece to the opposite end of the board.\n\nThe basic game is played on a 3&times;10 board and has an addition type of piece, the ship of the dead, which can be used to make a piece invulnerable (temporarily, it is to be supposed).  The advanced game is played on a 5&times;10 board and does not use these pieces.\n\nThe Bütehorn Spiele (Buchholz Verlag) edition was published in 1979 and won the Spiel des Jahres special award for the most beautiful game in that year.\n\nHexagames (I) reprinted it in 1983/86 with revised rules by Manuel A. Widmaier (concerning the basic movement of the High Priest and the variation Seti-Beth , now with 2 Pharaohs for each player instead of one !).",
-    "minPlaytime": 30,
-    "maxPlaytime": 30,
-    "rating": 5.702,
-    "ratingCount": 45,
-    "complexity": 1.25,
-    "designers": [
-      "Andreas Steiner",
-      "Hartmut Witt"
-    ],
-    "publishers": [
-      "Bütehorn Spiele (Buchholz Verlag)",
-      "Hexagames (I)"
-    ],
-    "imageUrl": "https://cf.geekdo-images.com/Rbu-96XteuIFWkC5RZnEpg__original/img/2C23zUOIvmMIT-P9FTlYKBWvtsE=/0x0/filters:format(jpeg)/pic78884.jpg"
   }
 ]

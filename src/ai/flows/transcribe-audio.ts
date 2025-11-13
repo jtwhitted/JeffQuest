@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow to transcribe audio to text.
@@ -46,9 +47,6 @@ const transcribeAudioFlow = ai.defineFlow(
           { media: { url: input.audioDataUri, contentType: 'audio/webm' } },
           { text: 'Transcribe this audio.' },
         ],
-        config: {
-          responseMimeType: 'text/plain',
-        },
       });
 
       if (text) {

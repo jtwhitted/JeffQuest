@@ -34,7 +34,7 @@ import type { Player, Game } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
@@ -45,6 +45,7 @@ import { useGames } from '@/context/game-context';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
+import { extractSessionDetails } from '@/ai/flows/extract-session-details';
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -84,17 +85,13 @@ export default function GameLogForm() {
   const [manualAddDefaultName, setManualAddDefaultName] = useState('');
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
   const { games, players, addGame, addSession } = useGames();
-  const [isClient, setIsClient] = useState(false);
   
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [transcribedText, setTranscribedText] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const sortedGames = useMemo(() => {
     return [...games].sort((a, b) => a.name.localeCompare(b.name));
@@ -102,14 +99,9 @@ export default function GameLogForm() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      playerIds: [],
-      isCooperative: false,
-      scores: [],
-      notes: '',
-    },
+    defaultValues: {},
   });
-
+  
   // Set default form values on the client to avoid hydration errors
   useEffect(() => {
     form.reset({
@@ -246,10 +238,12 @@ export default function GameLogForm() {
             const base64Audio = reader.result as string;
             if (base64Audio) {
               setIsTranscribing(true);
+              setTranscribedText(null);
               try {
                 const { text } = await transcribeAudio({ audioDataUri: base64Audio });
                 const currentNotes = form.getValues('notes') || '';
                 form.setValue('notes', currentNotes ? `${currentNotes}\n${text}` : text);
+                setTranscribedText(text);
                 toast({ title: 'Transcription Successful', description: 'Your notes have been updated.' });
               } catch (error: any) {
                 console.error('Transcription error:', error);
@@ -269,6 +263,46 @@ export default function GameLogForm() {
         console.error('Error accessing microphone:', err);
         toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access the microphone.' });
       }
+    }
+  };
+
+  const handleExtractDetails = async () => {
+    if (!transcribedText) return;
+    setIsExtracting(true);
+    try {
+        const result = await extractSessionDetails({ transcription: transcribedText });
+
+        if (result.gameId) {
+            form.setValue('gameId', result.gameId, { shouldValidate: true });
+        }
+        if (result.playerIds) {
+            form.setValue('playerIds', result.playerIds, { shouldValidate: true });
+        }
+        if (result.isCooperative !== undefined) {
+          form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
+        }
+
+        if (result.isCooperative) {
+            if (result.cooperativeResult) {
+                form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
+            }
+        } else {
+            if (result.winnerId) {
+                form.setValue('winnerId', result.winnerId, { shouldValidate: true });
+            }
+        }
+        
+        if (result.scores && result.scores.length > 0) {
+            form.setValue('scores', result.scores, { shouldValidate: true });
+        }
+        
+        toast({ title: 'Details Extracted!', description: 'The form has been updated with the details from your notes.' });
+
+    } catch(e: any) {
+        console.error('Error extracting details:', e);
+        toast({ variant: 'destructive', title: 'Extraction Failed', description: e.message || 'Could not extract details from the transcription.' });
+    } finally {
+        setIsExtracting(false);
     }
   };
 
@@ -566,24 +600,41 @@ export default function GameLogForm() {
             name="notes"
             render={({ field }) => (
                 <FormItem>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-2">
                         <FormLabel>Notes (Optional)</FormLabel>
-                        <Button
-                            type="button"
-                            variant={isRecording ? 'destructive' : 'outline'}
-                            size="sm"
-                            onClick={handleToggleRecording}
-                            disabled={isTranscribing}
-                        >
-                            {isTranscribing ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : isRecording ? (
-                                <Square className="mr-2 h-4 w-4" />
-                            ) : (
-                                <Mic className="mr-2 h-4 w-4" />
+                         <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant={isRecording ? 'destructive' : 'outline'}
+                                size="sm"
+                                onClick={handleToggleRecording}
+                                disabled={isTranscribing || isExtracting}
+                            >
+                                {isTranscribing ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : isRecording ? (
+                                    <Square className="mr-2 h-4 w-4" />
+                                ) : (
+                                    <Mic className="mr-2 h-4 w-4" />
+                                )}
+                                {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
+                            </Button>
+                            {transcribedText && (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleExtractDetails}
+                                    disabled={isExtracting || isRecording}
+                                >
+                                    {isExtracting ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Sparkles className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isExtracting ? 'Extracting...' : 'Extract Details'}
+                                </Button>
                             )}
-                            {isTranscribing ? 'Transcribing...' : isRecording ? 'Stop' : 'Record Notes'}
-                        </Button>
+                        </div>
                     </div>
                 <FormControl>
                     <Textarea
@@ -592,14 +643,14 @@ export default function GameLogForm() {
                     />
                 </FormControl>
                 <FormDescription>
-                    These notes can be used by the AI to generate summaries.
+                    These notes can be used by the AI to generate summaries or extract details.
                 </FormDescription>
                 <FormMessage />
                 </FormItem>
             )}
         />
 
-        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || !isClient}>
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Log Session
         </Button>
@@ -608,5 +659,3 @@ export default function GameLogForm() {
     </>
   );
 }
-
-    
