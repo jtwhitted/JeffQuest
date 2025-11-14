@@ -69,36 +69,54 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
 
   const handleGenerateCard = async () => {
     setLegendaryCardState({ loading: true, error: null, data: null });
-    setLoadingMessage('Conjuring epicness...');
+    
+    let result: GenerateLegendaryCardOutput | null = null;
+    let lastError: any = null;
+    const retries = 3;
+    let delayMs = 1000;
 
-    try {
-      const result = await generateLegendaryCard({
-        name: player.name,
-        gamesPlayed: player.gamesPlayed,
-        wins: player.wins,
-        winRate: player.winRate,
-        favoriteGame: player.favoriteGame?.name,
-      });
+    for (let i = 0; i < retries; i++) {
+        try {
+            setLoadingMessage(`Conjuring epicness... (Attempt ${i + 1})`);
+            result = await generateLegendaryCard({
+                name: player.name,
+                gamesPlayed: player.gamesPlayed,
+                wins: player.wins,
+                winRate: player.winRate,
+                favoriteGame: player.favoriteGame?.name,
+            });
+            lastError = null; // Clear error on success
+            break; // Exit loop on success
+        } catch (error) {
+            lastError = error;
+            if (i < retries - 1) {
+                setLoadingMessage(`The AI is busy, retrying in ${delayMs / 1000}s...`);
+                await new Promise(res => setTimeout(res, delayMs));
+                delayMs *= 2; // Exponential backoff
+            }
+        }
+    }
 
-      // Save the generated data to the player's profile
-      await updatePlayer(player.id, { 
-        legendaryTitle: result.title, 
-        legendaryBio: result.bio 
-      });
+    if (result) {
+        // Save the generated data to the player's profile
+        await updatePlayer(player.id, { 
+            legendaryTitle: result.title, 
+            legendaryBio: result.bio 
+        });
 
-      setLegendaryCardState({ loading: false, error: null, data: result });
-      toast({
-        title: "Legend Forged!",
-        description: "The player's epic tale has been written."
-      })
-    } catch (error) {
-      const errorMessage = 'The AI is busy right now. Please wait a minute and try again.';
-      setLegendaryCardState({ loading: false, error: errorMessage, data: null });
-      toast({
-        variant: 'destructive',
-        title: 'AI Error',
-        description: errorMessage,
-      });
+        setLegendaryCardState({ loading: false, error: null, data: result });
+        toast({
+            title: "Legend Forged!",
+            description: "The player's epic tale has been written."
+        });
+    } else {
+        const errorMessage = 'The AI is very busy right now. Please try again in a minute.';
+        setLegendaryCardState({ loading: false, error: errorMessage, data: null });
+        toast({
+            variant: 'destructive',
+            title: 'AI Error',
+            description: errorMessage,
+        });
     }
   };
   
@@ -125,7 +143,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   };
   
   const getButtonText = () => {
-    if (legendaryCardState.loading) return 'Generating...';
+    if (legendaryCardState.loading) return loadingMessage;
     if (legendaryCardState.data) return 'Re-generate Card';
     if (legendaryCardState.error) return 'Try Again';
     return 'Generate Legendary Card';
