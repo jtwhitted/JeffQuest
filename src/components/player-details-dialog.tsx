@@ -201,13 +201,18 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
               
               <Card>
                 <CardContent className="p-4 space-y-3 text-sm">
-                   {player.favoriteGame && (
+                   {player.favoriteGame ? (
                      <div className="flex items-center justify-between">
                        <span className="flex items-center text-muted-foreground"><Heart className="mr-2"/> Favorite Game</span>
                        <span className="font-medium">{player.favoriteGame.name}</span>
                      </div>
+                   ) : (
+                    <div className="flex items-center justify-between">
+                       <span className="flex items-center text-muted-foreground"><Heart className="mr-2"/> Favorite Game</span>
+                       <span className="font-medium text-muted-foreground italic">No games played yet</span>
+                    </div>
                    )}
-                    {player.nemesis && (
+                    {player.nemesis ? (
                         <>
                         <Separator />
                         <div className="flex items-center justify-between">
@@ -221,8 +226,16 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                             </div>
                         </div>
                         </>
+                    ) : (
+                      <>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center text-muted-foreground"><ShieldOff className="mr-2"/> Nemesis</span>
+                        <span className="font-medium text-muted-foreground italic">No rivals yet</span>
+                      </div>
+                      </>
                     )}
-                     {player.mostPlayedWith && (
+                     {player.mostPlayedWith ? (
                         <>
                         <Separator />
                         <div className="flex items-center justify-between">
@@ -236,8 +249,16 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                             </div>
                         </div>
                         </>
+                    ) : (
+                       <>
+                        <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><Users className="mr-2"/> Main Rival</span>
+                            <span className="font-medium text-muted-foreground italic">N/A</span>
+                        </div>
+                        </>
                     )}
-                     {player.bestGame && (
+                     {player.bestGame ? (
                         <>
                         <Separator />
                         <div className="flex items-center justify-between">
@@ -245,13 +266,29 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                             <span className="font-medium">{player.bestGame.name}</span>
                         </div>
                         </>
+                    ) : (
+                        <>
+                        <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><Shield className="mr-2"/> Best Game</span>
+                            <span className="font-medium text-muted-foreground italic">N/A</span>
+                        </div>
+                        </>
                     )}
-                     {player.worstGame && player.worstGame.id !== player.bestGame?.id && (
+                     {player.worstGame && player.worstGame.id !== player.bestGame?.id ? (
                        <>
                        <Separator />
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Dices className="mr-2"/> Worst Game</span>
                             <span className="font-medium">{player.worstGame.name}</span>
+                        </div>
+                        </>
+                    ) : (
+                       <>
+                       <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><Dices className="mr-2"/> Worst Game</span>
+                            <span className="font-medium text-muted-foreground italic">N/A</span>
                         </div>
                         </>
                     )}
