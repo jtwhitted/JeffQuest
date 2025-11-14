@@ -77,5 +77,23 @@
       }
     ],
     "notes": "Jeffrey played a solo game of The King's Dilemma on November 14th, and he won with a score of 42 points. He came up with the ultimate dilemma, which was who was going to be king, and the answer was Elvis."
+  },
+  {
+    "id": "s1763157182526",
+    "gameId": "g1762884180986",
+    "date": "2025-11-12T05:00:00.000Z",
+    "playerIds": [
+      "p1762879138303"
+    ],
+    "isCooperative": false,
+    "winnerId": "p1762879138303",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 49
+      }
+    ],
+    "notes": "Jeffrey played a game of The King's Dilemma on November 12th. Uh, the game lasted about an hour and 17 minutes. He was able to emerge victorious with a score of 49 points this time. Um, and this was the second solo game in which he won. So this game might be too easy for him because he's a master at all things.",
+    "duration": 77
   }
 ]
