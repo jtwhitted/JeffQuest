@@ -17,7 +17,7 @@ const GenerateLegendaryCardInputSchema = z.object({
   avatarDataUri: z
     .string()
     .describe(
-      "A photo of the player, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A photo of the player, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
     ),
   gamesPlayed: z.number().describe('The total number of games the player has played.'),
   wins: z.number().describe('The total number of games the player has won.'),
@@ -68,13 +68,13 @@ const generateLegendaryCardFlow = ai.defineFlow(
         favoriteGame: input.favoriteGame,
       }),
       ai.generate({
-        model: 'googleai/gemini-2.0-flash',
+        model: 'googleai/gemini-2.5-flash-image-preview',
         prompt: [
           { media: { url: input.avatarDataUri } },
           { text: 'Transform this photo into a heroic fantasy character portrait in the style of a "Magic: The Gathering" card illustration. The output should be just the image.' },
         ],
         config: {
-          responseModalities: ['TEXT', 'IMAGE'],
+          responseModalities: ['IMAGE', 'TEXT'],
         },
       }),
     ]);
@@ -89,3 +89,4 @@ const generateLegendaryCardFlow = ai.defineFlow(
     return { title, stylizedAvatarDataUri };
   }
 );
+
