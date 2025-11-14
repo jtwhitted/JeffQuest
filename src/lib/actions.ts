@@ -94,13 +94,14 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     let newGame: Game;
 
     if (validatedFields.data.bggId) {
+        // This is now the definitive path for adding a BGG game.
         const bggDetails = await getBggDetails(validatedFields.data.bggId);
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
         newGame = {
             id: `g${Date.now()}`,
-            name: validatedFields.data.name,
+            name: validatedFields.data.name, // Use the name from the selected result
             ...bggDetails[0]
         };
     } else {
@@ -124,10 +125,10 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         };
     }
     
-    await addGameToDB(newGame);
+    const addedGame = await addGameToDB(newGame);
     revalidatePath('/games');
     revalidatePath('/sessions/new');
-    return newGame;
+    return addedGame;
 }
 
 
@@ -184,22 +185,25 @@ export async function deleteSessionAction(sessionId: string) {
     revalidatePath('/players');
 }
 
-
 export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
-  if (!query) return [];
+  if (!query) {
+    return [];
+  }
   try {
+    // Always perform a general search to get a list of candidates
     const searchResults = await searchBgg(query);
-    if (searchResults.length === 0) {
+    if (!searchResults || searchResults.length === 0) {
       return [];
     }
-
-    const ids = searchResults.map(r => r.id).join(',');
+    // Fetch details for all candidates to get popularity data for sorting
+    const ids = searchResults.map(r => r.id);
     const details = await getBggDetails(ids);
     
     return details;
 
   } catch (error) {
     console.error('BGG search action failed:', error);
+    // Return empty array on failure so the UI can handle it gracefully
     return [];
   }
 }
@@ -207,7 +211,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
 export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {id: string}>[]> {
   if (!ids) return [];
   try {
-    const details = await getBggDetails(ids);
+    const details = await getBggDetails(ids.split(','));
     return details;
   } catch (error) {
     console.error('BGG details action failed:', error);

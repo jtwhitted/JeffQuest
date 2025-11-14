@@ -27,7 +27,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
-import { useGames } from '@/context/game-context';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
 import { searchBggAction } from '@/lib/actions';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
@@ -52,8 +51,6 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const [manualAddDefaultName, setManualAddDefaultName] = useState('');
   const [searchResults, setSearchResults] = useState<Partial<Game>[]>([]);
   const [isSearchResultsOpen, setSearchResultsOpen] = useState(false);
-
-  const { addGame } = useGames();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

@@ -55,6 +55,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const addGame = useCallback(async (gameData: GameData): Promise<Game> => {
     setIsLoading(true);
     try {
+      // The server action now returns the newly created game.
       const newGame = await addGameAction(gameData);
       setGames(prevGames => [...prevGames, newGame]);
       return newGame;

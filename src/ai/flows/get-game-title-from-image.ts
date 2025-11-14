@@ -22,9 +22,6 @@ export type GetGameTitleInput = z.infer<typeof GetGameTitleInputSchema>;
 
 const GetGameTitleOutputSchema = z.object({
   title: z.string().describe('The title of the board game identified in the image.'),
-  photoDataUri: z
-    .string()
-    .describe('The original photo data URI that was provided as input.'),
 });
 export type GetGameTitleOutput = z.infer<typeof GetGameTitleOutputSchema>;
 
@@ -35,7 +32,7 @@ export async function getGameTitleFromImage(input: GetGameTitleInput): Promise<G
 const getGameTitlePrompt = ai.definePrompt({
     name: 'getGameTitlePrompt',
     input: { schema: GetGameTitleInputSchema },
-    output: { schema: z.object({ title: z.string() }) },
+    output: { schema: GetGameTitleOutputSchema },
     model: 'googleai/gemini-2.0-flash',
     prompt: `You are an expert at identifying board games from images of their box art.
 Your task is to analyze the provided image and extract the main title of the game.
@@ -60,7 +57,6 @@ const getGameTitleFlow = ai.defineFlow(
     }
     return {
         title: output.title,
-        photoDataUri: input.photoDataUri,
     };
   }
 );

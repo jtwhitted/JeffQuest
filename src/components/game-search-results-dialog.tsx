@@ -15,9 +15,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { useGames } from '@/context/game-context';
 import { useToast } from '@/hooks/use-toast';
 import type { Game } from '@/lib/types';
+import { addGame } from '@/lib/actions';
 
 interface GameSearchResultsDialogProps {
   open: boolean;
@@ -29,7 +29,6 @@ interface GameSearchResultsDialogProps {
 export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSelected }: GameSearchResultsDialogProps) {
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addGame } = useGames();
   const { toast } = useToast();
 
   const handleSubmit = async () => {
@@ -45,9 +44,11 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
     setIsSubmitting(true);
     try {
       const selectedGame = results.find(r => r.id === selectedValue);
-      if (!selectedGame || !selectedGame.id) throw new Error('Selected game not found.');
+      if (!selectedGame || !selectedGame.id || !selectedGame.name) throw new Error('Selected game not found.');
       
-      await addGame({ name: selectedGame.name!, bggId: selectedGame.id });
+      // Directly call the server action to add the game by its BGG ID
+      await addGame({ name: selectedGame.name, bggId: selectedGame.id });
+
       toast({
         title: 'Game Added!',
         description: `${selectedGame.name} has been added to your collection.`,

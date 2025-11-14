@@ -15,11 +15,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
-import { searchBggAction, getBggDetailsAction } from '@/lib/actions';
+import { searchBggAction, addGame } from '@/lib/actions';
 import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
 import { useGames } from '@/context/game-context';
-
-type SearchResult = { id: string; name: string };
 
 interface GameScanDialogProps {
   open: boolean;
@@ -33,7 +31,7 @@ export function GameScanDialog({
   onGameAdded,
 }: GameScanDialogProps) {
   const { toast } = useToast();
-  const { addGame } = useGames();
+  const { addGame: addGameToContext } = useGames();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<
@@ -82,6 +80,7 @@ export function GameScanDialog({
     try {
       setLoadingMessage(`Adding ${name} to your collection...`);
       setIsLoading(true);
+      // We use the server action directly here to add the game
       await addGame({ bggId, name });
       toast({
         title: 'Game Added!',
@@ -94,7 +93,7 @@ export function GameScanDialog({
     } finally {
       setIsLoading(false);
     }
-  }, [addGame, onGameAdded, toast]);
+  }, [onGameAdded, toast]);
 
 
   const handleCaptureAndSearch = useCallback(async () => {
@@ -111,23 +110,19 @@ export function GameScanDialog({
     setIsLoading(true);
     try {
       setLoadingMessage('Identifying game from image...');
-      const { title, photoDataUri } = await getGameTitleFromImage({ photoDataUri: originalPhotoDataUri });
+      const { title } = await getGameTitleFromImage({ photoDataUri: originalPhotoDataUri });
 
       setLoadingMessage(`Searching BGG for "${title}"...`);
       const searchResults = await searchBggAction(title);
       
-      if (searchResults.length === 0) {
+      if (!searchResults || searchResults.length === 0) {
         toast({ variant: 'destructive', title: 'Game Not Found', description: `No BGG matches found for "${title}".` });
         setIsLoading(false);
         onOpenChange(false);
         return;
       }
 
-      setLoadingMessage('Multiple results found. Fetching box art...');
-      const candidateIds = searchResults.slice(0, 5).map(r => r.id);
-      const candidatesDetails = await getBggDetailsAction(candidateIds.join(','));
-
-      const validCandidates = candidatesDetails.filter(c => c.imageUrl);
+      const validCandidates = searchResults.filter(c => c.imageUrl && c.id && c.name);
 
       if (validCandidates.length === 0) {
           toast({ variant: 'destructive', title: 'Could Not Verify', description: `Found matches for "${title}" but could not fetch box art for visual comparison.` });
@@ -137,27 +132,27 @@ export function GameScanDialog({
       }
       
       if (validCandidates.length === 1) {
-          // If only one candidate has an image, just add it.
-          await handleAddGameById(validCandidates[0].id!, validCandidates[0].name);
+          await handleAddGameById(validCandidates[0].id!, validCandidates[0].name!);
           return;
       }
       
       setLoadingMessage('Visually analyzing box art to find the best match...');
       const { bestMatchBggId } = await selectGameFromImages({
-        originalPhotoDataUri: photoDataUri,
-        candidates: validCandidates.map(c => ({
+        originalPhotoDataUri: originalPhotoDataUri,
+        candidates: validCandidates.slice(0, 5).map(c => ({ // Limit to 5 candidates
           bggId: c.id!,
-          name: c.name,
+          name: c.name!,
           imageUrl: c.imageUrl!
         }))
       });
 
-      const bestMatch = candidatesDetails.find(c => c.id === bestMatchBggId);
+      const bestMatch = validCandidates.find(c => c.id === bestMatchBggId);
       if (bestMatch) {
-        await handleAddGameById(bestMatch.id!, bestMatch.name);
+        await handleAddGameById(bestMatch.id!, bestMatch.name!);
       } else {
-        // Fallback if AI fails to return a valid ID from the list, add the top search result
-        await handleAddGameById(searchResults[0].id, searchResults[0].name);
+        // Fallback if AI fails, add the top search result by popularity
+        const topResult = validCandidates.sort((a,b) => (b.ratingCount || 0) - (a.ratingCount || 0))[0];
+        await handleAddGameById(topResult.id!, topResult.name!);
       }
       
     } catch (error: any) {
@@ -169,7 +164,7 @@ export function GameScanDialog({
       });
     } finally {
       setIsLoading(false);
-      onOpenChange(false); // Close dialog on completion
+      onOpenChange(false);
     }
   }, [onOpenChange, toast, handleAddGameById]);
   

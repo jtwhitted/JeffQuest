@@ -51,14 +51,17 @@ export async function getInitialData() {
 
 // --- Data Mutation Functions ---
 
-export async function addGameToDB(game: Game): Promise<void> {
+export async function addGameToDB(game: Game): Promise<Game> {
     const games = await readData<Game>(GAMES_PATH);
     const existingGame = games.find(g => g.name.toLowerCase() === game.name.toLowerCase());
     if (existingGame) {
+        // Instead of throwing an error, we can decide to update or just return the existing one.
+        // For simplicity, we'll prevent duplicates.
         throw new Error(`A game named "${game.name}" already exists in your collection.`);
     }
     games.push(game);
     await writeData(GAMES_PATH, games);
+    return game;
 }
 
 export async function addSessionToDB(session: Session): Promise<Session> {
@@ -68,10 +71,11 @@ export async function addSessionToDB(session: Session): Promise<Session> {
     return session;
 }
 
-export async function addPlayerToDB(player: Player): Promise<void> {
+export async function addPlayerToDB(player: Player): Promise<Player> {
     const players = await readData<Player>(PLAYERS_PATH);
     players.push(player);
     await writeData(PLAYERS_PATH, players);
+    return player;
 }
 
 export async function deleteGameFromDB(gameId: string): Promise<void> {
