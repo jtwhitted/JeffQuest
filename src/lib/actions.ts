@@ -91,25 +91,22 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         throw new Error('Invalid game data.');
     }
 
+    let newGame: Game;
+
     if (validatedFields.data.bggId) {
         const bggDetails = await getBggDetails(validatedFields.data.bggId);
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
-        const newGame: Game = {
+        newGame = {
             id: `g${Date.now()}`,
             name: validatedFields.data.name,
             ...bggDetails[0]
         };
-        await addGameToDB(newGame);
-        revalidatePath('/games');
-        revalidatePath('/sessions/new');
-        return newGame;
-
     } else {
         // Manual entry
         const manualData = validatedFields.data;
-        const newGame: Game = {
+        newGame = {
             id: `g${Date.now()}`,
             name: manualData.name,
             category: manualData.category || [],
@@ -125,11 +122,12 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
             designers: manualData.designers || [],
             publishers: manualData.publishers || [],
         };
-        await addGameToDB(newGame);
-        revalidatePath('/games');
-        revalidatePath('/sessions/new');
-        return newGame;
     }
+    
+    await addGameToDB(newGame);
+    revalidatePath('/games');
+    revalidatePath('/sessions/new');
+    return newGame;
 }
 
 
@@ -198,11 +196,10 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
     const ids = searchResults.map(r => r.id).join(',');
     const details = await getBggDetails(ids);
     
-    // This is the critical fix: always return the details if found.
     if (details.length > 0) {
         return details;
     }
-
+    
     return [];
 
   } catch (error) {
