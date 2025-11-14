@@ -68,8 +68,11 @@ export default function PlayersPage() {
         const game = games.find(g => g.id === gameId);
         if (!game) return null;
 
-        const gameSessions = playerSessions
-          .filter(s => s.gameId === gameId)
+        const gameSessionsForThisGame = playerSessions.filter(s => s.gameId === gameId);
+        const winsInGame = gameSessionsForThisGame.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
+        const winRateInGame = gameSessionsForThisGame.length > 0 ? Math.round((winsInGame / gameSessionsForThisGame.length) * 100) : 0;
+        
+        const sessions = gameSessionsForThisGame
           .map(session => ({
             ...session,
             players: session.playerIds.map(pid => players.find(p => p.id === pid)).filter(Boolean) as Player[],
@@ -79,11 +82,44 @@ export default function PlayersPage() {
 
         return {
           game,
-          sessions: gameSessions,
+          sessions,
+          winRate: winRateInGame,
         };
       })
       .filter(Boolean) as PlayerWithFullStats['gameHistory'];
 
+    const competitiveGames = playerSessions.filter(s => !s.isCooperative && s.playerIds.length > 1);
+
+    const nemesisCounts = competitiveGames
+        .filter(s => s.winnerId !== player.id)
+        .reduce((acc, session) => {
+            if (session.winnerId) {
+                acc[session.winnerId] = (acc[session.winnerId] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+    const topNemesisId = Object.entries(nemesisCounts).sort(([,a], [,b]) => b - a)[0]?.[0];
+    const nemesis = players.find(p => p.id === topNemesisId);
+    
+    const partnerCounts = playerSessions.reduce((acc, session) => {
+        session.playerIds.forEach(pId => {
+            if (pId !== player.id) {
+                acc[pId] = (acc[pId] || 0) + 1;
+            }
+        });
+        return acc;
+    }, {} as Record<string, number>);
+
+    const topPartnerId = Object.entries(partnerCounts).sort(([,a], [,b]) => b-a)[0]?.[0];
+    const mostPlayedWith = players.find(p => p.id === topPartnerId);
+    
+    const gameWinRates = gameHistory
+        .filter(gh => competitiveGames.some(cg => cg.gameId === gh.game.id)) // Only include competitive games
+        .sort((a, b) => b.winRate - a.winRate);
+
+    const bestGame = gameWinRates[0]?.game;
+    const worstGame = gameWinRates[gameWinRates.length - 1]?.game;
 
     return {
       ...player,
@@ -92,6 +128,10 @@ export default function PlayersPage() {
       winRate,
       favoriteGame,
       gameHistory,
+      nemesis,
+      mostPlayedWith,
+      bestGame,
+      worstGame,
     };
   }).sort((a,b) => b.winRate - a.winRate || b.wins - a.wins);
 

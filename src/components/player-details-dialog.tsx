@@ -10,21 +10,24 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
-import { Card } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
 import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { useGames } from '@/context/game-context';
 import { LegendaryPlayerCard } from './legendary-player-card';
 import { generateLegendaryCard, GenerateLegendaryCardOutput } from '@/ai/flows/generate-legendary-card';
+import { updatePlayerAction } from '@/lib/actions';
+import { Separator } from './ui/separator';
 
 type GameHistoryItem = {
     game: Game;
     sessions: (Session & { players: Player[]; winner?: Player })[];
+    winRate: number;
 };
 
 export type PlayerWithFullStats = Player & {
@@ -33,6 +36,10 @@ export type PlayerWithFullStats = Player & {
   winRate: number;
   favoriteGame?: Game;
   gameHistory: GameHistoryItem[];
+  nemesis?: Player;
+  mostPlayedWith?: Player;
+  bestGame?: Game;
+  worstGame?: Game;
 };
 
 interface PlayerDetailsDialogProps {
@@ -101,11 +108,8 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     }
 
     if (result) {
-        // Update the local state first to show the card without closing the dialog
         setLegendaryCardState({ loading: false, error: null, data: result });
-        
-        // Then, update the persistent data in the background
-        await updatePlayer(player.id, { 
+        await updatePlayerAction(player.id, { 
             legendaryTitle: result.title, 
             legendaryBio: result.bio 
         });
@@ -195,6 +199,65 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
               </div>
               
+              <Card>
+                <CardContent className="p-4 space-y-3 text-sm">
+                   {player.favoriteGame && (
+                     <div className="flex items-center justify-between">
+                       <span className="flex items-center text-muted-foreground"><Heart className="mr-2"/> Favorite Game</span>
+                       <span className="font-medium">{player.favoriteGame.name}</span>
+                     </div>
+                   )}
+                    {player.nemesis && (
+                        <>
+                        <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><ShieldOff className="mr-2"/> Nemesis</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium">{player.nemesis.name}</span>
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={player.nemesis.avatarUrl} alt={player.nemesis.name} />
+                                    <AvatarFallback>{player.nemesis.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </div>
+                        </div>
+                        </>
+                    )}
+                     {player.mostPlayedWith && (
+                        <>
+                        <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><Users className="mr-2"/> Main Rival</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium">{player.mostPlayedWith.name}</span>
+                                 <Avatar className="h-6 w-6">
+                                    <AvatarImage src={player.mostPlayedWith.avatarUrl} alt={player.mostPlayedWith.name} />
+                                    <AvatarFallback>{player.mostPlayedWith.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </div>
+                        </div>
+                        </>
+                    )}
+                     {player.bestGame && (
+                        <>
+                        <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><Shield className="mr-2"/> Best Game</span>
+                            <span className="font-medium">{player.bestGame.name}</span>
+                        </div>
+                        </>
+                    )}
+                     {player.worstGame && player.worstGame.id !== player.bestGame?.id && (
+                       <>
+                       <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="flex items-center text-muted-foreground"><Dices className="mr-2"/> Worst Game</span>
+                            <span className="font-medium">{player.worstGame.name}</span>
+                        </div>
+                        </>
+                    )}
+                </CardContent>
+              </Card>
+
               <div>
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Legendary Player Card</h3>
