@@ -28,7 +28,7 @@ interface GameContextType {
   sessions: Session[];
   addGame: (gameData: GameData) => Promise<Game>;
   addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
-  updatePlayer: (playerId: string, playerData: { name?: string; avatarUrl?: string }) => Promise<Player>;
+  updatePlayer: (playerId: string, playerData: Partial<Pick<Player, 'name' | 'avatarUrl' | 'legendaryTitle' | 'legendaryBio'>>) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
@@ -80,7 +80,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
-  const updatePlayer = useCallback(async (playerId: string, playerData: { name?: string; avatarUrl?: string }) => {
+  const updatePlayer = useCallback(async (playerId: string, playerData: Partial<Pick<Player, 'name' | 'avatarUrl' | 'legendaryTitle' | 'legendaryBio'>>) => {
     setIsLoading(true);
     try {
         const updatedPlayer = await updatePlayerAction(playerId, playerData);

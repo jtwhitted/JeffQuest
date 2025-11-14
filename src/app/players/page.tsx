@@ -1,9 +1,10 @@
+
 'use client';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Swords, Trophy, PlusCircle, Trash2, Loader2 } from 'lucide-react';
+import { Swords, Trophy, PlusCircle, Trash2, Loader2, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -136,6 +137,12 @@ export default function PlayersPage() {
                   </Avatar>
                   <div>
                     <CardTitle className="text-2xl">{player.name}</CardTitle>
+                    {player.legendaryTitle && (
+                      <p className="flex items-center gap-1 text-sm text-amber-400 italic">
+                        <Sparkles className="h-4 w-4" />
+                        {player.legendaryTitle}
+                      </p>
+                    )}
                     <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
                           <Swords className="mr-1.5 h-4 w-4" />

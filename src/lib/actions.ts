@@ -164,6 +164,8 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
 const updatePlayerSchema = z.object({
   name: z.string().optional(),
   avatarUrl: z.string().optional(),
+  legendaryTitle: z.string().optional(),
+  legendaryBio: z.string().optional(),
 });
 
 export async function updatePlayerAction(playerId: string, values: z.infer<typeof updatePlayerSchema>) {

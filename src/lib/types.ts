@@ -3,6 +3,8 @@ export interface Player {
   id: string;
   name: string;
   avatarUrl: string;
+  legendaryTitle?: string;
+  legendaryBio?: string;
 }
 
 export interface Game {
