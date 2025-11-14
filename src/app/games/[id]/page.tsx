@@ -5,13 +5,14 @@ import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2 } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function GameDetailPage() {
   const { id } = useParams();
@@ -32,6 +33,24 @@ export default function GameDetailPage() {
   }
 
   const gameSessions = sessions.filter(s => s.gameId === game.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Calculate high score
+  let highScore = { score: 0, playerId: '' };
+  gameSessions.forEach(session => {
+    session.scores?.forEach(s => {
+      if (s.score && s.score > highScore.score) {
+        highScore = { score: s.score, playerId: s.playerId };
+      }
+    });
+  });
+  const highScorePlayer = players.find(p => p.id === highScore.playerId);
+
+  // Calculate average duration
+  const sessionsWithDuration = gameSessions.filter(s => typeof s.duration === 'number');
+  const averageDuration = sessionsWithDuration.length > 0
+    ? Math.round(sessionsWithDuration.reduce((acc, s) => acc + s.duration!, 0) / sessionsWithDuration.length)
+    : null;
+
 
   const formatRating = (rating?: number) => rating ? rating.toFixed(1) : 'N/A';
   const formatComplexity = (complexity?: number) => complexity ? complexity.toFixed(2) : 'N/A';
@@ -133,6 +152,30 @@ export default function GameDetailPage() {
                         <span className="flex items-center text-muted-foreground"><BarChart3 className="mr-2"/> Difficulty</span>
                         <span className="font-medium">{game.difficulty}</span>
                     </div>
+                    {averageDuration && (
+                        <>
+                            <Separator />
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center text-muted-foreground"><LineChart className="mr-2"/> Avg. Duration</span>
+                                <span className="font-medium">{averageDuration} min</span>
+                            </div>
+                        </>
+                    )}
+                    {highScorePlayer && (
+                        <>
+                            <Separator />
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium">{highScore.score}</span>
+                                    <Avatar className="h-6 w-6">
+                                        <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
+                                        <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
             <Card>
