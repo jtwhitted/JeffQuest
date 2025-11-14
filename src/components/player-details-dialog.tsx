@@ -80,7 +80,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
 
     for (let i = 0; i < retries; i++) {
         try {
-            setLoadingMessage(`Conjuring epicness... (Attempt ${i + 1})`);
+            setLoadingMessage('Conjuring epicness...');
             result = await generateLegendaryCard({
                 name: player.name,
                 gamesPlayed: player.gamesPlayed,
