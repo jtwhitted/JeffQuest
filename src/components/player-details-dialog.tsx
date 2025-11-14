@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -75,36 +74,56 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, title: null, stylizedAvatarDataUri: null });
   const [isCaptureOpen, setCaptureOpen] = useState(false);
   const { updatePlayer } = useGames();
+  const [loadingMessage, setLoadingMessage] = useState('Conjuring epicness...');
 
   const handleGenerateCard = async () => {
     if (legendaryCardState.stylizedAvatarDataUri && !legendaryCardState.error) return; 
 
     setLegendaryCardState({ loading: true, error: null, title: null, stylizedAvatarDataUri: null });
-    try {
-        const avatarDataUri = await toDataUri(player.avatarUrl);
+    setLoadingMessage('Conjuring epicness...');
+    
+    const retries = 3;
+    let delayMs = 1000;
+    let lastError: any = null;
 
-        const result = await generateLegendaryCard({
-            name: player.name,
-            avatarDataUri,
-            gamesPlayed: player.gamesPlayed,
-            wins: player.wins,
-            winRate: player.winRate,
-            favoriteGame: player.favoriteGame?.name,
-        });
-      setLegendaryCardState({ loading: false, error: null, ...result });
-    } catch (error: any) {
-      console.error('Error generating legendary card:', error);
-      let errorMessage = 'Could not generate card. Please try again.';
-      if (typeof error.message === 'string' && error.message.includes('429')) {
-        errorMessage = 'The AI is a bit busy right now. Please wait a minute and try again.';
-      }
-      setLegendaryCardState({ loading: false, error: errorMessage, title: null, stylizedAvatarDataUri: null });
-      toast({
+    for (let i = 0; i < retries; i++) {
+        try {
+            const avatarDataUri = await toDataUri(player.avatarUrl);
+            const result = await generateLegendaryCard({
+                name: player.name,
+                avatarDataUri,
+                gamesPlayed: player.gamesPlayed,
+                wins: player.wins,
+                winRate: player.winRate,
+                favoriteGame: player.favoriteGame?.name,
+            });
+            setLegendaryCardState({ loading: false, error: null, ...result });
+            return; // Success
+        } catch (error) {
+            lastError = error;
+            const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+            if (errorMessage.includes('429') && i < retries - 1) {
+                setLoadingMessage(`The AI is busy, retrying in ${delayMs / 1000}s...`);
+                await new Promise(res => setTimeout(res, delayMs));
+                delayMs *= 2; // Exponential backoff
+            } else {
+                break; // Non-retriable error or last retry failed
+            }
+        }
+    }
+    
+    // If all retries failed
+    console.error('Error generating legendary card:', lastError);
+    const finalErrorMessage = lastError instanceof Error && lastError.message.includes('429')
+        ? 'The AI is too busy right now. Please wait a minute and try again.'
+        : 'Could not generate the card. Please try again.';
+
+    setLegendaryCardState({ loading: false, error: finalErrorMessage, title: null, stylizedAvatarDataUri: null });
+    toast({
         variant: 'destructive',
         title: 'AI Error',
-        description: errorMessage,
-      });
-    }
+        description: finalErrorMessage,
+    });
   };
 
   const handleAvatarCaptured = async (imageDataUrl: string) => {
@@ -133,7 +152,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   }
   
   const getButtonText = () => {
-    if(legendaryCardState.loading) return 'Summoning Legend...';
+    if(legendaryCardState.loading) return 'Generating...';
     if(legendaryCardState.stylizedAvatarDataUri) return 'Card Generated!';
     if(legendaryCardState.error) return 'Try Again';
     return 'Generate Legendary Card';
@@ -193,7 +212,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         {legendaryCardState.loading && (
                             <div className="text-center">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                                <p className="mt-2 text-sm text-muted-foreground">Conjuring epicness...</p>
+                                <p className="mt-2 text-sm text-muted-foreground">{loadingMessage}</p>
                             </div>
                         )}
                         {!legendaryCardState.loading && !legendaryCardState.stylizedAvatarDataUri && !legendaryCardState.error && (
