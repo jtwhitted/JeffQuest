@@ -77,7 +77,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const { updatePlayer } = useGames();
 
   const handleGenerateCard = async () => {
-    if (legendaryCardState.stylizedAvatarDataUri) return; // Don't re-generate
+    if (legendaryCardState.stylizedAvatarDataUri && !legendaryCardState.error) return; 
 
     setLegendaryCardState({ loading: true, error: null, title: null, stylizedAvatarDataUri: null });
     try {
@@ -94,11 +94,15 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
       setLegendaryCardState({ loading: false, error: null, ...result });
     } catch (error: any) {
       console.error('Error generating legendary card:', error);
-      setLegendaryCardState({ loading: false, error: 'Could not generate card. Please try again.', title: null, stylizedAvatarDataUri: null });
+      let errorMessage = 'Could not generate card. Please try again.';
+      if (typeof error.message === 'string' && error.message.includes('429')) {
+        errorMessage = 'The AI is a bit busy right now. Please wait a minute and try again.';
+      }
+      setLegendaryCardState({ loading: false, error: errorMessage, title: null, stylizedAvatarDataUri: null });
       toast({
         variant: 'destructive',
         title: 'AI Error',
-        description: error.message || 'Could not generate a legendary card for this player.',
+        description: errorMessage,
       });
     }
   };
@@ -131,6 +135,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const getButtonText = () => {
     if(legendaryCardState.loading) return 'Summoning Legend...';
     if(legendaryCardState.stylizedAvatarDataUri) return 'Card Generated!';
+    if(legendaryCardState.error) return 'Try Again';
     return 'Generate Legendary Card';
   }
 
@@ -178,7 +183,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 <div>
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold">Legendary Player Card</h3>
-                        <Button size="sm" onClick={handleGenerateCard} disabled={legendaryCardState.loading || !!legendaryCardState.stylizedAvatarDataUri}>
+                        <Button size="sm" onClick={handleGenerateCard} disabled={legendaryCardState.loading}>
                             {legendaryCardState.loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                             {getButtonText()}
                         </Button>
@@ -191,10 +196,10 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                                 <p className="mt-2 text-sm text-muted-foreground">Conjuring epicness...</p>
                             </div>
                         )}
-                        {!legendaryCardState.loading && !legendaryCardState.stylizedAvatarDataUri && (
+                        {!legendaryCardState.loading && !legendaryCardState.stylizedAvatarDataUri && !legendaryCardState.error && (
                             <p className="text-sm text-muted-foreground text-center">Click the button to forge this player into a legend!</p>
                         )}
-                        {legendaryCardState.error && <p className="text-sm text-destructive">{legendaryCardState.error}</p>}
+                        {legendaryCardState.error && <p className="text-sm text-destructive text-center">{legendaryCardState.error}</p>}
                         {legendaryCardState.stylizedAvatarDataUri && legendaryCardState.title && (
                             <LegendaryPlayerCard 
                                 name={player.name}
