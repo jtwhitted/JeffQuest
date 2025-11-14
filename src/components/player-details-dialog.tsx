@@ -346,3 +346,5 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     </>
   );
 }
+
+    
