@@ -83,16 +83,32 @@ const gameFormSchema = z.object({
     imageUrl: z.string().optional(),
 });
 
-export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
-    const validatedFields = gameFormSchema.safeParse(values);
+export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise<Game> {
+    const validatedFields = gameFormSchema.safeParse(gameData);
 
     if (!validatedFields.success) {
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
         throw new Error('Invalid game data.');
     }
-    
-    // If description is provided, it's a manual entry
-    if (validatedFields.data.description !== undefined) {
+
+    if (validatedFields.data.bggId) {
+        // Fetch details from BGG
+        const bggDetails = await getBggDetails(validatedFields.data.bggId);
+        if (bggDetails.length === 0) {
+            throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
+        }
+        const details = bggDetails[0];
+        const newGame: Game = {
+            id: `g${Date.now()}`,
+            name: details.name || validatedFields.data.name,
+            ...details
+        };
+        await addGameToDB(newGame);
+        revalidatePath('/games');
+        revalidatePath('/sessions/new');
+        return newGame;
+    } else {
+        // Manual entry
         const manualData = validatedFields.data;
         const newGame: Game = {
             id: `g${Date.now()}`,
@@ -107,10 +123,6 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
             minPlaytime: manualData.minPlaytime,
             maxPlaytime: manualData.maxPlaytime,
             imageUrl: manualData.imageUrl || '',
-            // BGG specific fields are omitted
-            rating: undefined,
-            ratingCount: undefined,
-            complexity: undefined,
             designers: manualData.designers || [],
             publishers: manualData.publishers || [],
         };
@@ -119,55 +131,8 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
         revalidatePath('/sessions/new');
         return newGame;
     }
-
-    const { name, bggId } = validatedFields.data;
-    if (!bggId) {
-       throw new Error("BGG ID is required for adding a game from BoardGameGeek.");
-    }
-    
-    let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
-    
-    try {
-        const bggDetails = await getBggDetails(bggId!);
-        if (bggDetails.length > 0) {
-            details = bggDetails[0];
-        }
-    } catch (bggError) {
-        console.error("BGG data fetching failed:", bggError);
-        throw new Error("Failed to fetch data from BoardGameGeek.");
-    }
-    
-    if (!details) {
-      throw new Error(`Could not find details for BGG ID ${bggId}`);
-    }
-
-    const newGame: Game = {
-        id: `g${Date.now()}`,
-        name: details?.name || name,
-        category: details?.category || [],
-        mechanics: details?.mechanics || [],
-        minPlayers: details?.minPlayers || 1,
-        maxPlayers: details?.maxPlayers || 1,
-        difficulty: details?.difficulty as Game['difficulty'] || 'Intermediate',
-        yearPublished: details?.yearPublished,
-        description: details?.description || 'No description available.',
-        minPlaytime: details?.minPlaytime,
-        maxPlaytime: details?.maxPlaytime,
-        rating: details?.rating,
-        ratingCount: details?.ratingCount,
-        complexity: details?.complexity,
-        designers: details?.designers || [],
-        publishers: details?.publishers || [],
-        imageUrl: details?.imageUrl || '',
-    };
-    
-    await addGameToDB(newGame);
-    
-    revalidatePath('/games');
-    revalidatePath('/sessions/new');
-    
-    return newGame;
 }
+
 
 const playerFormSchema = z.object({
     name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
@@ -226,11 +191,14 @@ export async function deleteSessionAction(sessionId: string) {
 export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
   if (!query) return [];
   try {
-    const searchResults = await searchBgg(query); // Always do a broad search
+    // Always do a broad search first
+    const searchResults = await searchBgg(query);
     if (searchResults.length === 0) {
-      return [];
+      return []; // No results found at all
     }
 
+    // If there's only one result and it's an exact match (case-insensitive), we might add it.
+    // However, to solve the Arkham Horror problem, we should still fetch details for comparison.
     const ids = searchResults.map(r => r.id).join(',');
     const details = await getBggDetails(ids);
     
