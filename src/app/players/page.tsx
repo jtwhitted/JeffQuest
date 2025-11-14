@@ -4,7 +4,7 @@ import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Swords, Trophy, PlusCircle, Trash2, Loader2, Sparkles } from 'lucide-react';
+import { Swords, Trophy, PlusCircle, Trash2, Loader2, Sparkles, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,8 @@ import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialo
 import { useToast } from '@/hooks/use-toast';
 import { PlayerDetailsDialog, type PlayerWithFullStats } from '@/components/player-details-dialog';
 import { useGames } from '@/context/game-context';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { LegendaryPlayerCard } from '@/components/legendary-player-card';
 
 export default function PlayersPage() {
   const { toast } = useToast();
@@ -20,6 +22,8 @@ export default function PlayersPage() {
   const [isAddPlayerOpen, setAddPlayerOpen] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithFullStats | null>(null);
+  const [expandedPlayerId, setExpandedPlayerId] = useState<string | null>(null);
+
 
   const handlePlayerAdded = (newPlayer: Player) => {
     // The context handles adding the player, so we just need to close the dialog
@@ -125,50 +129,78 @@ export default function PlayersPage() {
         ) : playersWithStats.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {playersWithStats.map(player => (
-              <Card 
+              <Collapsible 
                 key={player.id} 
-                className="group/card relative cursor-pointer transition-shadow hover:shadow-lg"
-                onClick={() => setSelectedPlayer(player)}
+                open={expandedPlayerId === player.id}
+                onOpenChange={(isOpen) => setExpandedPlayerId(isOpen ? player.id : null)}
               >
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={player.avatarUrl} alt={player.name} />
-                    <AvatarFallback className="text-xl">{player.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-2xl">{player.name}</CardTitle>
-                    {player.legendaryTitle && (
-                      <p className="flex items-center gap-1 text-sm text-amber-400 italic">
-                        <Sparkles className="h-4 w-4" />
-                        {player.legendaryTitle}
-                      </p>
-                    )}
-                    <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center">
-                          <Swords className="mr-1.5 h-4 w-4" />
-                          {player.gamesPlayed} played
-                      </div>
-                      <div className="flex items-center">
-                          <Trophy className="mr-1.5 h-4 w-4" />
-                          {player.wins} wins
+                <Card 
+                  className="group/card relative transition-shadow hover:shadow-lg"
+                >
+                  <CardHeader 
+                    className="flex flex-row items-center gap-4 cursor-pointer"
+                    onClick={() => setSelectedPlayer(player)}
+                  >
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={player.avatarUrl} alt={player.name} />
+                      <AvatarFallback className="text-xl">{player.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <CardTitle className="text-2xl">{player.name}</CardTitle>
+                      {player.legendaryTitle && (
+                        <p className="flex items-center gap-1 text-sm text-amber-400 italic">
+                          <Sparkles className="h-4 w-4" />
+                          {player.legendaryTitle}
+                        </p>
+                      )}
+                      <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center">
+                            <Swords className="mr-1.5 h-4 w-4" />
+                            {player.gamesPlayed} played
+                        </div>
+                        <div className="flex items-center">
+                            <Trophy className="mr-1.5 h-4 w-4" />
+                            {player.wins} wins
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm">
-                      <div className="flex justify-between mb-1">
-                          <span className="font-medium">Win Rate</span>
-                          <span className="text-muted-foreground">{player.winRate}%</span>
-                      </div>
-                      <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
-                  </div>
-                </CardContent>
-                <Button variant="ghost" size="icon" className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); setPlayerToDelete(player); }}>
-                  <Trash2 className="h-4 w-4" />
-                  <span className="sr-only">Delete player</span>
-                </Button>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm">
+                        <div className="flex justify-between mb-1">
+                            <span className="font-medium">Win Rate</span>
+                            <span className="text-muted-foreground">{player.winRate}%</span>
+                        </div>
+                        <Progress value={player.winRate} aria-label={`${player.winRate}% win rate`} />
+                    </div>
+                    {player.legendaryTitle && player.legendaryBio && (
+                      <CollapsibleTrigger asChild>
+                        <Button variant="outline" size="sm" className="mt-4 w-full">
+                          Show Legendary Card
+                          <ChevronDown className="h-4 w-4 ml-2 transition-transform data-[state=open]:rotate-180" />
+                        </Button>
+                      </CollapsibleTrigger>
+                    )}
+                  </CardContent>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 opacity-0 group-hover/card:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); setPlayerToDelete(player); }}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete player</span>
+                  </Button>
+                </Card>
+                <CollapsibleContent className="mt-2">
+                   {player.legendaryTitle && player.legendaryBio && (
+                      <LegendaryPlayerCard
+                        name={player.name}
+                        title={player.legendaryTitle}
+                        bio={player.legendaryBio}
+                        avatarDataUri={player.avatarUrl}
+                        wins={player.wins}
+                        gamesPlayed={player.gamesPlayed}
+                        winRate={player.winRate}
+                      />
+                    )}
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </div>
         ) : (
