@@ -47,7 +47,7 @@ const parser = new XMLParser({
 
 
 export async function searchBgg(query: string): Promise<{ id: string, name: string }[]> {
-    const params: Record<string, string> = { query, type: 'boardgame,boardgameexpansion' };
+    const params: Record<string, string> = { query, type: 'boardgame' };
 
     const xmlData = await bggFetch('search', params);
     const parsed = parser.parse(xmlData);
@@ -67,7 +67,7 @@ export async function searchBgg(query: string): Promise<{ id: string, name: stri
 }
 
 
-export async function getBggDetails(ids: string[]): Promise<Partial<Game & {id: string}>[]> {
+export async function getBggDetails(ids: string[], includeStats = true): Promise<Partial<Game & {id: string}>[]> {
   if (!ids || ids.length === 0) {
     return [];
   }
@@ -81,7 +81,12 @@ export async function getBggDetails(ids: string[]): Promise<Partial<Game & {id: 
     const idString = chunk.join(',');
 
     try {
-        const xmlData = await bggFetch('thing', { id: idString, stats: '1' });
+        const fetchParams: Record<string, string> = { id: idString };
+        if (includeStats) {
+            fetchParams.stats = '1';
+        }
+        
+        const xmlData = await bggFetch('thing', fetchParams);
         const parsed = parser.parse(xmlData);
 
         if (!parsed.items?.item) {
@@ -100,6 +105,7 @@ export async function getBggDetails(ids: string[]): Promise<Partial<Game & {id: 
         
             const getLinkValue = (type: string) => item.link?.filter((l: any) => l.type === type).map((l: any) => l.value) || [];
             const getStat = (name: string) => {
+                if (!includeStats) return undefined;
                 const value = item.statistics?.ratings?.[name]?.value;
                 return typeof value === 'number' ? parseFloat(value.toPrecision(4)) : undefined;
             };
@@ -144,5 +150,6 @@ export async function getBggDetails(ids: string[]): Promise<Partial<Game & {id: 
 
   return allDetails;
 }
+
 
 

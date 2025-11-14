@@ -94,8 +94,8 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     let newGame: Game;
 
     if (validatedFields.data.bggId) {
-        // This is now the definitive path for adding a BGG game.
-        const bggDetails = await getBggDetails([validatedFields.data.bggId]);
+        // Fetch full details including stats for the single selected game.
+        const bggDetails = await getBggDetails([validatedFields.data.bggId], true);
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
@@ -190,14 +190,13 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
     return [];
   }
   try {
-    // Always perform a general search to get a list of candidates
     const searchResults = await searchBgg(query);
     if (!searchResults || searchResults.length === 0) {
       return [];
     }
-    // Fetch details for all candidates to get popularity data for sorting
     const ids = searchResults.map(r => r.id);
-    const details = await getBggDetails(ids);
+    // Fetch details WITHOUT stats for better performance during search/selection
+    const details = await getBggDetails(ids, false);
     
     return details;
 
@@ -211,7 +210,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
 export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {id: string}>[]> {
   if (!ids) return [];
   try {
-    const details = await getBggDetails(ids.split(','));
+    const details = await getBggDetails(ids.split(','), true);
     return details;
   } catch (error) {
     console.error('BGG details action failed:', error);
