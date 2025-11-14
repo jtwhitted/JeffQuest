@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -89,6 +90,8 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     for (let i = 0; i < retries; i++) {
         try {
             const avatarDataUri = await toDataUri(player.avatarUrl);
+            
+            // The AI flow now only generates the title, so we adjust accordingly
             const result = await generateLegendaryCard({
                 name: player.name,
                 avatarDataUri,
@@ -102,8 +105,10 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         } catch (error) {
             lastError = error;
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-            if (errorMessage.includes('429') && i < retries - 1) {
-                setLoadingMessage(`The AI is busy, retrying in ${delayMs / 1000}s...`);
+            // Check for rate limit or service unavailable errors specifically
+            if ((errorMessage.includes('429') || errorMessage.includes('503')) && i < retries - 1) {
+                const waitTime = delayMs / 1000;
+                setLoadingMessage(`The AI is busy, retrying in ${waitTime}s...`);
                 await new Promise(res => setTimeout(res, delayMs));
                 delayMs *= 2; // Exponential backoff
             } else {
@@ -114,7 +119,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     
     // If all retries failed
     console.error('Error generating legendary card:', lastError);
-    const finalErrorMessage = lastError instanceof Error && lastError.message.includes('429')
+    const finalErrorMessage = lastError instanceof Error && (lastError.message.includes('429') || lastError.message.includes('503'))
         ? 'The AI is too busy right now. Please wait a minute and try again.'
         : 'Could not generate the card. Please try again.';
 
