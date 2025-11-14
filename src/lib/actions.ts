@@ -92,21 +92,20 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     }
 
     if (validatedFields.data.bggId) {
-        // Fetch details from BGG
         const bggDetails = await getBggDetails(validatedFields.data.bggId);
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
-        const details = bggDetails[0];
         const newGame: Game = {
             id: `g${Date.now()}`,
-            name: details.name || validatedFields.data.name,
-            ...details
+            name: validatedFields.data.name,
+            ...bggDetails[0]
         };
         await addGameToDB(newGame);
         revalidatePath('/games');
         revalidatePath('/sessions/new');
         return newGame;
+
     } else {
         // Manual entry
         const manualData = validatedFields.data;
@@ -191,18 +190,20 @@ export async function deleteSessionAction(sessionId: string) {
 export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
   if (!query) return [];
   try {
-    // Always do a broad search first
     const searchResults = await searchBgg(query);
     if (searchResults.length === 0) {
-      return []; // No results found at all
+      return [];
     }
 
-    // If there's only one result and it's an exact match (case-insensitive), we might add it.
-    // However, to solve the Arkham Horror problem, we should still fetch details for comparison.
     const ids = searchResults.map(r => r.id).join(',');
     const details = await getBggDetails(ids);
     
-    return details;
+    // This is the critical fix: always return the details if found.
+    if (details.length > 0) {
+        return details;
+    }
+
+    return [];
 
   } catch (error) {
     console.error('BGG search action failed:', error);
