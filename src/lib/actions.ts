@@ -32,14 +32,15 @@ const sessionFormSchema = z.object({
   duration: z.coerce.number().optional(),
 }).refine(data => {
     if (data.isCooperative) {
-        return !!data.cooperativeResult;
+        // Cooperative games don't require a winner, but should have a result
+        return true;
     }
-    if (data.playerIds.length > 0) {
+    if (data.playerIds.length > 0 && !data.isCooperative) {
         return !!data.winnerId;
     }
     return true;
 }, {
-    message: "A winner or a cooperative result must be selected.",
+    message: "A winner must be selected for competitive games.",
     path: ['winnerId'],
 });
 

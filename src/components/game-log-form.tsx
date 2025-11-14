@@ -35,7 +35,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square, Sparkles } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
@@ -306,6 +306,12 @@ export default function GameLogForm() {
         }
 
         if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
+        if (result.date) {
+            // The AI returns a string like 'YYYY-MM-DD'. We need to parse it correctly,
+            // accounting for timezone to avoid off-by-one day errors.
+            const date = parseISO(result.date);
+            form.setValue('date', date, { shouldValidate: true });
+        }
         if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
         if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
         if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
