@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff, Link as LinkIcon } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -23,6 +23,8 @@ import { LegendaryPlayerCard } from './legendary-player-card';
 import { generateLegendaryCard, GenerateLegendaryCardOutput } from '@/ai/flows/generate-legendary-card';
 import { updatePlayerAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
+import Link from 'next/link';
+import Image from 'next/image';
 
 type GameHistoryItem = {
     game: Game;
@@ -204,7 +206,10 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                    {player.favoriteGame ? (
                      <div className="flex items-center justify-between">
                        <span className="flex items-center text-muted-foreground"><Heart className="mr-2"/> Favorite Game</span>
-                       <span className="font-medium">{player.favoriteGame.name}</span>
+                       <Link href={`/games/${player.favoriteGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
+                          <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} width={24} height={24} className="rounded-sm object-cover" />
+                          <span>{player.favoriteGame.name}</span>
+                       </Link>
                      </div>
                    ) : (
                     <div className="flex items-center justify-between">
@@ -263,7 +268,10 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <Separator />
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Shield className="mr-2"/> Best Game</span>
-                            <span className="font-medium">{player.bestGame.name}</span>
+                            <Link href={`/games/${player.bestGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
+                                <Image src={player.bestGame.imageUrl} alt={player.bestGame.name} width={24} height={24} className="rounded-sm object-cover" />
+                                <span>{player.bestGame.name}</span>
+                            </Link>
                         </div>
                         </>
                     ) : (
@@ -280,7 +288,10 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                        <Separator />
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Dices className="mr-2"/> Worst Game</span>
-                            <span className="font-medium">{player.worstGame.name}</span>
+                            <Link href={`/games/${player.worstGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
+                                <Image src={player.worstGame.imageUrl} alt={player.worstGame.name} width={24} height={24} className="rounded-sm object-cover" />
+                                <span>{player.worstGame.name}</span>
+                            </Link>
                         </div>
                         </>
                     ) : (
