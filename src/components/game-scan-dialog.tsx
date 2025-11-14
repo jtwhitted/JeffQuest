@@ -110,6 +110,12 @@ export function GameScanDialog({
         onGameAdded(searchResults, title);
         return;
       }
+      
+      if (candidatesWithImages.length === 1) {
+        // Only one match, just add it directly.
+        onGameAdded(candidatesWithImages, title);
+        return;
+      }
 
       setLoadingMessage('Visually matching box art...');
       const { bestMatchBggId } = await selectGameFromImages({
