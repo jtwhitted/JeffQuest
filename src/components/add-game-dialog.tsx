@@ -29,7 +29,7 @@ import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
-import { addGameAction } from '@/lib/actions';
+import { searchBggAction } from '@/lib/actions';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
 import type { Game } from '@/lib/types';
 
@@ -76,15 +76,16 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      const results = await addGameAction({ name: values.name });
+      const results = await searchBggAction(values.name);
       
-      if (results.length === 1) {
+      if (results.length === 1 && results[0].name.toLowerCase() === values.name.toLowerCase()) {
+        await addGame({ bggId: results[0].id!, name: results[0].name! });
         toast({
             title: 'Game Added!',
             description: `${results[0].name} has been added to your collection.`,
         });
         handleGameAdded();
-      } else if (results.length > 1) {
+      } else if (results.length > 0) {
           const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
           setSearchResults(sortedResults);
           setSearchResultsOpen(true);
