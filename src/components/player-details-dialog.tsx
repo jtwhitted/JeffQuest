@@ -46,6 +46,7 @@ type LegendaryCardState = {
   loading: boolean;
   error: string | null;
   title: string | null;
+  bio: string | null;
   stylizedAvatarDataUri: string | null;
 }
 
@@ -72,7 +73,7 @@ async function toDataUri(url: string): Promise<string> {
 
 export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetailsDialogProps) {
   const { toast } = useToast();
-  const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, title: null, stylizedAvatarDataUri: null });
+  const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, title: null, bio: null, stylizedAvatarDataUri: null });
   const [isCaptureOpen, setCaptureOpen] = useState(false);
   const { updatePlayer } = useGames();
   const [loadingMessage, setLoadingMessage] = useState('Conjuring epicness...');
@@ -80,7 +81,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const handleGenerateCard = async () => {
     if (legendaryCardState.stylizedAvatarDataUri && !legendaryCardState.error) return; 
 
-    setLegendaryCardState({ loading: true, error: null, title: null, stylizedAvatarDataUri: null });
+    setLegendaryCardState({ loading: true, error: null, title: null, bio: null, stylizedAvatarDataUri: null });
     setLoadingMessage('Conjuring epicness...');
     
     const retries = 3;
@@ -91,7 +92,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         try {
             const avatarDataUri = await toDataUri(player.avatarUrl);
             
-            // The AI flow now only generates the title, so we adjust accordingly
             const result = await generateLegendaryCard({
                 name: player.name,
                 avatarDataUri,
@@ -105,8 +105,8 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         } catch (error) {
             lastError = error;
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-            // Check for rate limit or service unavailable errors specifically
-            if ((errorMessage.includes('429') || errorMessage.includes('503')) && i < retries - 1) {
+            
+            if ((errorMessage.includes('429') || errorMessage.includes('503') || errorMessage.includes('overloaded')) && i < retries - 1) {
                 const waitTime = delayMs / 1000;
                 setLoadingMessage(`The AI is busy, retrying in ${waitTime}s...`);
                 await new Promise(res => setTimeout(res, delayMs));
@@ -123,7 +123,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         ? 'The AI is too busy right now. Please wait a minute and try again.'
         : 'Could not generate the card. Please try again.';
 
-    setLegendaryCardState({ loading: false, error: finalErrorMessage, title: null, stylizedAvatarDataUri: null });
+    setLegendaryCardState({ loading: false, error: finalErrorMessage, title: null, bio: null, stylizedAvatarDataUri: null });
     toast({
         variant: 'destructive',
         title: 'AI Error',
@@ -140,7 +140,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         description: 'Your new photo has been saved.',
       });
       // Invalidate the generated card since the avatar has changed
-      setLegendaryCardState({ loading: false, error: null, title: null, stylizedAvatarDataUri: null });
+      setLegendaryCardState({ loading: false, error: null, title: null, bio: null, stylizedAvatarDataUri: null });
     } catch (error) {
       console.error('Error updating avatar:', error);
       toast({
@@ -152,7 +152,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   };
   
   const handleClose = () => {
-    setLegendaryCardState({ loading: false, error: null, title: null, stylizedAvatarDataUri: null });
+    setLegendaryCardState({ loading: false, error: null, title: null, bio: null, stylizedAvatarDataUri: null });
     onOpenChange(false);
   }
   
@@ -224,10 +224,11 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                             <p className="text-sm text-muted-foreground text-center">Click the button to forge this player into a legend!</p>
                         )}
                         {legendaryCardState.error && <p className="text-sm text-destructive text-center">{legendaryCardState.error}</p>}
-                        {legendaryCardState.stylizedAvatarDataUri && legendaryCardState.title && (
+                        {legendaryCardState.stylizedAvatarDataUri && legendaryCardState.title && legendaryCardState.bio && (
                             <LegendaryPlayerCard 
                                 name={player.name}
                                 title={legendaryCardState.title}
+                                bio={legendaryCardState.bio}
                                 stylizedAvatarDataUri={legendaryCardState.stylizedAvatarDataUri}
                                 wins={player.wins}
                                 gamesPlayed={player.gamesPlayed}

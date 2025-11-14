@@ -2,12 +2,14 @@
 'use client';
 
 import Image from 'next/image';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Trophy, Swords, Percent } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 interface LegendaryPlayerCardProps {
   name: string;
   title: string;
+  bio: string;
   stylizedAvatarDataUri: string;
   wins: number;
   gamesPlayed: number;
@@ -17,6 +19,7 @@ interface LegendaryPlayerCardProps {
 export function LegendaryPlayerCard({
   name,
   title,
+  bio,
   stylizedAvatarDataUri,
   wins,
   gamesPlayed,
@@ -32,7 +35,7 @@ export function LegendaryPlayerCard({
         </CardHeader>
         
         {/* Card Image */}
-        <div className="relative aspect-[3/2] w-full">
+        <div className="relative aspect-[4/3] w-full">
           <Image
             src={stylizedAvatarDataUri}
             alt={`Fantasy portrait of ${name}`}
@@ -69,6 +72,11 @@ export function LegendaryPlayerCard({
                 </div>
             </div>
         </CardContent>
+
+        {/* Card Footer - Bio / Flavor Text */}
+        <CardFooter className="p-3 bg-stone-950/50 border-t-2 border-amber-900/50">
+            <p className="text-sm text-amber-200/70 italic text-center leading-tight">{bio}</p>
+        </CardFooter>
       </Card>
     </div>
   );

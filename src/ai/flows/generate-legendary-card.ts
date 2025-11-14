@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview An AI flow to generate a legendary player card with a stylized avatar and title.
+ * @fileOverview An AI flow to generate a legendary player card with a title, bio, and stylized avatar.
  *
- * - generateLegendaryCard - A function that takes player details and generates a card.
+ * - generateLegendaryCard - A function that takes player details and generates card content.
  * - GenerateLegendaryCardInput - The input type for the generateLegendaryCard function.
  * - GenerateLegendaryCardOutput - The return type for the generateLegendaryCard function.
  */
@@ -28,6 +28,7 @@ export type GenerateLegendaryCardInput = z.infer<typeof GenerateLegendaryCardInp
 
 const GenerateLegendaryCardOutputSchema = z.object({
   title: z.string().describe('An epic, fantasy-style title for the player.'),
+  bio: z.string().describe('A short, 1-2 sentence biography for the player in an epic style.'),
   stylizedAvatarDataUri: z.string().describe('A new, AI-generated avatar image for the player as a data URI.'),
 });
 export type GenerateLegendaryCardOutput = z.infer<typeof GenerateLegendaryCardOutputSchema>;
@@ -37,20 +38,21 @@ export async function generateLegendaryCard(input: GenerateLegendaryCardInput): 
   return generateLegendaryCardFlow(input);
 }
 
-const generateTitlePrompt = ai.definePrompt({
-    name: 'generatePlayerTitlePrompt',
-    input: { schema: GenerateLegendaryCardInputSchema.pick({ name: true, winRate: true, favoriteGame: true }) },
-    output: { schema: z.object({ title: z.string() }) },
+const generateCardContentPrompt = ai.definePrompt({
+    name: 'generatePlayerCardContentPrompt',
+    input: { schema: GenerateLegendaryCardInputSchema },
+    output: { schema: GenerateLegendaryCardOutputSchema.omit({ stylizedAvatarDataUri: true }) },
     model: 'googleai/gemini-2.5-flash',
-    prompt: `You are a fantasy world scribe, granting epic titles to legendary tabletop gamers.
-    Based on the player's name, win rate, and favorite game, create a short, epic-sounding title.
-    For example: "The Unyielding Baron of Catan" or "Mistress of the Dice".
+    prompt: `You are a fantasy world scribe, granting epic titles and writing short legends for tabletop gamers.
+    Based on the player's stats and favorite game, create:
+    1. A short, epic-sounding title (e.g., "The Unyielding Baron of Catan", "Mistress of the Dice").
+    2. A 1-2 sentence biography about their gaming legacy. Don't just list stats; build a character.
 
     **Player Name:** {{{name}}}
     **Win Rate:** {{{winRate}}}%
     **Favorite Game:** {{{favoriteGame}}}
     
-    Generate only the title.`,
+    Generate only the structured JSON output with a 'title' and 'bio'.`,
 });
 
 const generateLegendaryCardFlow = ai.defineFlow(
@@ -60,20 +62,16 @@ const generateLegendaryCardFlow = ai.defineFlow(
     outputSchema: GenerateLegendaryCardOutputSchema,
   },
   async (input) => {
-    // Generate just the title to avoid image generation model errors.
-    const titleResponse = await generateTitlePrompt({
-        name: input.name,
-        winRate: input.winRate,
-        favoriteGame: input.favoriteGame,
-    });
+    // Generate just the title and bio to avoid image generation model errors.
+    const contentResponse = await generateCardContentPrompt(input);
 
-    const title = titleResponse.output?.title;
+    const { title, bio } = contentResponse.output || {};
     
-    if (!title) {
-      throw new Error('The AI failed to generate the title.');
+    if (!title || !bio) {
+      throw new Error('The AI failed to generate the card content.');
     }
     
-    // For now, return the original avatar URI.
-    return { title, stylizedAvatarDataUri: input.avatarDataUri };
+    // For now, return the original avatar URI as image generation is unstable.
+    return { title, bio, stylizedAvatarDataUri: input.avatarDataUri };
   }
 );
