@@ -196,11 +196,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
     const ids = searchResults.map(r => r.id).join(',');
     const details = await getBggDetails(ids);
     
-    if (details.length > 0) {
-        return details;
-    }
-    
-    return [];
+    return details;
 
   } catch (error) {
     console.error('BGG search action failed:', error);

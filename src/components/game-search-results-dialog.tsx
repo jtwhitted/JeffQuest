@@ -62,7 +62,6 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
       });
     } finally {
       setIsSubmitting(false);
-      onOpenChange(false);
     }
   };
 

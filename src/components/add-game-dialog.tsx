@@ -78,27 +78,19 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     try {
       const results = await searchBggAction(values.name);
       
-      if (results.length === 1 && results[0].name.toLowerCase() === values.name.toLowerCase()) {
-        await addGame({ bggId: results[0].id!, name: results[0].name! });
-        toast({
-            title: 'Game Added!',
-            description: `${results[0].name} has been added to your collection.`,
-        });
-        handleGameAdded();
-      } else if (results.length > 0) {
-          const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
-          setSearchResults(sortedResults);
-          setSearchResultsOpen(true);
+      if (results && results.length > 0) {
+        const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+        setSearchResults(sortedResults);
+        setSearchResultsOpen(true);
       } else {
-          toast({
-              variant: 'destructive',
-              title: 'Game not found',
-              description: `No match found for "${values.name}". Try adding it manually.`,
-          });
-          setManualAddDefaultName(values.name);
-          setManualAddDialogOpen(true);
+        toast({
+          variant: 'destructive',
+          title: 'Game not found',
+          description: `No match found for "${values.name}". Try adding it manually.`,
+        });
+        setManualAddDefaultName(values.name);
+        setManualAddDialogOpen(true);
       }
-
     } catch (error: any) {
       console.error('Error searching game:', error);
       toast({
