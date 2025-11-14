@@ -68,7 +68,7 @@ const generateLegendaryCardFlow = ai.defineFlow(
         favoriteGame: input.favoriteGame,
       }),
       ai.generate({
-        model: 'googleai/gemini-2.5-flash-image-preview',
+        model: 'googleai/gemini-2.0-flash',
         prompt: [
           { media: { url: input.avatarDataUri } },
           { text: 'Transform this photo into a heroic fantasy character portrait in the style of a "Magic: The Gathering" card illustration. The output should be just the image.' },
@@ -89,4 +89,3 @@ const generateLegendaryCardFlow = ai.defineFlow(
     return { title, stylizedAvatarDataUri };
   }
 );
-
