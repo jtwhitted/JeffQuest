@@ -527,5 +527,59 @@
       "Zvezda"
     ],
     "imageUrl": "https://cf.geekdo-images.com/98LnQShydr11OBKS46xY-Q__original/img/Q-ZkgnuBu9OTBr7J3qnqPjqamAE=/0x0/filters:format(jpeg)/pic5687013.jpg"
+  },
+  {
+    "id": "15987",
+    "name": "Arkham Horror",
+    "imageUrl": "https://cf.geekdo-images.com/9cJf4kd_HZQo6NunfJlo9w__original/img/YA5R2ZUV2Zwt_fgXIxu8bii3OJ0=/0x0/filters:format(jpeg)/pic175966.jpg",
+    "description": "The year is 1926, and it is the height of the Roaring Twenties. Flappers dance till dawn in smoke-filled speakeasies drinking alcohol supplied by rum runners and the mob. It's a celebration to end all celebrations in the aftermath of the war to end all wars.\n\n\n\n        Yet a dark shadow grows in the city of Arkham. Alien entities known as Ancient Ones lurk in the emptiness beyond space and time, writhing at the gates between worlds. These gates have begun to open and must be closed before the Ancient Ones make our world their ruined domination.\n\n\n\n        Only a handful of investigators stand against the Arkham Horror.  Will they Prevail? \n\n\nArkham Horror is a cooperative adventure game themed around H.P Lovecraft's Cthulhu Mythos. Players choose from 16 Investigators and take to the streets of Arkham. Before the game, one of the eight Ancient Ones is chosen and it's up to the Investigators to prevent it from breaking into our world. During the course of the game, players will upgrade their characters by acquiring skills, allies, items, weapons, and spells. It's up to the players to clean out the streets of Arkham by fighting many different types of monsters, but their main goal is to close gates to other dimensions that are opening up around town. With too many gates open the Ancient One awakens and the players only have one last chance to save the world - defeat the Ancient One in combat!",
+    "yearPublished": 2005,
+    "minPlayers": 1,
+    "maxPlayers": 8,
+    "difficulty": "Advanced",
+    "category": [
+      "Adventure",
+      "Fighting",
+      "Horror",
+      "Novel-based"
+    ],
+    "mechanics": [
+      "Cooperative Game",
+      "Dice Rolling",
+      "Events",
+      "Finale Ending",
+      "Hand Management",
+      "Lose a Turn",
+      "Point to Point Movement",
+      "Role Playing",
+      "Solo / Solitaire Game",
+      "Stat Check Resolution",
+      "Variable Player Powers"
+    ],
+    "designers": [
+      "Richard Launius",
+      "Kevin Wilson"
+    ],
+    "publishers": [
+      "Fantasy Flight Games",
+      "ADC Blackfire Entertainment",
+      "Arclight Games",
+      "Delta Vision Publishing",
+      "Edge Entertainment",
+      "Galakta",
+      "Giochi Uniti",
+      "Heidelberger Spieleverlag",
+      "Hobby World",
+      "Korea Boardgames",
+      "Nexus Editrice",
+      "Smart Ltd",
+      "Ubik",
+      "Wargames Club Publishing"
+    ],
+    "minPlaytime": 120,
+    "maxPlaytime": 240,
+    "rating": 7.238,
+    "ratingCount": 40210,
+    "complexity": 3.585
   }
 ]

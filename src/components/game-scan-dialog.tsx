@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
-import { searchBggAction, addGame } from '@/lib/actions';
+import { searchBggAction } from '@/lib/actions';
 import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
 import { useGames } from '@/context/game-context';
 
@@ -80,8 +80,7 @@ export function GameScanDialog({
     try {
       setLoadingMessage(`Adding ${name} to your collection...`);
       setIsLoading(true);
-      // We use the server action directly here to add the game
-      await addGame({ bggId, name });
+      await addGameToContext({ bggId, name });
       toast({
         title: 'Game Added!',
         description: `${name} has been added to your collection.`,
@@ -93,7 +92,7 @@ export function GameScanDialog({
     } finally {
       setIsLoading(false);
     }
-  }, [onGameAdded, toast]);
+  }, [onGameAdded, toast, addGameToContext]);
 
 
   const handleCaptureAndSearch = useCallback(async () => {

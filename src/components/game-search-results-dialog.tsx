@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Game } from '@/lib/types';
-import { addGame } from '@/lib/actions';
+import { useGames } from '@/context/game-context';
 
 interface GameSearchResultsDialogProps {
   open: boolean;
@@ -30,6 +30,7 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { addGame } = useGames();
 
   const handleSubmit = async () => {
     if (!selectedValue) {
@@ -46,7 +47,6 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
       const selectedGame = results.find(r => r.id === selectedValue);
       if (!selectedGame || !selectedGame.id || !selectedGame.name) throw new Error('Selected game not found.');
       
-      // Directly call the server action to add the game by its BGG ID
       await addGame({ name: selectedGame.name, bggId: selectedGame.id });
 
       toast({
