@@ -194,11 +194,12 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
     if (!searchResults || searchResults.length === 0) {
       return [];
     }
+    // Fetch with stats to enable popularity sorting
     const ids = searchResults.map(r => r.id);
-    // Fetch details WITHOUT stats for better performance during search/selection
-    const details = await getBggDetails(ids, false);
+    const details = await getBggDetails(ids, true);
     
-    return details;
+    // Filter out unpopular results
+    return details.filter(d => (d.ratingCount || 0) > 50);
 
   } catch (error) {
     console.error('BGG search action failed:', error);
