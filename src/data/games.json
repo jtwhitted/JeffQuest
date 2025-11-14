@@ -527,5 +527,64 @@
       "Zvezda"
     ],
     "imageUrl": "https://cf.geekdo-images.com/98LnQShydr11OBKS46xY-Q__original/img/Q-ZkgnuBu9OTBr7J3qnqPjqamAE=/0x0/filters:format(jpeg)/pic5687013.jpg"
+  },
+  {
+    "id": "205637",
+    "name": "Arkham Horror: The Card Game",
+    "imageUrl": "https://cf.geekdo-images.com/B5F5ulz0UivNgrI9Ky0euA__original/img/guEKCewM_2e5ugltSN3dTSwdZJI=/0x0/filters:format(jpeg)/pic3122349.jpg",
+    "description": "Something evil stirs in Arkham, and only you can stop it. Blurring the traditional lines between role-playing and card game experiences, Arkham Horror: The Card Game is a Living Card Game of Lovecraftian mystery, monsters, and madness!\n\nIn the game, you, alone or with a friend (or up to three friends with two Core Sets), become investigators within the quiet New England town of Arkham. You have your talents, sure, but you also have your flaws. Perhaps you've dabbled a little too much in the writings of the Necronomicon, and its words continue to haunt you. Perhaps you feel compelled to cover up any signs of otherworldly evils, hampering your own investigations in order to protect the quiet confidence of the greater population. Perhaps you'll be scarred by your encounters with a ghoulish cult.\n\nNo matter what compels you, no matter what haunts you, you'll find both your strengths and weaknesses reflected in your custom deck of cards, and these cards will be your resources as you work with your friends to unravel the world's most terrifying mysteries.\n\nEach of your adventures in Arkham Horror LCG carries you deeper into mystery. You'll find cultists and foul rituals. You'll find haunted houses and strange creatures. And you may find signs of the Ancient Ones straining against the barriers to our world...\n\nThe basic mode of play in Arkham LCG is not the adventure, but the campaign. You might be scarred by your adventures, your sanity may be strained, and you may alter Arkham's landscape, burning buildings to the ground. All your choices and actions have consequences that reach far beyond the immediate resolution of the scenario at hand&mdash;and your actions may earn you valuable experience with which you can better prepare yourself for the adventures that still lie before you.",
+    "yearPublished": 2016,
+    "minPlayers": 1,
+    "maxPlayers": 2,
+    "difficulty": "Advanced",
+    "category": [
+      "Adventure",
+      "Card Game",
+      "Collectible Components",
+      "Exploration",
+      "Horror",
+      "Novel-based"
+    ],
+    "mechanics": [
+      "Action Points",
+      "Area Movement",
+      "Communication Limits",
+      "Cooperative Game",
+      "Deck Construction",
+      "Events",
+      "Hand Management",
+      "Map Deformation",
+      "Modular Board",
+      "Player Elimination",
+      "Push Your Luck",
+      "Role Playing",
+      "Scenario / Mission / Campaign Game",
+      "Solo / Solitaire Game",
+      "Stat Check Resolution",
+      "Variable Player Powers"
+    ],
+    "designers": [
+      "Nate French",
+      "MJ Newman"
+    ],
+    "publishers": [
+      "Fantasy Flight Games",
+      "Arclight Games",
+      "asmodee",
+      "Asterion Press",
+      "Edge Entertainment",
+      "Galakta",
+      "Galápagos Jogos",
+      "Heidelberger Spieleverlag",
+      "Hobby World",
+      "Korea Boardgames",
+      "Tower Tactic Games",
+      "Ігромаг"
+    ],
+    "minPlaytime": 60,
+    "maxPlaytime": 120,
+    "rating": 8.126,
+    "ratingCount": 46750,
+    "complexity": 3.564
   }
 ]

@@ -68,8 +68,13 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   
   const handleScanComplete = (results: Partial<Game>[], query: string) => {
     setScanDialogOpen(false);
+     if (query === 'SUCCESS') {
+      handleGameAdded();
+      return;
+    }
     if (results && results.length > 0) {
-      setSearchResults(results);
+      const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+      setSearchResults(sortedResults);
       setSearchResultsOpen(true);
     } else {
         toast({
@@ -88,7 +93,8 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       const results = await searchBggAction(values.name);
       
       if (results && results.length > 0) {
-        setSearchResults(results);
+        const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+        setSearchResults(sortedResults);
         setSearchResultsOpen(true);
       } else {
         toast({
