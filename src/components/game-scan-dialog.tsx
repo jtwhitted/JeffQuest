@@ -16,13 +16,16 @@ import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
 import { searchBggAction } from '@/lib/actions';
-import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
 import { useGames } from '@/context/game-context';
+import { GameSearchResultsDialog } from './game-search-results-dialog';
+import { ManualAddGameDialog } from './manual-add-game-dialog';
+import type { Game } from '@/lib/types';
+
 
 interface GameScanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGameAdded: () => void;
+  onGameAdded: (results: Partial<Game>[], query: string) => void;
 }
 
 export function GameScanDialog({
@@ -76,25 +79,6 @@ export function GameScanDialog({
     };
   }, [open, toast]);
 
-  const handleAddGameById = useCallback(async (bggId: string, name: string) => {
-    try {
-      setLoadingMessage(`Adding ${name} to your collection...`);
-      setIsLoading(true);
-      await addGameToContext({ bggId, name });
-      toast({
-        title: 'Game Added!',
-        description: `${name} has been added to your collection.`,
-      });
-      onGameAdded();
-    } catch (e: any) {
-      console.error("Error adding game by ID", e);
-      toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not add the game.' });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [onGameAdded, toast, addGameToContext]);
-
-
   const handleCaptureAndSearch = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return;
     
@@ -114,45 +98,7 @@ export function GameScanDialog({
       setLoadingMessage(`Searching BGG for "${title}"...`);
       const searchResults = await searchBggAction(title);
       
-      if (!searchResults || searchResults.length === 0) {
-        toast({ variant: 'destructive', title: 'Game Not Found', description: `No BGG matches found for "${title}".` });
-        setIsLoading(false);
-        onOpenChange(false);
-        return;
-      }
-
-      const validCandidates = searchResults.filter(c => c.imageUrl && c.id && c.name);
-
-      if (validCandidates.length === 0) {
-          toast({ variant: 'destructive', title: 'Could Not Verify', description: `Found matches for "${title}" but could not fetch box art for visual comparison.` });
-          setIsLoading(false);
-          onOpenChange(false);
-          return;
-      }
-      
-      if (validCandidates.length === 1) {
-          await handleAddGameById(validCandidates[0].id!, validCandidates[0].name!);
-          return;
-      }
-      
-      setLoadingMessage('Visually analyzing box art to find the best match...');
-      const { bestMatchBggId } = await selectGameFromImages({
-        originalPhotoDataUri: originalPhotoDataUri,
-        candidates: validCandidates.slice(0, 5).map(c => ({ // Limit to 5 candidates
-          bggId: c.id!,
-          name: c.name!,
-          imageUrl: c.imageUrl!
-        }))
-      });
-
-      const bestMatch = validCandidates.find(c => c.id === bestMatchBggId);
-      if (bestMatch) {
-        await handleAddGameById(bestMatch.id!, bestMatch.name!);
-      } else {
-        // Fallback if AI fails, add the top search result by popularity
-        const topResult = validCandidates.sort((a,b) => (b.ratingCount || 0) - (a.ratingCount || 0))[0];
-        await handleAddGameById(topResult.id!, topResult.name!);
-      }
+      onGameAdded(searchResults, title);
       
     } catch (error: any) {
       console.error('Error during scan and search process:', error);
@@ -165,7 +111,7 @@ export function GameScanDialog({
       setIsLoading(false);
       onOpenChange(false);
     }
-  }, [onOpenChange, toast, handleAddGameById]);
+  }, [onOpenChange, toast, onGameAdded]);
   
   const handleClose = () => {
     onOpenChange(false);

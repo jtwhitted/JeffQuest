@@ -66,8 +66,20 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     setSearchResultsOpen(false);
   };
   
-  const handleScanComplete = () => {
-    handleGameAdded();
+  const handleScanComplete = (results: Partial<Game>[], query: string) => {
+    setScanDialogOpen(false);
+    if (results && results.length > 0) {
+      setSearchResults(results);
+      setSearchResultsOpen(true);
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Game not found',
+            description: `No match found for "${query}". Try adding it manually.`,
+        });
+        setManualAddDefaultName(query);
+        setManualAddDialogOpen(true);
+    }
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -76,8 +88,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       const results = await searchBggAction(values.name);
       
       if (results && results.length > 0) {
-        const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
-        setSearchResults(sortedResults);
+        setSearchResults(results);
         setSearchResultsOpen(true);
       } else {
         toast({
