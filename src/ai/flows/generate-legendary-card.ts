@@ -60,33 +60,20 @@ const generateLegendaryCardFlow = ai.defineFlow(
     outputSchema: GenerateLegendaryCardOutputSchema,
   },
   async (input) => {
-    // Generate the title and the image in parallel
-    const [titleResponse, imageResponse] = await Promise.all([
-      generateTitlePrompt({
+    // Generate just the title to avoid image generation model errors.
+    const titleResponse = await generateTitlePrompt({
         name: input.name,
         winRate: input.winRate,
         favoriteGame: input.favoriteGame,
-      }),
-      ai.generate({
-        model: 'googleai/gemini-2.5-flash-image-preview',
-        prompt: [
-          { media: { url: input.avatarDataUri } },
-          { text: 'Transform this photo into a heroic fantasy character portrait in the style of a "Magic: The Gathering" card illustration. The output should be just the image.' },
-        ],
-        config: {
-          responseModalities: ['IMAGE', 'TEXT'],
-        },
-      }),
-    ]);
+    });
 
     const title = titleResponse.output?.title;
-    const stylizedAvatarDataUri = imageResponse.media?.url;
     
-    if (!title || !stylizedAvatarDataUri) {
-      throw new Error('The AI failed to generate either the title or the stylized avatar.');
+    if (!title) {
+      throw new Error('The AI failed to generate the title.');
     }
     
-    return { title, stylizedAvatarDataUri };
+    // For now, return the original avatar URI.
+    return { title, stylizedAvatarDataUri: input.avatarDataUri };
   }
 );
-
