@@ -47,7 +47,7 @@ const parser = new XMLParser({
 
 
 export async function searchBgg(query: string): Promise<{ id: string, name: string }[]> {
-    const params: Record<string, string> = { query, type: 'boardgame' };
+    const params: Record<string, string> = { query, type: 'boardgame,boardgameexpansion' };
 
     const xmlData = await bggFetch('search', params);
     const parsed = parser.parse(xmlData);
@@ -58,7 +58,9 @@ export async function searchBgg(query: string): Promise<{ id: string, name: stri
 
     const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
 
-    return items.map((item: any) => ({
+    const filteredItems = items.filter(item => item.type === 'boardgame');
+
+    return filteredItems.map((item: any) => ({
         id: item.id.toString(),
         name: Array.isArray(item.name) ? item.name[0].value : item.name.value
     }));
@@ -142,4 +144,5 @@ export async function getBggDetails(ids: string[]): Promise<Partial<Game & {id: 
 
   return allDetails;
 }
+
 
