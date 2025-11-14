@@ -56,17 +56,19 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
 
   // Effect to populate the card state if the player already has legendary data
   useEffect(() => {
-    if (player.legendaryTitle && player.legendaryBio) {
-      setLegendaryCardState({
-        loading: false,
-        error: null,
-        data: { title: player.legendaryTitle, bio: player.legendaryBio }
-      });
-    } else {
-      // Reset when the dialog opens for a new player without a card
-      setLegendaryCardState({ loading: false, error: null, data: null });
+    if (open) { // Only run when the dialog is open
+      if (player.legendaryTitle && player.legendaryBio) {
+        setLegendaryCardState({
+          loading: false,
+          error: null,
+          data: { title: player.legendaryTitle, bio: player.legendaryBio }
+        });
+      } else {
+        // Reset when the dialog opens for a new player without a card
+        setLegendaryCardState({ loading: false, error: null, data: null });
+      }
     }
-  }, [player]);
+  }, [player, open]);
 
   const handleGenerateCard = async () => {
     setLegendaryCardState({ loading: true, error: null, data: null });
@@ -218,7 +220,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                       name={player.name}
                       title={legendaryCardState.data.title}
                       bio={legendaryCardState.data.bio}
-                      stylizedAvatarDataUri={`https://api.dicebear.com/8.x/adventurer/svg?seed=${encodeURIComponent(player.name)}`}
+                      avatarDataUri={player.avatarUrl}
                       wins={player.wins}
                       gamesPlayed={player.gamesPlayed}
                       winRate={player.winRate}

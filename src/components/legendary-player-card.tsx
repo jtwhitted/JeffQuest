@@ -10,7 +10,7 @@ interface LegendaryPlayerCardProps {
   name: string;
   title: string;
   bio: string;
-  stylizedAvatarDataUri: string;
+  avatarDataUri: string;
   wins: number;
   gamesPlayed: number;
   winRate: number;
@@ -20,7 +20,7 @@ export function LegendaryPlayerCard({
   name,
   title,
   bio,
-  stylizedAvatarDataUri,
+  avatarDataUri,
   wins,
   gamesPlayed,
   winRate,
@@ -37,7 +37,7 @@ export function LegendaryPlayerCard({
         {/* Card Image */}
         <div className="relative aspect-[4/3] w-full">
           <Image
-            src={stylizedAvatarDataUri}
+            src={avatarDataUri}
             alt={`Fantasy portrait of ${name}`}
             fill
             className="object-cover border-y-4 border-amber-900/50"
@@ -81,3 +81,4 @@ export function LegendaryPlayerCard({
     </div>
   );
 }
+
