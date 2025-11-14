@@ -95,5 +95,23 @@
     ],
     "notes": "Jeffrey played a game of The King's Dilemma on November 12th. Uh, the game lasted about an hour and 17 minutes. He was able to emerge victorious with a score of 49 points this time. Um, and this was the second solo game in which he won. So this game might be too easy for him because he's a master at all things.",
     "duration": 77
+  },
+  {
+    "id": "s1763158564680",
+    "gameId": "g1762884180986",
+    "date": "2025-11-10T05:00:00.000Z",
+    "playerIds": [
+      "p1762879138303"
+    ],
+    "isCooperative": false,
+    "winnerId": "p1762879138303",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 77
+      }
+    ],
+    "notes": "Jeffrey played a game of the King's Dilemma on November 10th. The game was 47 minutes long and he won with a score of 77.",
+    "duration": 47
   }
 ]
