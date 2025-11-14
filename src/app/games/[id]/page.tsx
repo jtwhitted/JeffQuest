@@ -74,7 +74,7 @@ export default function GameDetailPage() {
             <Card>
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row gap-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-1/3 space-y-4">
                             {game.imageUrl ? (
                                 <Image src={game.imageUrl} alt={game.name} width={300} height={300} className="w-full rounded-lg object-cover aspect-square" data-ai-hint={`${game.name} board game`} unoptimized />
                             ) : (
@@ -82,6 +82,32 @@ export default function GameDetailPage() {
                                     <Dices className="h-16 w-16 text-muted-foreground" />
                                 </div>
                             )}
+                             <div className="space-y-4 text-sm">
+                                {averageDuration && (
+                                    <>
+                                        <Separator />
+                                        <div className="flex items-center justify-between">
+                                            <span className="flex items-center text-muted-foreground"><LineChart className="mr-2"/> Avg. Duration</span>
+                                            <span className="font-medium">{averageDuration} min</span>
+                                        </div>
+                                    </>
+                                )}
+                                {highScorePlayer && (
+                                    <>
+                                        <Separator />
+                                        <div className="flex items-center justify-between">
+                                            <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{highScore.score}</span>
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
+                                                    <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                             </div>
                         </div>
                         <div className="md:w-2/3 space-y-4">
                             <div className="space-y-2">
@@ -152,30 +178,6 @@ export default function GameDetailPage() {
                         <span className="flex items-center text-muted-foreground"><BarChart3 className="mr-2"/> Difficulty</span>
                         <span className="font-medium">{game.difficulty}</span>
                     </div>
-                    {averageDuration && (
-                        <>
-                            <Separator />
-                            <div className="flex items-center justify-between">
-                                <span className="flex items-center text-muted-foreground"><LineChart className="mr-2"/> Avg. Duration</span>
-                                <span className="font-medium">{averageDuration} min</span>
-                            </div>
-                        </>
-                    )}
-                    {highScorePlayer && (
-                        <>
-                            <Separator />
-                            <div className="flex items-center justify-between">
-                                <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium">{highScore.score}</span>
-                                    <Avatar className="h-6 w-6">
-                                        <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
-                                        <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                </div>
-                            </div>
-                        </>
-                    )}
                 </CardContent>
             </Card>
             <Card>
