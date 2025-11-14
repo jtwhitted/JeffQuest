@@ -33,7 +33,7 @@ export function GameScanDialog({
   onGameAdded,
 }: GameScanDialogProps) {
   const { toast } = useToast();
-  const { addGame: addGameToContext } = useGames();
+  const { addGame } = useGames();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<
@@ -98,22 +98,28 @@ export function GameScanDialog({
       const searchResults = await searchBggAction(title);
       
       if (!searchResults || searchResults.length === 0) {
-        onGameAdded([], title); // No text matches found
+        onGameAdded([], title); // No text matches found, trigger manual add
         return;
       }
 
+      if (searchResults.length === 1) {
+        // Only one match, just add it directly.
+        await addGame({ name: searchResults[0].name!, bggId: searchResults[0].id! });
+        toast({
+          title: 'Game Added!',
+          description: `${searchResults[0].name} has been added to your collection.`,
+        });
+        onOpenChange(false); // Close the scan dialog
+        onGameAdded([], ''); // Signal to close the parent dialog
+        return;
+      }
+      
       // Filter out candidates without an image URL for visual comparison
       const candidatesWithImages = searchResults.filter(r => r.imageUrl);
 
       if (candidatesWithImages.length === 0) {
         // We have text matches but no images, let user choose from text
         onGameAdded(searchResults, title);
-        return;
-      }
-      
-      if (candidatesWithImages.length === 1) {
-        // Only one match, just add it directly.
-        onGameAdded(candidatesWithImages, title);
         return;
       }
 
@@ -135,9 +141,15 @@ export function GameScanDialog({
          return;
       }
 
-      // We have a confident visual match, send it as the single result.
-      onGameAdded([bestMatch], title);
-      
+      // We have a confident visual match, add it automatically.
+      await addGame({ name: bestMatch.name!, bggId: bestMatch.id! });
+      toast({
+          title: 'Game Added!',
+          description: `${bestMatch.name} has been added to your collection.`,
+      });
+      onOpenChange(false); // Close scan dialog
+      onGameAdded([], ''); // Signal to close parent Add Game dialog
+
     } catch (error: any) {
       console.error('Error during scan and search process:', error);
       toast({
@@ -145,11 +157,11 @@ export function GameScanDialog({
         title: 'Error Scanning Game',
         description: error.message || 'Could not identify or find the game.',
       });
+      onGameAdded([], ''); // Fallback to allow manual add
     } finally {
       setIsLoading(false);
-      onOpenChange(false);
     }
-  }, [onOpenChange, toast, onGameAdded]);
+  }, [onOpenChange, toast, onGameAdded, addGame]);
   
   const handleClose = () => {
     onOpenChange(false);
