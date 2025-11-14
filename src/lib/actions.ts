@@ -95,7 +95,7 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
 
     if (validatedFields.data.bggId) {
         // This is now the definitive path for adding a BGG game.
-        const bggDetails = await getBggDetails(validatedFields.data.bggId);
+        const bggDetails = await getBggDetails([validatedFields.data.bggId]);
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
