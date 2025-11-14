@@ -83,7 +83,7 @@ const gameFormSchema = z.object({
     imageUrl: z.string().optional(),
 });
 
-export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game | null> {
+export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<Game> {
     const validatedFields = gameFormSchema.safeParse(values);
 
     if (!validatedFields.success) {
@@ -122,12 +122,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
 
     const { name, bggId } = validatedFields.data;
     if (!bggId) {
-        const exactMatch = await searchBgg(name, true);
-        if (exactMatch.length === 0) {
-            return null;
-        }
-        const details = await getBggDetails(exactMatch[0].id);
-        if (!details || details.length === 0) return null;
+       throw new Error("BGG ID is required for adding a game from BoardGameGeek.");
     }
     
     let details: Awaited<ReturnType<typeof getBggDetails>>[number] | null = null;
@@ -143,7 +138,7 @@ export async function addGame(values: z.infer<typeof gameFormSchema>): Promise<G
     }
     
     if (!details) {
-      return null;
+      throw new Error(`Could not find details for BGG ID ${bggId}`);
     }
 
     const newGame: Game = {
@@ -228,16 +223,18 @@ export async function deleteSessionAction(sessionId: string) {
 }
 
 
-export async function searchBggAction(query: string): Promise<{ id: string; name: string }[]> {
+export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
   if (!query) return [];
   try {
-    const exactResults = await searchBgg(query, true);
-    if (exactResults.length > 0) {
-        return exactResults;
+    const searchResults = await searchBgg(query); // Always do a broad search
+    if (searchResults.length === 0) {
+      return [];
     }
+
+    const ids = searchResults.map(r => r.id).join(',');
+    const details = await getBggDetails(ids);
     
-    const results = await searchBgg(query);
-    return results;
+    return details;
 
   } catch (error) {
     console.error('BGG search action failed:', error);

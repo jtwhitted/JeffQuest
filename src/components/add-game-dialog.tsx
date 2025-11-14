@@ -29,8 +29,10 @@ import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { useGames } from '@/context/game-context';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
-import { searchBggAction } from '@/lib/actions';
+import { addGameAction } from '@/lib/actions';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
+import type { Game } from '@/lib/types';
+
 
 interface AddGameDialogProps {
   open: boolean;
@@ -41,7 +43,6 @@ const formSchema = z.object({
   name: z.string().min(1, 'Game name is required.').max(100, 'Name must be 100 characters or less.'),
 });
 
-type SearchResult = { id: string; name: string };
 
 export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const { toast } = useToast();
@@ -49,7 +50,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const [isScanDialogOpen, setScanDialogOpen] = useState(false);
   const [isManualAddDialogOpen, setManualAddDialogOpen] = useState(false);
   const [manualAddDefaultName, setManualAddDefaultName] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<Partial<Game>[]>([]);
   const [isSearchResultsOpen, setSearchResultsOpen] = useState(false);
 
   const { addGame } = useGames();
@@ -69,24 +70,23 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   };
   
   const handleScanComplete = () => {
-    // This is now handled inside GameScanDialog
     handleGameAdded();
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      const results = await searchBggAction(values.name);
+      const results = await addGameAction({ name: values.name });
       
       if (results.length === 1) {
-        await addGame({ name: results[0].name, bggId: results[0].id });
         toast({
             title: 'Game Added!',
             description: `${results[0].name} has been added to your collection.`,
         });
         handleGameAdded();
       } else if (results.length > 1) {
-          setSearchResults(results);
+          const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
+          setSearchResults(sortedResults);
           setSearchResultsOpen(true);
       } else {
           toast({

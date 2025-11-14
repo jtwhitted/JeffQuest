@@ -4,7 +4,6 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction, deleteSessionAction } from '@/lib/actions';
-import type { GetGameTitleOutput } from '@/ai/flows/get-game-title-from-image';
 
 type GameData = {
   name: string;
@@ -27,7 +26,7 @@ interface GameContextType {
   games: Game[];
   players: Player[];
   sessions: Session[];
-  addGame: (gameData: GameData) => Promise<Game | null>;
+  addGame: (gameData: GameData) => Promise<Game>;
   addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
@@ -53,13 +52,11 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addGame = useCallback(async (gameData: GameData): Promise<Game | null> => {
+  const addGame = useCallback(async (gameData: GameData): Promise<Game> => {
     setIsLoading(true);
     try {
       const newGame = await addGameAction(gameData);
-      if (newGame) {
-        setGames(prevGames => [...prevGames, newGame]);
-      }
+      setGames(prevGames => [...prevGames, newGame]);
       return newGame;
     } catch (error) {
         // Re-throw the error to be caught by the calling component

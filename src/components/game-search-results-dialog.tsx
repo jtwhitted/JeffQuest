@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -16,11 +17,12 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useGames } from '@/context/game-context';
 import { useToast } from '@/hooks/use-toast';
+import type { Game } from '@/lib/types';
 
 interface GameSearchResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  results: { id: string; name: string }[];
+  results: Partial<Game>[];
   onGameSelected: () => void;
 }
 
@@ -43,9 +45,9 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
     setIsSubmitting(true);
     try {
       const selectedGame = results.find(r => r.id === selectedValue);
-      if (!selectedGame) throw new Error('Selected game not found.');
+      if (!selectedGame || !selectedGame.id) throw new Error('Selected game not found.');
       
-      await addGame({ name: selectedGame.name, bggId: selectedGame.id });
+      await addGame({ name: selectedGame.name!, bggId: selectedGame.id });
       toast({
         title: 'Game Added!',
         description: `${selectedGame.name} has been added to your collection.`,
@@ -82,8 +84,10 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
           <RadioGroup value={selectedValue || ''} onValueChange={setSelectedValue} className="p-1">
             {results.map(result => (
               <div key={result.id} className="flex items-center space-x-2 rounded-md p-2 hover:bg-muted/50">
-                <RadioGroupItem value={result.id} id={result.id} />
-                <Label htmlFor={result.id} className="flex-1 cursor-pointer">{result.name}</Label>
+                <RadioGroupItem value={result.id!} id={result.id!} />
+                <Label htmlFor={result.id!} className="flex-1 cursor-pointer">
+                  {result.name} {result.yearPublished && `(${result.yearPublished})`}
+                </Label>
               </div>
             ))}
           </RadioGroup>
