@@ -63,6 +63,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         data: { title: player.legendaryTitle, bio: player.legendaryBio }
       });
     } else {
+      // Reset when the dialog opens for a new player without a card
       setLegendaryCardState({ loading: false, error: null, data: null });
     }
   }, [player]);
@@ -98,13 +99,15 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     }
 
     if (result) {
-        // Save the generated data to the player's profile
+        // Update the local state first to show the card without closing the dialog
+        setLegendaryCardState({ loading: false, error: null, data: result });
+        
+        // Then, update the persistent data in the background
         await updatePlayer(player.id, { 
             legendaryTitle: result.title, 
             legendaryBio: result.bio 
         });
 
-        setLegendaryCardState({ loading: false, error: null, data: result });
         toast({
             title: "Legend Forged!",
             description: "The player's epic tale has been written."
@@ -215,7 +218,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                       name={player.name}
                       title={legendaryCardState.data.title}
                       bio={legendaryCardState.data.bio}
-                      stylizedAvatarDataUri={player.avatarUrl} // Using original avatar as per user request
+                      stylizedAvatarDataUri={`https://api.dicebear.com/8.x/adventurer/svg?seed=${encodeURIComponent(player.name)}`}
                       wins={player.wins}
                       gamesPlayed={player.gamesPlayed}
                       winRate={player.winRate}
