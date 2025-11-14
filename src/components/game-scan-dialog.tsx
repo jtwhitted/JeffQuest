@@ -17,9 +17,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
 import { searchBggAction } from '@/lib/actions';
 import { useGames } from '@/context/game-context';
-import { GameSearchResultsDialog } from './game-search-results-dialog';
-import { ManualAddGameDialog } from './manual-add-game-dialog';
 import type { Game } from '@/lib/types';
+import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
 
 
 interface GameScanDialogProps {
@@ -98,7 +97,40 @@ export function GameScanDialog({
       setLoadingMessage(`Searching BGG for "${title}"...`);
       const searchResults = await searchBggAction(title);
       
-      onGameAdded(searchResults, title);
+      if (!searchResults || searchResults.length === 0) {
+        onGameAdded([], title); // No text matches found
+        return;
+      }
+
+      // Filter out candidates without an image URL for visual comparison
+      const candidatesWithImages = searchResults.filter(r => r.imageUrl);
+
+      if (candidatesWithImages.length === 0) {
+        // We have text matches but no images, let user choose from text
+        onGameAdded(searchResults, title);
+        return;
+      }
+
+      setLoadingMessage('Visually matching box art...');
+      const { bestMatchBggId } = await selectGameFromImages({
+        originalPhotoDataUri,
+        candidates: candidatesWithImages.map(c => ({
+          bggId: c.id!,
+          name: c.name!,
+          imageUrl: c.imageUrl!,
+        })),
+      });
+
+      const bestMatch = searchResults.find(r => r.id === bestMatchBggId);
+
+      if (!bestMatch) {
+         // AI failed to find a confident match, let the user decide from the list
+         onGameAdded(searchResults, title);
+         return;
+      }
+
+      // We have a confident visual match, send it as the single result.
+      onGameAdded([bestMatch], title);
       
     } catch (error: any) {
       console.error('Error during scan and search process:', error);
@@ -151,54 +183,4 @@ export function GameScanDialog({
             <AlertTitle>Camera Access Denied</AlertTitle>
             <AlertDescription>
               Please grant camera permissions in your browser settings.
-            </AlertDescription>
-          </Alert>
-        </div>
-      );
-    }
-    
-    return null;
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
-        <DialogHeader>
-          <DialogTitle>Scan Game Box</DialogTitle>
-          <DialogDescription>
-            Center the game box cover in the frame to identify it.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
-          <video
-            ref={videoRef}
-            className={`h-full w-full object-cover ${!hasCameraPermission ? 'hidden' : 'block'}`}
-            autoPlay
-            playsInline
-            muted
-          />
-
-          {renderVideoState()}
-
-          <canvas ref={canvasRef} className="hidden" />
-        </div>
-        
-        <DialogFooter className="gap-2 sm:justify-between">
-            <Button
-              onClick={handleCaptureAndSearch}
-              disabled={!hasCameraPermission || isLoading}
-              className="w-full"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Camera className="mr-2 h-4 w-4" />
-              )}
-              Capture and Identify
-            </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+            </Aler<ctrl63>
