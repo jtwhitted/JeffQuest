@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Crown, Users, ShieldCheck, ShieldX, Medal } from 'lucide-react';
+import { Loader2, Sparkles, Crown, Users, ShieldCheck, ShieldX, Medal, Camera } from 'lucide-react';
 import React, { useState } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -23,6 +23,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { format } from 'date-fns';
+import { AvatarCaptureDialog } from './avatar-capture-dialog';
+import { useGames } from '@/context/game-context';
 
 type GameHistoryItem = {
     game: Game;
@@ -45,6 +47,7 @@ interface PlayerDetailsDialogProps {
 
 // Helper to convert image URL to data URI
 async function toDataUri(url: string): Promise<string> {
+  // Use a proxy to avoid CORS issues if images are not on the same domain
   const response = await fetch(url);
   const blob = await response.blob();
   return new Promise((resolve, reject) => {
@@ -57,13 +60,15 @@ async function toDataUri(url: string): Promise<string> {
 
 export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetailsDialogProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isBioLoading, setIsBioLoading] = useState(false);
   const [bio, setBio] = useState<string | null>(null);
+  const [isCaptureOpen, setCaptureOpen] = useState(false);
+  const { updatePlayer } = useGames();
 
   const handleGenerateBio = async () => {
     if (bio) return; // Don't re-generate if we already have a bio
 
-    setIsLoading(true);
+    setIsBioLoading(true);
     try {
         const avatarDataUri = await toDataUri(player.avatarUrl);
 
@@ -83,7 +88,25 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         description: 'Could not generate a bio for this player. Please try again later.',
       });
     } finally {
-      setIsLoading(false);
+      setIsBioLoading(false);
+    }
+  };
+
+  const handleAvatarCaptured = async (imageDataUrl: string) => {
+    setCaptureOpen(false);
+    try {
+      await updatePlayer(player.id, { avatarUrl: imageDataUrl });
+      toast({
+        title: 'Avatar Updated!',
+        description: 'Your new photo has been saved.',
+      });
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not save the new avatar.',
+      });
     }
   };
   
@@ -99,20 +122,37 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   }
   
   const getButtonText = () => {
-    if(isLoading) return 'Generating...';
+    if(isBioLoading) return 'Generating...';
     if(bio) return 'Generated';
     return 'Generate Bio';
   }
 
   return (
+    <>
+    <AvatarCaptureDialog 
+        open={isCaptureOpen}
+        onOpenChange={setCaptureOpen}
+        onAvatarCaptured={handleAvatarCaptured}
+    />
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="items-center text-center">
-            <Avatar className="h-24 w-24">
-                <AvatarImage src={player.avatarUrl} alt={player.name} />
-                <AvatarFallback className="text-3xl">{player.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <DialogTitle className="text-2xl">{player.name}</DialogTitle>
+            <div className="relative">
+                <Avatar className="h-24 w-24">
+                    <AvatarImage src={player.avatarUrl} alt={player.name} />
+                    <AvatarFallback className="text-3xl">{player.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Button
+                    size="icon"
+                    variant="outline"
+                    className="absolute -bottom-2 -right-2 rounded-full h-8 w-8"
+                    onClick={() => setCaptureOpen(true)}
+                >
+                    <Camera className="h-4 w-4" />
+                    <span className="sr-only">Retake photo</span>
+                </Button>
+            </div>
+            <DialogTitle className="text-2xl pt-2">{player.name}</DialogTitle>
             <DialogDescription>
                 {player.gamesPlayed} games played &bull; {player.wins} wins
             </DialogDescription>
@@ -221,15 +261,15 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 <div>
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold">Player Bio</h3>
-                        <Button size="sm" onClick={handleGenerateBio} disabled={isLoading || !!bio}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                        <Button size="sm" onClick={handleGenerateBio} disabled={isBioLoading || !!bio}>
+                            {isBioLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                             {getButtonText()}
                         </Button>
                     </div>
 
                     <Card className="mt-2 min-h-[80px] flex items-center justify-center p-4 bg-secondary/50">
-                        {isLoading && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
-                        {!isLoading && !bio && <p className="text-sm text-muted-foreground">Click "Generate Bio" to create a summary!</p>}
+                        {isBioLoading && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
+                        {!isBioLoading && !bio && <p className="text-sm text-muted-foreground">Click "Generate Bio" to create a summary!</p>}
                         {bio && <p className="text-center text-sm prose prose-sm dark:prose-invert">{bio}</p>}
                     </Card>
                 </div>
@@ -237,7 +277,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         </ScrollArea>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
-
-    

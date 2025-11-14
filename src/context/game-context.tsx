@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
-import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction, deleteSessionAction } from '@/lib/actions';
+import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction, deleteSessionAction, updatePlayerAction } from '@/lib/actions';
 
 type GameData = {
   name: string;
@@ -28,6 +28,7 @@ interface GameContextType {
   sessions: Session[];
   addGame: (gameData: GameData) => Promise<Game>;
   addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
+  updatePlayer: (playerId: string, playerData: { name?: string; avatarUrl?: string }) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
@@ -76,6 +77,17 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       return newPlayer;
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  const updatePlayer = useCallback(async (playerId: string, playerData: { name?: string; avatarUrl?: string }) => {
+    setIsLoading(true);
+    try {
+        const updatedPlayer = await updatePlayerAction(playerId, playerData);
+        setPlayers(prevPlayers => prevPlayers.map(p => p.id === playerId ? updatedPlayer : p));
+        return updatedPlayer;
+    } finally {
+        setIsLoading(false);
     }
   }, []);
   
@@ -129,7 +141,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading }}>
       {children}
     </GameContext.Provider>
   );

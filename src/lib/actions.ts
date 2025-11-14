@@ -10,7 +10,8 @@ import {
     addPlayerToDB,
     deleteGameFromDB,
     deletePlayerFromDB,
-    deleteSessionFromDB
+    deleteSessionFromDB,
+    updatePlayerInDB
 } from './data';
 import { searchBgg, getBggDetails } from './bgg';
 
@@ -158,6 +159,27 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
     revalidatePath('/players');
     revalidatePath('/sessions/new');
     return newPlayer;
+}
+
+const updatePlayerSchema = z.object({
+  name: z.string().optional(),
+  avatarUrl: z.string().optional(),
+});
+
+export async function updatePlayerAction(playerId: string, values: z.infer<typeof updatePlayerSchema>) {
+    const validatedFields = updatePlayerSchema.safeParse(values);
+
+    if (!validatedFields.success) {
+        throw new Error('Invalid player data for update.');
+    }
+    
+    const updatedPlayer = await updatePlayerInDB(playerId, validatedFields.data);
+
+    revalidatePath('/players');
+    revalidatePath(`/players/${playerId}`); // Assuming a detail page exists
+    revalidatePath('/');
+    
+    return updatedPlayer;
 }
 
 export async function deleteGame(gameId: string) {

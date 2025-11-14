@@ -78,6 +78,19 @@ export async function addPlayerToDB(player: Player): Promise<Player> {
     return player;
 }
 
+export async function updatePlayerInDB(playerId: string, updatedData: Partial<Player>): Promise<Player> {
+    const players = await readData<Player>(PLAYERS_PATH);
+    const playerIndex = players.findIndex(p => p.id === playerId);
+    if (playerIndex === -1) {
+        throw new Error('Player not found');
+    }
+    const updatedPlayer = { ...players[playerIndex], ...updatedData };
+    players[playerIndex] = updatedPlayer;
+    await writeData(PLAYERS_PATH, players);
+    return updatedPlayer;
+}
+
+
 export async function deleteGameFromDB(gameId: string): Promise<void> {
     let games = await readData<Game>(GAMES_PATH);
     games = games.filter(g => g.id !== gameId);
