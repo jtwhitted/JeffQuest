@@ -63,6 +63,7 @@ const ExtractSessionDetailsOutputSchema = z.object({
   winnerId: z.string().optional().describe('The ID of the winning player.'),
   cooperativeResult: z.enum(['win', 'loss']).optional().describe("The result if it was a cooperative game."),
   scores: z.array(ScoreSchema).optional().describe('An array of player scores.'),
+  durationInMinutes: z.coerce.number().optional().describe('The total duration of the game in minutes. If the user mentions hours, convert it to minutes.'),
 });
 export type ExtractSessionDetailsOutput = z.infer<typeof ExtractSessionDetailsOutputSchema>;
 
@@ -146,6 +147,7 @@ Use the tools provided to find the correct game and player IDs.
 - Determine if the game was cooperative. If it was, determine if the team won or lost.
 - If the game was competitive, identify the winner.
 - Extract any scores mentioned for each player.
+- Extract the game duration. If mentioned in hours, convert it to minutes.
 
 Transcription:
 "{{{transcription}}}"`,

@@ -29,6 +29,7 @@ const sessionFormSchema = z.object({
       score: z.number().optional(),
   })).optional(),
   notes: z.string().optional(),
+  duration: z.coerce.number().optional(),
 }).refine(data => {
     if (data.isCooperative) {
         return !!data.cooperativeResult;

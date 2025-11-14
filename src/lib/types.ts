@@ -36,4 +36,5 @@ export interface Session {
   cooperativeResult?: 'win' | 'loss'; // For co-op games
   scores?: { playerId: string; score?: number }[];
   notes?: string;
+  duration?: number; // Duration in minutes
 }
