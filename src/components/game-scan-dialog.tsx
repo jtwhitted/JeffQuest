@@ -183,4 +183,49 @@ export function GameScanDialog({
             <AlertTitle>Camera Access Denied</AlertTitle>
             <AlertDescription>
               Please grant camera permissions in your browser settings.
-            </Aler<ctrl63>
+            </AlertDescription>
+          </Alert>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Scan Game Box</DialogTitle>
+          <DialogDescription>
+            Point your camera at a board game box. Make sure the title is
+            clear.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+          <video
+            ref={videoRef}
+            className="h-full w-full object-cover"
+            autoPlay
+            playsInline
+            muted
+          />
+          {renderVideoState()}
+          <canvas ref={canvasRef} className="hidden" />
+        </div>
+        
+        <DialogFooter>
+          <Button
+            onClick={handleCaptureAndSearch}
+            disabled={!hasCameraPermission || isLoading}
+            className="w-full"
+          >
+            <Camera className="mr-2 h-4 w-4" />
+            {isLoading ? 'Scanning...' : 'Scan & Search'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
