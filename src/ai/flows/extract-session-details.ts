@@ -85,7 +85,7 @@ const findAndCreatePlayersByNames = ai.defineTool(
     outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
   },
   async ({ names }) => {
-    const playerIds: string[] = [];
+    const playerIds: (string | null)[] = [];
     let newPlayersAdded = false;
 
     for (const name of names) {
@@ -102,11 +102,14 @@ const findAndCreatePlayersByNames = ai.defineTool(
           newPlayersAdded = true;
         } catch (error) {
           console.error(`Failed to create new player "${name}":`, error);
-          // Do not add a placeholder, just skip this player on error.
+          // On failure, do not add anything to the array, it will be filtered out.
+          playerIds.push(null);
         }
       }
     }
-    return { playerIds, newPlayersAdded };
+    // Filter out any nulls that might have been added on error.
+    const validPlayerIds = playerIds.filter((id): id is string => id !== null);
+    return { playerIds: validPlayerIds, newPlayersAdded };
   }
 );
 
