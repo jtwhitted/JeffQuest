@@ -96,11 +96,8 @@ const findAndCreatePlayersByNames = ai.defineTool(
                 playerIds.push(matchedPlayer.id);
             } else {
                 try {
-                    const newPlayer = await addPlayerToDB({
-                        id: `p${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                        name: name,
-                        avatarUrl: `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`,
-                    });
+                    // Call the server action to create the player and get the full player object back
+                    const newPlayer = await addPlayerToDB({ name });
                     allPlayers.push(newPlayer); // Add to in-memory list
                     playerIds.push(newPlayer.id);
                     newPlayersAdded = true;

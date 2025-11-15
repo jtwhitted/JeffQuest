@@ -41,7 +41,7 @@ const transcribeAudioFlow = ai.defineFlow(
   },
   async (input) => {
     const { text } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
+        model: 'googleai/gemini-2.0-flash',
         prompt: [
             { media: { url: input.audioDataUri, contentType: 'audio/webm' } },
             { text: 'Transcribe the spoken words from this audio. Return only the text transcription.' },
