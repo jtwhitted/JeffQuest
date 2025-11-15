@@ -97,6 +97,8 @@ export default function GameLogForm() {
   const [processingMessage, setProcessingMessage] = useState('');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  
+  const [pendingAiResult, setPendingAiResult] = useState<ExtractSessionDetailsOutput | null>(null);
 
   const sortedGames = useMemo(() => {
     return [...games].sort((a, b) => a.name.localeCompare(b.name));
@@ -170,6 +172,74 @@ export default function GameLogForm() {
     }
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
+  const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
+    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
+    if (result.date) {
+        const localDate = new Date(result.date + 'T00:00:00');
+        form.setValue('date', localDate, { shouldValidate: true });
+    }
+    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
+    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
+    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
+    if (result.isCooperative) {
+        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
+    } else {
+        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: true });
+    }
+    
+    if (result.scores && result.scores.length > 0) {
+        const finalPlayerIds = result.playerIds && result.playerIds.length > 0 ? result.playerIds : form.getValues('playerIds');
+        const newScores = finalPlayerIds.map(pid => {
+            const foundScore = result.scores?.find(s => s.playerId === pid);
+            return { playerId: pid, score: foundScore ? foundScore.score : undefined };
+        });
+        form.setValue('scores', newScores, { shouldValidate: true });
+    }
+    
+    toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
+  };
+  
+  // This effect safely populates the form after the player list has been updated.
+  useEffect(() => {
+    if (pendingAiResult) {
+      // Check if all players from the AI result are now present in the context's player list.
+      const allPlayersPresent = pendingAiResult.playerIds?.every(id => players.some(p => p.id === id)) ?? true;
+      if (allPlayersPresent) {
+        populateFormFromAI(pendingAiResult);
+        setPendingAiResult(null); // Clear the pending result after applying it.
+      }
+    }
+  }, [players, pendingAiResult]);
+
+
+  const handleExtractDetails = async (transcription: string) => {
+    if (!transcription) return;
+
+    try {
+        setProcessingMessage('Extracting details...');
+        const result = await extractSessionDetails({ transcription });
+
+        if (!result) {
+            throw new Error("The AI failed to extract any details from the transcription.");
+        }
+        
+        if (result.newPlayersAdded) {
+            toast({ title: "New Players Found!", description: "Refreshing player list..." });
+            // Store the result and trigger a refresh. The useEffect will handle populating the form.
+            setPendingAiResult(result);
+            await refreshData();
+        } else {
+            // No new players, we can populate the form directly.
+            populateFormFromAI(result);
+        }
+
+    } catch(e: any) {
+        console.error('Error extracting details:', e);
+        toast({ variant: 'destructive', title: 'Extraction Failed', description: e.message || 'Could not extract details from the transcription.' });
+    }
+  };
+  
+
   const handleScanComplete = async (results: {id: string, name: string}[], query: string) => {
     setScanDialogOpen(false);
     if (results.length === 1) {
@@ -218,59 +288,6 @@ export default function GameLogForm() {
   const handlePlayerAdded = async () => {
     await refreshData();
   };
-  
-  const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
-    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
-    if (result.date) {
-        const localDate = new Date(result.date + 'T00:00:00');
-        form.setValue('date', localDate, { shouldValidate: true });
-    }
-    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
-    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
-    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
-    if (result.isCooperative) {
-        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
-    } else {
-        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: true });
-    }
-    
-    if (result.scores && result.scores.length > 0) {
-        const finalPlayerIds = result.playerIds && result.playerIds.length > 0 ? result.playerIds : form.getValues('playerIds');
-        const newScores = finalPlayerIds.map(pid => {
-            const foundScore = result.scores?.find(s => s.playerId === pid);
-            return { playerId: pid, score: foundScore ? foundScore.score : undefined };
-        });
-        form.setValue('scores', newScores, { shouldValidate: true });
-    }
-    
-    toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
-  };
-
-
-  const handleExtractDetails = async (transcription: string) => {
-    if (!transcription) return;
-
-    try {
-        setProcessingMessage('Extracting details...');
-        const result = await extractSessionDetails({ transcription });
-
-        if (!result) {
-            throw new Error("The AI failed to extract any details from the transcription.");
-        }
-
-        if (result.newPlayersAdded) {
-            toast({ title: "New Players Found!", description: "Refreshing player list..." });
-            await refreshData();
-        }
-        
-        populateFormFromAI(result);
-
-    } catch(e: any) {
-        console.error('Error extracting details:', e);
-        toast({ variant: 'destructive', title: 'Extraction Failed', description: e.message || 'Could not extract details from the transcription.' });
-    }
-  };
-
 
   const handleToggleRecording = async () => {
     if (isRecording) {
