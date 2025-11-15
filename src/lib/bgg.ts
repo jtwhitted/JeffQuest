@@ -1,4 +1,3 @@
-
 'use server';
 
 import { XMLParser } from 'fast-xml-parser';
@@ -152,6 +151,22 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
 }
 
 
+export async function getBggCollection(username: string): Promise<string[]> {
+    const params: Record<string, string> = { username, own: '1' };
 
+    const xmlData = await bggFetch('collection', params);
+    const parsed = parser.parse(xmlData);
 
+    if (parsed.errors?.error) {
+        // BGG returns a 200 OK even for errors like "invalid user name"
+        throw new Error(`BGG Error: ${parsed.errors.error.message}`);
+    }
 
+    if (!parsed.items?.item) {
+        return []; // User has an empty collection or an invalid username was handled gracefully by BGG
+    }
+
+    const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
+    
+    return items.map((item: any) => item.objectid.toString());
+}

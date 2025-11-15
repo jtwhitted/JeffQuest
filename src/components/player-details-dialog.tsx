@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -11,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake, Save } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake, Save, Download } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -22,7 +21,7 @@ import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { useGames } from '@/context/game-context';
 import { LegendaryPlayerCard } from './legendary-player-card';
 import { generateLegendaryCard, GenerateLegendaryCardOutput } from '@/ai/flows/generate-legendary-card';
-import { updatePlayerAction } from '@/lib/actions';
+import { updatePlayerAction, importBggCollectionAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -70,11 +69,12 @@ type LegendaryCardState = {
 
 export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetailsDialogProps) {
   const { toast } = useToast();
-  const { updatePlayer } = useGames();
+  const { updatePlayer, refreshData } = useGames();
   const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, data: null });
   const [isCaptureOpen, setCaptureOpen] = useState(false);
   const [bggUsername, setBggUsername] = useState(player.bggUsername || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Conjuring epicness...');
   
 
@@ -164,6 +164,28 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         });
     } finally {
         setIsSaving(false);
+    }
+  };
+
+  const handleImportCollection = async () => {
+    if (!bggUsername) return;
+    setIsImporting(true);
+    try {
+        const result = await importBggCollectionAction(bggUsername);
+        toast({
+            title: 'Import Complete',
+            description: `${result.importedCount} new games were added to your library.`,
+        });
+        await refreshData();
+    } catch (error: any) {
+        console.error('Error importing BGG collection:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Import Failed',
+            description: error.message || 'Could not import the BGG collection.',
+        });
+    } finally {
+        setIsImporting(false);
     }
   };
   
@@ -385,26 +407,40 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                     </AccordionItem>
                 </Accordion>
                 )}
+              
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="bggUsername">BGG Username</Label>
+                      <div className="flex items-center gap-2">
+                          <Input 
+                              id="bggUsername"
+                              value={bggUsername}
+                              onChange={(e) => setBggUsername(e.target.value)}
+                              placeholder="e.g. BoardGameGeek"
+                          />
+                          <Button 
+                              size="icon" 
+                              onClick={handleBggUsernameSave} 
+                              disabled={isSaving || bggUsername === player.bggUsername}
+                          >
+                              {isSaving ? <Loader2 className="animate-spin"/> : <Save />}
+                              <span className="sr-only">Save BGG Username</span>
+                          </Button>
+                      </div>
+                  </div>
 
-                <div className="space-y-2">
-                    <Label htmlFor="bggUsername">BGG Username</Label>
-                    <div className="flex items-center gap-2">
-                        <Input 
-                            id="bggUsername"
-                            value={bggUsername}
-                            onChange={(e) => setBggUsername(e.target.value)}
-                            placeholder="e.g. BoardGameGeek"
-                        />
-                        <Button 
-                            size="icon" 
-                            onClick={handleBggUsernameSave} 
-                            disabled={isSaving || bggUsername === player.bggUsername}
-                        >
-                            {isSaving ? <Loader2 className="animate-spin"/> : <Save />}
-                            <span className="sr-only">Save BGG Username</span>
-                        </Button>
-                    </div>
-                </div>
+                  {bggUsername && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={handleImportCollection}
+                      disabled={isImporting}
+                    >
+                      {isImporting ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2" />}
+                      {isImporting ? 'Importing...' : 'Import BGG Collection'}
+                    </Button>
+                  )}
+               </div>
 
 
               <div>

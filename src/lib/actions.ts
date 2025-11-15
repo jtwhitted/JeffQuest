@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -11,9 +10,10 @@ import {
     deleteGameFromDB,
     deletePlayerFromDB,
     deleteSessionFromDB,
-    updatePlayerInDB
+    updatePlayerInDB,
+    getInitialData
 } from './data';
-import { searchBgg, getBggDetails } from './bgg';
+import { searchBgg, getBggDetails, getBggCollection } from './bgg';
 
 // Server Actions for data mutation
 
@@ -246,4 +246,54 @@ export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {
     console.error('BGG details action failed:', error);
     return [];
   }
+}
+
+export async function importBggCollectionAction(username: string): Promise<{ importedCount: number }> {
+    if (!username) {
+        throw new Error('BGG username is required.');
+    }
+
+    try {
+        // 1. Fetch collection IDs from BGG
+        const bggIds = await getBggCollection(username);
+        if (bggIds.length === 0) {
+            return { importedCount: 0 };
+        }
+
+        // 2. Get current games from our DB
+        const { games: currentGames } = await getInitialData();
+        const currentBggIds = new Set(currentGames.map(g => g.bggId).filter(Boolean));
+
+        // 3. Find which games are new
+        const newBggIds = bggIds.filter(id => !currentBggIds.has(id));
+        
+        if (newBggIds.length === 0) {
+            return { importedCount: 0 };
+        }
+        
+        // 4. Fetch details for the new games
+        const newGamesDetails = await getBggDetails(newBggIds, true);
+        
+        // 5. Add new games to our DB
+        for (const gameDetails of newGamesDetails) {
+            const newGame: Game = {
+                id: `g${Date.now()}-${Math.random()}`,
+                ...gameDetails,
+                name: gameDetails.name || 'Unknown Name',
+                category: gameDetails.category || [],
+                imageUrl: gameDetails.imageUrl || '',
+                minPlayers: gameDetails.minPlayers || 1,
+                maxPlayers: gameDetails.maxPlayers || 1,
+            };
+            await addGameToDB(newGame);
+        }
+
+        // 6. Revalidate path and return count
+        revalidatePath('/games');
+        return { importedCount: newGamesDetails.length };
+
+    } catch (error: any) {
+        console.error('BGG collection import failed:', error);
+        throw new Error(error.message || 'Failed to import collection from BGG.');
+    }
 }
