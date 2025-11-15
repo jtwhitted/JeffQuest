@@ -1,3 +1,4 @@
+
 'use client';
 
 import { z } from 'zod';
@@ -515,43 +516,57 @@ export default function GameLogForm() {
           name="playerIds"
           render={({ field }) => (
             <FormItem>
-                <div className="mb-4 flex items-center justify-between">
-                    <FormLabel>Players</FormLabel>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setAddPlayerDialogOpen(true)}
-                    >
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Add Player
-                    </Button>
-                </div>
-                <div className="space-y-2 rounded-md border p-4">
-                    {players.map((player) => (
-                    <FormItem
-                        key={player.id}
-                        className="flex flex-row items-center space-x-3 space-y-0"
-                    >
-                        <FormControl>
-                        <Checkbox
-                            checked={field.value?.includes(player.id)}
-                            onCheckedChange={(checked) => {
-                            return checked
-                                ? field.onChange([...(field.value || []), player.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                    (value) => value !== player.id
-                                    )
-                                );
-                            }}
-                        />
-                        </FormControl>
-                        <FormLabel className="font-normal">{player.name}</FormLabel>
-                    </FormItem>
-                    ))}
-                </div>
-                <FormMessage />
+              <div className="mb-4 flex items-center justify-between">
+                <FormLabel>Players</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAddPlayerDialogOpen(true)}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add Player
+                </Button>
+              </div>
+              <div className="space-y-2 rounded-md border p-4">
+                {players.map((player) => (
+                  <FormField
+                    key={player.id}
+                    control={form.control}
+                    name="playerIds"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={player.id}
+                          className="flex flex-row items-center space-x-3 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes(player.id)}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([
+                                      ...(field.value || []),
+                                      player.id,
+                                    ])
+                                  : field.onChange(
+                                      field.value?.filter(
+                                        (value) => value !== player.id
+                                      )
+                                    );
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {player.name}
+                          </FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -709,3 +724,5 @@ export default function GameLogForm() {
     </>
   );
 }
+
+    
