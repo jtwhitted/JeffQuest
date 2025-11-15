@@ -210,7 +210,7 @@ export default function GameLogForm() {
         setPendingAiResult(null); // Clear the pending result.
       }
     }
-  }, [players, pendingAiResult]); // Dependency array is key
+  }, [players, pendingAiResult, form]); // Dependency array is key
 
 
   const handleExtractDetails = async (transcription: string) => {
@@ -224,9 +224,12 @@ export default function GameLogForm() {
             throw new Error("The AI failed to extract any details from the transcription.");
         }
         
-        setPendingAiResult(result);
-        
-        if (result.newPlayersAdded) {
+        // If there are no new players, populate the form directly.
+        if (!result.newPlayersAdded) {
+            populateFormFromAI(result);
+        } else {
+            // If there are new players, store the result and wait for the player list to update.
+            setPendingAiResult(result);
             toast({ title: "New Players Found!", description: "Refreshing player list..." });
             await refreshData();
         }
