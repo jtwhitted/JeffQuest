@@ -27,7 +27,6 @@ function findBestMatch(str: string, target: string[]): { bestMatch: { target: st
         const lowerCaseTarget = t.toLowerCase();
         let rating = 0;
         
-        // Simple similarity check based on character overlap and substrings
         if (lowerCaseTarget.includes(lowerCaseStr) || lowerCaseStr.includes(lowerCaseTarget)) {
             rating = Math.max(lowerCaseStr.length, lowerCaseTarget.length);
         }
@@ -41,10 +40,16 @@ function findBestMatch(str: string, target: string[]): { bestMatch: { target: st
 }
 
 // Define the schema for the data we want to extract
-const ScoreSchema = z.object({
-  playerId: z.string().describe('The unique ID of the player.'),
+const ScoreSchemaFromAI = z.object({
+  name: z.string().describe("The name of the player who achieved the score."),
   score: z.coerce.number().optional().describe('The score of the player.'),
 });
+
+const FinalScoreSchema = z.object({
+  playerId: z.string(),
+  score: z.coerce.number().optional(),
+});
+
 
 const ExtractSessionDetailsOutputSchema = z.object({
   gameId: z.string().optional().describe('The ID of the game that was played.'),
@@ -53,11 +58,13 @@ const ExtractSessionDetailsOutputSchema = z.object({
   isCooperative: z.boolean().optional().describe('Whether the game was cooperative.'),
   winnerId: z.string().optional().describe('The ID of the winning player.'),
   cooperativeResult: z.enum(['win', 'loss']).optional().describe("The result if it was a cooperative game."),
-  scores: z.array(ScoreSchema).optional().describe('An array of player scores.'),
+  scores: z.array(ScoreSchemaFromAI).optional().describe("An array of player scores, including the player's name."),
   durationInMinutes: z.coerce.number().optional().describe('The total duration of the game in minutes. If the user mentions hours, convert it to minutes.'),
   date: z.string().optional().describe("The date the game was played. If the user says 'yesterday' or 'last Tuesday', resolve it to a specific date in YYYY-MM-DD format. Today's date is " + new Date().toISOString().split('T')[0] + "."),
 });
-export type ExtractSessionDetailsOutput = z.infer<typeof ExtractSessionDetailsOutputSchema>;
+export type ExtractSessionDetailsOutput = z.infer<typeof ExtractSessionDetailsOutputSchema> & {
+    scores?: z.infer<typeof FinalScoreSchema>[]; // Override with the final schema
+};
 
 const ExtractSessionDetailsInputSchema = z.object({
   transcription: z.string().describe('The transcribed text from the game session.'),
@@ -117,20 +124,17 @@ const findAndCreatePlayersByNames = ai.defineTool(
             if (matchedPlayer) {
                 playerIds.push(matchedPlayer.id);
             } else {
-                // Player not found, create a new one
                 try {
                     const newPlayer = await addPlayerToDB({
                         id: `p${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
                         name: name,
                         avatarUrl: `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`,
                     });
-                    // Add to our in-memory list for this session and add their new ID
                     allPlayers.push(newPlayer);
                     playerIds.push(newPlayer.id);
                     newPlayersAdded = true;
                 } catch (error) {
                     console.error(`Failed to create new player "${name}":`, error);
-                    // Decide if you want to throw or just skip this player
                 }
             }
         }
@@ -159,7 +163,7 @@ It is very important to set the 'newPlayersAdded' flag to true if the tool creat
 - Identify the date the game was played. If no date is mentioned, do not return a date.
 - Determine if the game was cooperative. If it was, determine if the team won or lost.
 - If the game was competitive, identify the winner.
-- Extract any scores mentioned for each player.
+- Extract any scores mentioned for each player. Make sure to include the player's name with their score.
 - Extract the game duration. If mentioned in hours, convert it to minutes.
 
 Transcription:
@@ -170,7 +174,7 @@ const extractDetailsFlow = ai.defineFlow(
   {
     name: 'extractDetailsFlow',
     inputSchema: ExtractSessionDetailsInputSchema,
-    outputSchema: ExtractSessionDetailsOutputSchema,
+    outputSchema: z.any(), // Use z.any() because we will transform the output
   },
   async (input) => {
     // Ensure latest data is loaded before running
@@ -179,6 +183,23 @@ const extractDetailsFlow = ai.defineFlow(
     if (!output) {
       throw new Error("The AI failed to extract any details from the transcription.");
     }
-    return output;
+
+    // Transform scores to include playerId
+    const finalScores: z.infer<typeof FinalScoreSchema>[] = [];
+    if (output.scores) {
+        for (const score of output.scores) {
+            const playerNames = allPlayers.map(p => p.name);
+            const bestMatch = findBestMatch(score.name, playerNames);
+            const matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
+            if (matchedPlayer) {
+                finalScores.push({ playerId: matchedPlayer.id, score: score.score });
+            }
+        }
+    }
+    
+    return {
+        ...output,
+        scores: finalScores, // Replace the AI's scores with our processed ones
+    };
   }
 );
