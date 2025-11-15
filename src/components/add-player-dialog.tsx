@@ -157,7 +157,7 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
                                   BGG Username (Optional)
                                   </FormLabel>
                                   <FormControl>
-                                      <Input id="bggUsername" {...field} className="col-span-3" />
+                                      <Input id="bggUsername" placeholder="e.g. BoardGameGeek" {...field} className="col-span-3" />
                                   </FormControl>
                                   <FormMessage />
                               </FormItem>
