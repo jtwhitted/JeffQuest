@@ -97,7 +97,7 @@ export default function GamesPage() {
                     <Link href={`/games/${game.id}`} className="flex">
                         <CardHeader className="relative flex flex-row items-start gap-4 flex-1">
                         {game.imageUrl ? (
-                            <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.name} boardgame`} unoptimized />
+                            <Image src={game.imageUrl} alt={game.name} width={80} height={80} className="rounded-lg object-cover" data-ai-hint={`${game.name} boardgame`} />
                         ) : (
                             <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-muted">
                                 <Dices className="h-8 w-8 text-muted-foreground" />

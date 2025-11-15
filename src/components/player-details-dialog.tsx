@@ -231,7 +231,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                      <div className="flex items-center justify-between">
                        <span className="flex items-center text-muted-foreground"><Heart className="mr-2"/> Favorite Game</span>
                        <Link href={`/games/${player.favoriteGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
-                          <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} width={24} height={24} className="rounded-sm object-cover" unoptimized/>
+                          <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} width={24} height={24} className="rounded-sm object-cover" />
                           <span>{player.favoriteGame.name}</span>
                        </Link>
                      </div>
@@ -293,7 +293,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Shield className="mr-2"/> Best Game</span>
                             <Link href={`/games/${player.bestGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
-                                <Image src={player.bestGame.imageUrl} alt={player.bestGame.name} width={24} height={24} className="rounded-sm object-cover" unoptimized/>
+                                <Image src={player.bestGame.imageUrl} alt={player.bestGame.name} width={24} height={24} className="rounded-sm object-cover" />
                                 <span>{player.bestGame.name}</span>
                             </Link>
                         </div>
@@ -313,7 +313,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Dices className="mr-2"/> Worst Game</span>
                             <Link href={`/games/${player.worstGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
-                                <Image src={player.worstGame.imageUrl} alt={player.worstGame.name} width={24} height={24} className="rounded-sm object-cover" unoptimized/>
+                                <Image src={player.worstGame.imageUrl} alt={player.worstGame.name} width={24} height={24} className="rounded-sm object-cover" />
                                 <span>{player.worstGame.name}</span>
                             </Link>
                         </div>
@@ -340,7 +340,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                             <li key={gh.game.id}>
                                 <div className="flex items-start gap-4">
                                 <Link href={`/games/${gh.game.id}`}>
-                                    <Image src={gh.game.imageUrl} alt={gh.game.name} width={48} height={48} className="rounded-md object-cover h-12 w-12" unoptimized/>
+                                    <Image src={gh.game.imageUrl} alt={gh.game.name} width={48} height={48} className="rounded-md object-cover h-12 w-12" />
                                 </Link>
                                 <div className="flex-1 text-sm">
                                     <Link href={`/games/${gh.game.id}`} className="font-semibold hover:underline">{gh.game.name}</Link>

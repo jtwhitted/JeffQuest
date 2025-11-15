@@ -59,7 +59,7 @@ export default function SessionCard({ session, game, players, winner, onDelete }
           fill
           className="object-cover"
           data-ai-hint={`${game.category?.[0]} game`}
-          unoptimized
+          
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         <div className="relative flex h-full flex-col justify-between p-4">

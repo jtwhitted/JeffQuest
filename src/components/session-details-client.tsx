@@ -96,7 +96,7 @@ export default function SessionDetailsClient({ session, game, players, winner }:
       <div className="space-y-8 lg:col-span-2">
         <Card>
             <CardHeader className="relative h-64 overflow-hidden rounded-t-lg p-0">
-                <Image src={game.imageUrl} alt={game.name} fill className="object-cover" data-ai-hint={`${game.category?.[0]} game art`} unoptimized />
+                <Image src={game.imageUrl} alt={game.name} fill className="object-cover" data-ai-hint={`${game.category?.[0]} game art`} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                  <div className="absolute bottom-0 left-0 p-6">
                     <h2 className="text-3xl font-bold text-white">{game.name}</h2>

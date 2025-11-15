@@ -41,7 +41,7 @@ export function LegendaryPlayerCard({
             alt={`Fantasy portrait of ${name}`}
             fill
             className="object-cover border-y-4 border-amber-900/50"
-            unoptimized
+            
           />
            <div className="absolute inset-0 bg-gradient-to-t from-stone-800/80 via-transparent to-transparent" />
         </div>
