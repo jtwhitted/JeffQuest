@@ -13,32 +13,6 @@ import { z } from 'zod';
 import { getInitialData, addPlayerToDB } from '@/lib/data';
 import type { Game, Player } from '@/lib/types';
 
-// Helper function to find the best match for a string in an array of strings.
-// This is a simplified similarity check.
-function findBestMatch(str: string, target: string[]): { bestMatch: { target: string } | null } {
-    if (!str || !target || target.length === 0) {
-        return { bestMatch: null };
-    }
-
-    let bestMatch = { target: '', rating: 0 };
-    const lowerCaseStr = str.toLowerCase();
-
-    for (const t of target) {
-        const lowerCaseTarget = t.toLowerCase();
-        let rating = 0;
-        
-        if (lowerCaseTarget.includes(lowerCaseStr) || lowerCaseStr.includes(lowerCaseTarget)) {
-            rating = Math.max(lowerCaseStr.length, lowerCaseTarget.length);
-        }
-
-        if (rating > bestMatch.rating) {
-            bestMatch = { target: t, rating: rating };
-        }
-    }
-
-    return bestMatch.rating > 0 ? { bestMatch: { target: bestMatch.target } } : { bestMatch: null };
-}
-
 // Define the schema for the data we want to extract
 const ScoreSchemaFromAI = z.object({
   name: z.string().describe("The name of the player who achieved the score."),
@@ -97,9 +71,8 @@ const findGameByName = ai.defineTool(
       outputSchema: z.object({ gameId: z.string() }),
     },
     async ({ name }) => {
-        const gameNames = allGames.map(g => g.name);
-        const bestMatch = findBestMatch(name, gameNames);
-        const matchedGame = allGames.find(g => g.name === bestMatch.bestMatch?.target);
+        const lowerCaseName = name.toLowerCase();
+        const matchedGame = allGames.find(g => g.name.toLowerCase() === lowerCaseName);
         return { gameId: matchedGame?.id || '' };
     }
 );
@@ -117,9 +90,8 @@ const findAndCreatePlayersByNames = ai.defineTool(
         let newPlayersAdded = false;
         
         for (const name of names) {
-            const playerNames = allPlayers.map(p => p.name);
-            const bestMatch = findBestMatch(name, playerNames);
-            let matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
+            const lowerCaseName = name.toLowerCase();
+            let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
             
             if (matchedPlayer) {
                 playerIds.push(matchedPlayer.id);
@@ -130,7 +102,7 @@ const findAndCreatePlayersByNames = ai.defineTool(
                         name: name,
                         avatarUrl: `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`,
                     });
-                    allPlayers.push(newPlayer);
+                    allPlayers.push(newPlayer); // Add to in-memory list
                     playerIds.push(newPlayer.id);
                     newPlayersAdded = true;
                 } catch (error) {
@@ -188,9 +160,8 @@ const extractDetailsFlow = ai.defineFlow(
     const finalScores: z.infer<typeof FinalScoreSchema>[] = [];
     if (output.scores) {
         for (const score of output.scores) {
-            const playerNames = allPlayers.map(p => p.name);
-            const bestMatch = findBestMatch(score.name, playerNames);
-            const matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
+            const lowerCaseName = score.name.toLowerCase();
+            const matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
             if (matchedPlayer) {
                 finalScores.push({ playerId: matchedPlayer.id, score: score.score });
             }
