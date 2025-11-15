@@ -78,38 +78,36 @@ const findGameByName = ai.defineTool(
 
 // Tool to find players by name, and create them if they don't exist
 const findAndCreatePlayersByNames = ai.defineTool(
-    {
-      name: 'findAndCreatePlayersByNames',
-      description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
-      inputSchema: z.object({ names: z.array(z.string()) }),
-      outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
-    },
-    async ({ names }) => {
-        const playerIds: string[] = [];
-        let newPlayersAdded = false;
-        
-        for (const name of names) {
-            const lowerCaseName = name.toLowerCase();
-            let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
-            
-            if (matchedPlayer) {
-                playerIds.push(matchedPlayer.id);
-            } else {
-                try {
-                    // Call the server action to create the player and get the full player object back
-                    const newPlayer = await addPlayerToDB({ name });
-                    allPlayers.push(newPlayer); // Add to in-memory list
-                    playerIds.push(newPlayer.id);
-                    newPlayersAdded = true;
-                } catch (error) {
-                    console.error(`Failed to create new player "${name}":`, error);
-                    // Push a placeholder that can be filtered out later to avoid schema errors
-                    playerIds.push('');
-                }
-            }
+  {
+    name: 'findAndCreatePlayersByNames',
+    description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
+    inputSchema: z.object({ names: z.array(z.string()) }),
+    outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
+  },
+  async ({ names }) => {
+    const playerIds: string[] = [];
+    let newPlayersAdded = false;
+
+    for (const name of names) {
+      const lowerCaseName = name.toLowerCase();
+      let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
+
+      if (matchedPlayer) {
+        playerIds.push(matchedPlayer.id);
+      } else {
+        try {
+          const newPlayer = await addPlayerToDB({ name });
+          allPlayers.push(newPlayer); // Add to in-memory list for this session
+          playerIds.push(newPlayer.id);
+          newPlayersAdded = true;
+        } catch (error) {
+          console.error(`Failed to create new player "${name}":`, error);
+          // Do not add a placeholder, just skip this player on error.
         }
-        return { playerIds: playerIds.filter(Boolean), newPlayersAdded };
+      }
     }
+    return { playerIds, newPlayersAdded };
+  }
 );
 
 
