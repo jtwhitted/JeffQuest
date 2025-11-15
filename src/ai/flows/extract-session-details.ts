@@ -86,9 +86,10 @@ const findAndCreatePlayersByNames = ai.defineTool(
   },
   async ({ names }) => {
     let newPlayersAdded = false;
+    
     const playerProcessingPromises = names.map(async (name) => {
       const lowerCaseName = name.toLowerCase();
-      let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
+      const matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
 
       if (matchedPlayer) {
         return matchedPlayer.id;
@@ -97,10 +98,10 @@ const findAndCreatePlayersByNames = ai.defineTool(
           const newPlayer = await addPlayerToDB({ name });
           allPlayers.push(newPlayer); // Add to in-memory list for this session
           newPlayersAdded = true;
-          return newPlayer.id; // Return the valid ID
+          return newPlayer.id;
         } catch (error) {
           console.error(`Failed to create new player "${name}":`, error);
-          return null; // Return null on failure
+          return null; // Return null on failure so it can be filtered out
         }
       }
     });
