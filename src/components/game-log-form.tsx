@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -639,23 +639,25 @@ export default function GameLogForm() {
         )}
 
         {selectedPlayers.length > 0 && (
-            <Controller
-                control={form.control}
-                name="scores"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Scores (Optional)</FormLabel>
-                        <div className="space-y-2">
-                        {selectedPlayers.map((player, index) => (
-                            <div key={player.id} className="flex items-center gap-4">
-                                <Label htmlFor={`scores.${index}.score`} className="w-24 shrink-0">{player.name}</Label>
+            <FormItem>
+                <FormLabel>Scores (Optional)</FormLabel>
+                <div className="space-y-2">
+                {selectedPlayers.map((player, index) => (
+                    <FormField
+                    key={player.id}
+                    control={form.control}
+                    name={`scores.${index}.score`}
+                    render={({ field }) => (
+                        <FormItem className="flex items-center gap-4">
+                            <Label htmlFor={`scores.${index}.score`} className="w-24 shrink-0">{player.name}</Label>
+                            <FormControl>
                                 <Input 
                                     id={`scores.${index}.score`}
                                     type="number"
                                     placeholder="Enter score"
-                                    value={field.value?.find(s => s.playerId === player.id)?.score ?? ''}
+                                    {...field}
                                     onChange={(e) => {
-                                        const newScores = [...(field.value || [])];
+                                        const newScores = [...(form.getValues('scores') || [])];
                                         const playerIndex = newScores.findIndex(s => s.playerId === player.id);
                                         const scoreValue = e.target.valueAsNumber;
                                         if (playerIndex > -1) {
@@ -663,15 +665,17 @@ export default function GameLogForm() {
                                         } else {
                                             newScores.push({ playerId: player.id, score: isNaN(scoreValue) ? undefined : scoreValue });
                                         }
-                                        field.onChange(newScores);
+                                        form.setValue('scores', newScores, { shouldValidate: true });
                                     }}
+                                    value={form.getValues('scores')?.find(s => s.playerId === player.id)?.score ?? ''}
                                 />
-                            </div>
-                        ))}
-                        </div>
-                    </FormItem>
-                )}
-            />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                    />
+                ))}
+                </div>
+            </FormItem>
         )}
 
         <FormField
