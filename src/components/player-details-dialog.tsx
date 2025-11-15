@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff, Link as LinkIcon, Flame, Snowflake, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff, Link as LinkIcon, Flame, Snowflake } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -21,7 +21,6 @@ import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { useGames } from '@/context/game-context';
 import { LegendaryPlayerCard } from './legendary-player-card';
 import { generateLegendaryCard, GenerateLegendaryCardOutput } from '@/ai/flows/generate-legendary-card';
-import { generateFantasyPortrait } from '@/ai/flows/generate-fantasy-portrait';
 import { updatePlayerAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
@@ -65,13 +64,11 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, data: null });
   const [isCaptureOpen, setCaptureOpen] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Conjuring epicness...');
-  const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
-  const [fantasyPortraitUri, setFantasyPortraitUri] = useState<string | null>(null);
+  
 
   // Effect to populate the card state if the player already has legendary data
   useEffect(() => {
     if (open) { // Only run when the dialog is open
-      setFantasyPortraitUri(null); // Reset fantasy portrait on open
       if (player.legendaryTitle && player.legendaryBio) {
         setLegendaryCardState({
           loading: false,
@@ -134,31 +131,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             title: 'AI Error',
             description: errorMessage,
         });
-    }
-  };
-
-  const handleGeneratePortrait = async () => {
-    if (!legendaryCardState.data?.bio) return;
-    setIsGeneratingPortrait(true);
-    try {
-      const { fantasyPortraitDataUri } = await generateFantasyPortrait({
-        avatarDataUri: player.avatarUrl,
-        bio: legendaryCardState.data.bio,
-      });
-      setFantasyPortraitUri(fantasyPortraitDataUri);
-      toast({
-        title: 'Fantasy Portrait Created!',
-        description: 'A new artistic interpretation has been generated.',
-      });
-    } catch (error: any) {
-      console.error('Error generating fantasy portrait:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Portrait Generation Failed',
-        description: error.message || 'Could not generate the fantasy portrait.',
-      });
-    } finally {
-      setIsGeneratingPortrait(false);
     }
   };
   
@@ -360,14 +332,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                             {getButtonText()}
                         </Button>
                     </div>
-                    {legendaryCardState.data && (
-                        <div className="flex items-center justify-end">
-                            <Button size="sm" variant="secondary" onClick={handleGeneratePortrait} disabled={isGeneratingPortrait}>
-                                {isGeneratingPortrait ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
-                                {isGeneratingPortrait ? 'Generating Portrait...' : 'Generate Fantasy Portrait'}
-                            </Button>
-                        </div>
-                    )}
+                    
                 </div>
 
                 <Card className="mt-2 min-h-[200px] flex items-center justify-center p-4 bg-secondary/50">
@@ -386,7 +351,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                       name={player.name}
                       title={legendaryCardState.data.title}
                       bio={legendaryCardState.data.bio}
-                      avatarDataUri={fantasyPortraitUri || player.avatarUrl}
+                      avatarDataUri={player.avatarUrl}
                       wins={player.wins}
                       gamesPlayed={player.gamesPlayed}
                       winRate={player.winRate}
