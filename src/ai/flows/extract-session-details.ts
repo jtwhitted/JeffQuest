@@ -78,40 +78,37 @@ const findGameByName = ai.defineTool(
 
 // Tool to find players by name, and create them if they don't exist
 const findAndCreatePlayersByNames = ai.defineTool(
-  {
-    name: 'findAndCreatePlayersByNames',
-    description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
-    inputSchema: z.object({ names: z.array(z.string()) }),
-    outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
-  },
-  async ({ names }) => {
-    let newPlayersAdded = false;
-    const validPlayerIds: string[] = [];
-
-    for (const name of names) {
-      const lowerCaseName = name.toLowerCase();
-      const matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
-
-      if (matchedPlayer) {
-        validPlayerIds.push(matchedPlayer.id);
-      } else {
-        try {
-          const newPlayer = await addPlayerToDB({ name });
-          // Add the new player to our in-memory list for this session
-          // This prevents trying to create the same player twice in one run
-          allPlayers.push(newPlayer);
-          validPlayerIds.push(newPlayer.id);
-          newPlayersAdded = true;
-        } catch (error) {
-          console.error(`Failed to create new player "${name}":`, error);
-          // If creation fails, we simply skip this player and don't add anything to the array.
+    {
+      name: 'findAndCreatePlayersByNames',
+      description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
+      inputSchema: z.object({ names: z.array(z.string()) }),
+      outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
+    },
+    async ({ names }) => {
+      let newPlayersAdded = false;
+      const validPlayerIds: string[] = [];
+  
+      for (const name of names) {
+        const lowerCaseName = name.toLowerCase();
+        let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
+  
+        if (matchedPlayer) {
+          validPlayerIds.push(matchedPlayer.id);
+        } else {
+          try {
+            const newPlayer = await addPlayerToDB({ name });
+            allPlayers.push(newPlayer);
+            validPlayerIds.push(newPlayer.id);
+            newPlayersAdded = true;
+          } catch (error) {
+            console.error(`Failed to create new player "${name}":`, error);
+          }
         }
       }
+  
+      return { playerIds: validPlayerIds, newPlayersAdded };
     }
-
-    return { playerIds: validPlayerIds, newPlayersAdded };
-  }
-);
+  );
 
 
 export async function extractSessionDetails(input: ExtractSessionDetailsInput): Promise<ExtractSessionDetailsOutput> {
