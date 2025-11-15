@@ -305,7 +305,9 @@ export default function GameLogForm() {
                 const { text } = await transcribeAudio({ audioDataUri: base64Audio });
                 
                 const currentNotes = form.getValues('notes') || '';
-                form.setValue('notes', text);
+                const newNotes = currentNotes ? `${currentNotes}\n\n${text}` : text;
+                form.setValue('notes', newNotes);
+
 
                 if (currentNotes) {
                     toast({ title: 'Transcription Appended' });
@@ -701,5 +703,7 @@ export default function GameLogForm() {
     </>
   );
 }
+
+    
 
     
