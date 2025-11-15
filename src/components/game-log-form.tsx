@@ -217,6 +217,7 @@ export default function GameLogForm() {
     if (!transcription) return;
 
     try {
+        setIsProcessing(true);
         setProcessingMessage('Extracting details...');
         const result = await extractSessionDetails({ transcription });
 
@@ -229,14 +230,17 @@ export default function GameLogForm() {
             populateFormFromAI(result);
         } else {
             // If there are new players, store the result and wait for the player list to update.
-            setPendingAiResult(result);
             toast({ title: "New Players Found!", description: "Refreshing player list..." });
+            setPendingAiResult(result);
             await refreshData();
         }
 
     } catch(e: any) {
         console.error('Error extracting details:', e);
         toast({ variant: 'destructive', title: 'Extraction Failed', description: e.message || 'Could not extract details from the transcription.' });
+    } finally {
+        setIsProcessing(false);
+        setProcessingMessage('');
     }
   };
   
