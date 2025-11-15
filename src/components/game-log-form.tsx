@@ -200,15 +200,17 @@ export default function GameLogForm() {
   };
   
   useEffect(() => {
+    // This effect runs when the list of available players changes, or when we have a pending AI result to process.
     if (pendingAiResult) {
-      // Check if all players from the AI result are now present in the context's player list.
-      const allPlayersPresent = pendingAiResult.playerIds?.every(id => players.some(p => p.id === id)) ?? true;
-      if (allPlayersPresent) {
+      const allPlayersInResultAreAvailable = pendingAiResult.playerIds?.every(id => players.some(p => p.id === id));
+      
+      if (allPlayersInResultAreAvailable) {
+        // Now it's safe to populate the form.
         populateFormFromAI(pendingAiResult);
-        setPendingAiResult(null); // Clear the pending result after applying it.
+        setPendingAiResult(null); // Clear the pending result.
       }
     }
-  }, [players, pendingAiResult]);
+  }, [players, pendingAiResult]); // Dependency array is key
 
 
   const handleExtractDetails = async (transcription: string) => {
@@ -222,7 +224,6 @@ export default function GameLogForm() {
             throw new Error("The AI failed to extract any details from the transcription.");
         }
         
-        // Always set the pending result. The useEffect will handle populating.
         setPendingAiResult(result);
         
         if (result.newPlayersAdded) {
@@ -502,55 +503,46 @@ export default function GameLogForm() {
             />
         </div>
 
-
         <FormField
           control={form.control}
           name="playerIds"
-          render={() => (
+          render={({ field }) => (
             <FormItem>
-                <div className="flex items-center justify-between">
-                    <FormLabel>Players</FormLabel>
-                    <div className='flex items-center gap-2'>
-                       <Button type="button" variant="outline" size="sm" onClick={() => setAddPlayerDialogOpen(true)}>
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Add Player
-                        </Button>
-                    </div>
-                </div>
+              <div className="mb-4 flex items-center justify-between">
+                <FormLabel>Players</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAddPlayerDialogOpen(true)}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add Player
+                </Button>
+              </div>
               <div className="space-y-2 rounded-md border p-4">
-              {players.map((player) => (
-                <FormField
-                  key={player.id}
-                  control={form.control}
-                  name="playerIds"
-                  render={({ field }) => {
-                    return (
-                      <FormItem
-                        key={player.id}
-                        className="flex flex-row items-start space-x-3 space-y-0"
-                      >
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(player.id)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...(field.value || []), player.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value) => value !== player.id
-                                    )
-                                  )
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          {player.name}
-                        </FormLabel>
-                      </FormItem>
-                    )
-                  }}
-                />
-              ))}
+                {players.map((player) => (
+                  <FormItem
+                    key={player.id}
+                    className="flex flex-row items-center space-x-3 space-y-0"
+                  >
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value?.includes(player.id)}
+                        onCheckedChange={(checked) => {
+                          return checked
+                            ? field.onChange([...(field.value || []), player.id])
+                            : field.onChange(
+                                field.value?.filter(
+                                  (value) => value !== player.id
+                                )
+                              );
+                        }}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">{player.name}</FormLabel>
+                  </FormItem>
+                ))}
               </div>
               <FormMessage />
             </FormItem>
