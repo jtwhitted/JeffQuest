@@ -10,11 +10,11 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getInitialData } from '@/lib/data';
+import { getInitialData, addPlayerToDB } from '@/lib/data';
 import type { Game, Player } from '@/lib/types';
 
 // Helper function to find the best match for a string in an array of strings.
-// This replaces the problematic string-manager library.
+// This is a simplified similarity check.
 function findBestMatch(str: string, target: string[]): { bestMatch: { target: string } | null } {
     if (!str || !target || target.length === 0) {
         return { bestMatch: null };
@@ -27,19 +27,9 @@ function findBestMatch(str: string, target: string[]): { bestMatch: { target: st
         const lowerCaseTarget = t.toLowerCase();
         let rating = 0;
         
-        // Simple similarity check: count common characters
-        const strChars = new Set(lowerCaseStr.split(''));
-        const targetChars = new Set(lowerCaseTarget.split(''));
-        
-        for (const char of strChars) {
-            if (targetChars.has(char)) {
-                rating++;
-            }
-        }
-        
-        // Prefer substrings
+        // Simple similarity check based on character overlap and substrings
         if (lowerCaseTarget.includes(lowerCaseStr) || lowerCaseStr.includes(lowerCaseTarget)) {
-            rating += 10;
+            rating = Math.max(lowerCaseStr.length, lowerCaseTarget.length);
         }
 
         if (rating > bestMatch.rating) {
@@ -106,24 +96,41 @@ const findGameByName = ai.defineTool(
     }
 );
 
-// Tool to find players by name
-const findPlayersByNames = ai.defineTool(
+// Tool to find players by name, and create them if they don't exist
+const findAndCreatePlayersByNames = ai.defineTool(
     {
-      name: 'findPlayersByNames',
-      description: 'Finds the IDs of players from the user\'s collection based on their names.',
+      name: 'findAndCreatePlayersByNames',
+      description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
       inputSchema: z.object({ names: z.array(z.string()) }),
       outputSchema: z.object({ playerIds: z.array(z.string()) }),
     },
     async ({ names }) => {
         const playerIds: string[] = [];
-        const playerNames = allPlayers.map(p => p.name);
-        names.forEach(name => {
+        
+        for (const name of names) {
+            const playerNames = allPlayers.map(p => p.name);
             const bestMatch = findBestMatch(name, playerNames);
-            const matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
+            let matchedPlayer = allPlayers.find(p => p.name === bestMatch.bestMatch?.target);
+            
             if (matchedPlayer) {
                 playerIds.push(matchedPlayer.id);
+            } else {
+                // Player not found, create a new one
+                try {
+                    const newPlayer = await addPlayerToDB({
+                        id: `p${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                        name: name,
+                        avatarUrl: `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`,
+                    });
+                    // Add to our in-memory list for this session and add their new ID
+                    allPlayers.push(newPlayer);
+                    playerIds.push(newPlayer.id);
+                } catch (error) {
+                    console.error(`Failed to create new player "${name}":`, error);
+                    // Decide if you want to throw or just skip this player
+                }
             }
-        });
+        }
         return { playerIds };
     }
 );
@@ -136,12 +143,12 @@ export async function extractSessionDetails(input: ExtractSessionDetailsInput): 
 const extractDetailsPrompt = ai.definePrompt({
     name: 'extractDetailsPrompt',
     model: 'googleai/gemini-2.5-flash',
-    tools: [findGameByName, findPlayersByNames],
+    tools: [findGameByName, findAndCreatePlayersByNames],
     input: { schema: ExtractSessionDetailsInputSchema },
     output: { schema: ExtractSessionDetailsOutputSchema },
     prompt: `You are an expert at analyzing game session notes.
 Your task is to extract structured information from the provided transcription.
-Use the tools provided to find the correct game and player IDs.
+Use the tools provided to find the correct game and player IDs. If new players are mentioned, the tool will create them.
 
 - Identify the game played.
 - Identify all players who participated.
@@ -162,6 +169,8 @@ const extractDetailsFlow = ai.defineFlow(
     outputSchema: ExtractSessionDetailsOutputSchema,
   },
   async (input) => {
+    // Ensure latest data is loaded before running
+    await loadData();
     const { output } = await extractDetailsPrompt(input);
     if (!output) {
       throw new Error("The AI failed to extract any details from the transcription.");
