@@ -37,4 +37,5 @@ export interface Session {
   scores?: { playerId: string; score?: number }[];
   notes?: string;
   duration?: number; // Duration in minutes
+  isCooperative?: boolean;
 }

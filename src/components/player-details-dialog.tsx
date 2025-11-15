@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff, Link as LinkIcon } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff, Link as LinkIcon, Flame, Snowflake } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -25,6 +25,7 @@ import { updatePlayerAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Badge } from './ui/badge';
 
 type GameHistoryItem = {
     game: Game;
@@ -42,6 +43,7 @@ export type PlayerWithFullStats = Player & {
   mostPlayedWith?: Player;
   bestGame?: Game;
   worstGame?: Game;
+  streak?: 'hot' | 'cold';
 };
 
 interface PlayerDetailsDialogProps {
@@ -185,7 +187,21 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 <span className="sr-only">Retake photo</span>
               </Button>
             </div>
-            <DialogTitle className="text-2xl pt-2">{player.name}</DialogTitle>
+            <div className="flex items-center gap-2 pt-2">
+                <DialogTitle className="text-2xl">{player.name}</DialogTitle>
+                {player.streak === 'hot' && (
+                    <Badge variant="outline" className="border-orange-400 text-orange-400">
+                        <Flame className="mr-1.5 h-4 w-4" />
+                        Hot Streak
+                    </Badge>
+                )}
+                {player.streak === 'cold' && (
+                    <Badge variant="outline" className="border-blue-400 text-blue-400">
+                        <Snowflake className="mr-1.5 h-4 w-4" />
+                        In a Slump
+                    </Badge>
+                )}
+            </div>
             <DialogDescription>
               {player.gamesPlayed} games played &bull; {player.wins} wins
             </DialogDescription>
@@ -222,12 +238,12 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <Separator />
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><ShieldOff className="mr-2"/> Nemesis</span>
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium">{player.nemesis.name}</span>
+                            <div className="flex items-center gap-2 font-medium">
                                 <Avatar className="h-6 w-6">
                                     <AvatarImage src={player.nemesis.avatarUrl} alt={player.nemesis.name} />
                                     <AvatarFallback>{player.nemesis.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
+                                <span>{player.nemesis.name}</span>
                             </div>
                         </div>
                         </>
@@ -244,13 +260,13 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <>
                         <Separator />
                         <div className="flex items-center justify-between">
-                            <span className="flex items-center text-muted-foreground"><Users className="mr-2"/> Main Rival</span>
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium">{player.mostPlayedWith.name}</span>
+                            <span className="flex items-center text-muted-foreground"><Users className="mr-2"/> Main Partner</span>
+                            <div className="flex items-center gap-2 font-medium">
                                  <Avatar className="h-6 w-6">
                                     <AvatarImage src={player.mostPlayedWith.avatarUrl} alt={player.mostPlayedWith.name} />
                                     <AvatarFallback>{player.mostPlayedWith.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
+                                <span>{player.mostPlayedWith.name}</span>
                             </div>
                         </div>
                         </>
@@ -258,7 +274,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                        <>
                         <Separator />
                         <div className="flex items-center justify-between">
-                            <span className="flex items-center text-muted-foreground"><Users className="mr-2"/> Main Rival</span>
+                            <span className="flex items-center text-muted-foreground"><Users className="mr-2"/> Main Partner</span>
                             <span className="font-medium text-muted-foreground italic">N/A</span>
                         </div>
                         </>

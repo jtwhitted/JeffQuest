@@ -50,9 +50,12 @@ export default function PlayersPage() {
   }
 
   const playersWithStats: PlayerWithFullStats[] = players.map(player => {
-    const playerSessions = sessions.filter(s => s.playerIds.includes(player.id));
+    const playerSessions = sessions
+      .filter(s => s.playerIds.includes(player.id))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
     const gamesPlayed = playerSessions.length;
-    const wins = sessions.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
+    const wins = playerSessions.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
     const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
 
     const playsByGame = playerSessions.reduce((acc, session) => {
@@ -121,6 +124,18 @@ export default function PlayersPage() {
     const bestGame = gameWinRates[0]?.game;
     const worstGame = gameWinRates[gameWinRates.length - 1]?.game;
 
+    let streak: 'hot' | 'cold' | undefined = undefined;
+    if (playerSessions.length >= 3) {
+      const lastThreeGames = playerSessions.slice(0, 3);
+      const winsInLastThree = lastThreeGames.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
+      if (winsInLastThree >= 2) {
+        streak = 'hot';
+      } else if (winsInLastThree === 0) {
+        streak = 'cold';
+      }
+    }
+
+
     return {
       ...player,
       gamesPlayed,
@@ -132,6 +147,7 @@ export default function PlayersPage() {
       mostPlayedWith,
       bestGame,
       worstGame,
+      streak,
     };
   }).sort((a,b) => b.winRate - a.winRate || b.wins - a.wins);
 
@@ -215,10 +231,9 @@ export default function PlayersPage() {
                     </div>
                     {player.legendaryTitle && player.legendaryBio && (
                       <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="mt-4 w-full">
-                          Show Legendary Card
-                          <ChevronDown className="h-4 w-4 ml-2 transition-transform data-[state=open]:rotate-180" />
-                        </Button>
+                         <Button variant="outline" size="sm" className="mt-4 w-full">
+                            Show Legendary Card
+                          </Button>
                       </CollapsibleTrigger>
                     )}
                   </CardContent>
