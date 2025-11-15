@@ -91,7 +91,7 @@ export default function GameLogForm() {
   const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
   const [manualAddDefaultName, setManualAddDefaultName] = useState('');
   const [isAddPlayerDialogOpen, setAddPlayerDialogOpen] = useState(false);
-  const { games, players, addGame, addSession } = useGames();
+  const { games, players, addGame, addSession, refreshData } = useGames();
   
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -217,12 +217,66 @@ export default function GameLogForm() {
     setManualAddDialogOpen(false);
   }
 
-  const handlePlayerAdded = (newPlayer: Player) => {
-    // Automatically select the new player
-    const currentPlayerIds = form.getValues('playerIds');
-    form.setValue('playerIds', [...currentPlayerIds, newPlayer.id]);
+  const handlePlayerAdded = async () => {
+    // When a player is added manually, we must refresh the data context
+    await refreshData();
+    // No need to set value here, as the user will select from the updated list.
   };
   
+  const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
+    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
+    if (result.date) {
+        const date = parseISO(result.date);
+        form.setValue('date', date, { shouldValidate: true });
+    }
+    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
+    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
+    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
+    if (result.isCooperative) {
+        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
+    } else {
+        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: true });
+    }
+    
+    if (result.scores && result.scores.length > 0) {
+        const finalPlayerIds = result.playerIds && result.playerIds.length > 0 ? result.playerIds : form.getValues('playerIds');
+        const newScores = finalPlayerIds.map(pid => {
+            const foundScore = result.scores?.find(s => s.playerId === pid);
+            return { playerId: pid, score: foundScore ? foundScore.score : undefined };
+        });
+        form.setValue('scores', newScores, { shouldValidate: true });
+    }
+    
+    toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
+  };
+
+
+  const handleExtractDetails = async (transcription: string) => {
+    if (!transcription) return;
+
+    try {
+        setProcessingMessage('Extracting details...');
+        const result = await extractSessionDetails({ transcription });
+
+        if (!result) {
+            throw new Error("The AI failed to extract any details from the transcription.");
+        }
+
+        if (result.newPlayersAdded) {
+            toast({ title: "New Players Found!", description: "Adding them to your group and refreshing..." });
+            await refreshData(); // Refresh data to get new players
+        }
+
+        // Now that data is refreshed (if it needed to be), populate the form.
+        populateFormFromAI(result);
+
+    } catch(e: any) {
+        console.error('Error extracting details:', e);
+        toast({ variant: 'destructive', title: 'Extraction Failed', description: e.message || 'Could not extract details from the transcription.' });
+    }
+  };
+
+
   const handleToggleRecording = async () => {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
@@ -258,9 +312,13 @@ export default function GameLogForm() {
                 const combinedNotes = currentNotes ? `${currentNotes} ${newText}` : newText;
                 
                 form.setValue('notes', combinedNotes);
-                toast({ title: 'Transcription Appended' });
                 
-                setProcessingMessage('Extracting details...');
+                if (currentNotes) {
+                    toast({ title: 'Transcription Appended' });
+                } else {
+                    toast({ title: 'Transcription Complete!' });
+                }
+                
                 await handleExtractDetails(combinedNotes);
 
               } catch (error: any) {
@@ -282,68 +340,6 @@ export default function GameLogForm() {
       }
     }
   };
-
-  async function extractDetailsWithRetry(transcription: string, retries = 3, delayMs = 1000): Promise<ExtractSessionDetailsOutput | undefined> {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const result = await extractSessionDetails({ transcription });
-        return result; // Success
-      } catch (e: any) {
-        if (i === retries - 1) {
-          throw e; // Last retry failed, throw error
-        }
-        console.log(`Extraction failed, retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);
-        await new Promise(res => setTimeout(res, delayMs));
-        delayMs *= 2; // Exponential backoff
-      }
-    }
-  }
-
-  const handleExtractDetails = async (transcription: string) => {
-    if (!transcription) return;
-
-    try {
-        const result = await extractDetailsWithRetry(transcription);
-
-        if (!result) {
-            throw new Error("The AI failed to extract any details from the transcription.");
-        }
-
-        if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
-        if (result.date) {
-            // The AI returns a string like 'YYYY-MM-DD'. We need to parse it correctly,
-            // accounting for timezone to avoid off-by-one day errors.
-            const date = parseISO(result.date);
-            form.setValue('date', date, { shouldValidate: true });
-        }
-        if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
-        if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
-        if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
-        if (result.isCooperative) {
-            if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
-        } else {
-            if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: true });
-        }
-        
-        if (result.scores && result.scores.length > 0) {
-            const finalPlayerIds = result.playerIds && result.playerIds.length > 0 ? result.playerIds : form.getValues('playerIds');
-            
-            const newScores = finalPlayerIds.map(pid => {
-                const foundScore = result.scores?.find(s => s.playerId === pid);
-                return { playerId: pid, score: foundScore ? foundScore.score : undefined };
-            });
-
-            form.setValue('scores', newScores, { shouldValidate: true });
-        }
-        
-        toast({ title: 'Details Extracted!', description: 'The form has been populated with details from your session.' });
-
-    } catch(e: any) {
-        console.error('Error extracting details:', e);
-        toast({ variant: 'destructive', title: 'Extraction Failed', description: e.message || 'Could not extract details from the transcription.' });
-    }
-  };
-
 
   const onSubmit = async (values: FormValues) => {
     try {

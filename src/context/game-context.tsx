@@ -3,7 +3,17 @@
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import type { Game, Player, Session } from '@/lib/types';
-import { addGame as addGameAction, addPlayer as addPlayerAction, addSession as addSessionAction, deleteGame as deleteGameAction, deletePlayer as deletePlayerAction, deleteSessionAction, updatePlayerAction } from '@/lib/actions';
+import { 
+    addGame as addGameAction,
+    addPlayer as addPlayerAction, 
+    addSession as addSessionAction, 
+    deleteGame as deleteGameAction, 
+    deletePlayer as deletePlayerAction, 
+    deleteSessionAction, 
+    updatePlayerAction 
+} from '@/lib/actions';
+import { getInitialData } from '@/lib/data';
+
 
 type GameData = {
   name: string;
@@ -34,6 +44,7 @@ interface GameContextType {
   deletePlayer: (playerId: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
   isLoading: boolean;
+  refreshData: () => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -52,6 +63,20 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [players, setPlayers] = useState<Player[]>(initialData.players);
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
   const [isLoading, setIsLoading] = useState(false);
+
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+        const newData = await getInitialData();
+        setGames(newData.games);
+        setPlayers(newData.players);
+        setSessions(newData.sessions);
+    } catch (error) {
+        console.error("Failed to refresh data:", error);
+    } finally {
+        setIsLoading(false);
+    }
+  }, []);
 
   const addGame = useCallback(async (gameData: GameData): Promise<Game> => {
     setIsLoading(true);
@@ -141,7 +166,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData }}>
       {children}
     </GameContext.Provider>
   );

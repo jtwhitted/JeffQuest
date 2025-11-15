@@ -49,6 +49,7 @@ const ScoreSchema = z.object({
 const ExtractSessionDetailsOutputSchema = z.object({
   gameId: z.string().optional().describe('The ID of the game that was played.'),
   playerIds: z.array(z.string()).optional().describe('An array of IDs for the players who participated.'),
+  newPlayersAdded: z.boolean().describe('Whether new players were added to the database.'),
   isCooperative: z.boolean().optional().describe('Whether the game was cooperative.'),
   winnerId: z.string().optional().describe('The ID of the winning player.'),
   cooperativeResult: z.enum(['win', 'loss']).optional().describe("The result if it was a cooperative game."),
@@ -102,10 +103,11 @@ const findAndCreatePlayersByNames = ai.defineTool(
       name: 'findAndCreatePlayersByNames',
       description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
       inputSchema: z.object({ names: z.array(z.string()) }),
-      outputSchema: z.object({ playerIds: z.array(z.string()) }),
+      outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
     },
     async ({ names }) => {
         const playerIds: string[] = [];
+        let newPlayersAdded = false;
         
         for (const name of names) {
             const playerNames = allPlayers.map(p => p.name);
@@ -125,13 +127,14 @@ const findAndCreatePlayersByNames = ai.defineTool(
                     // Add to our in-memory list for this session and add their new ID
                     allPlayers.push(newPlayer);
                     playerIds.push(newPlayer.id);
+                    newPlayersAdded = true;
                 } catch (error) {
                     console.error(`Failed to create new player "${name}":`, error);
                     // Decide if you want to throw or just skip this player
                 }
             }
         }
-        return { playerIds };
+        return { playerIds, newPlayersAdded };
     }
 );
 
@@ -149,6 +152,7 @@ const extractDetailsPrompt = ai.definePrompt({
     prompt: `You are an expert at analyzing game session notes.
 Your task is to extract structured information from the provided transcription.
 Use the tools provided to find the correct game and player IDs. If new players are mentioned, the tool will create them.
+It is very important to set the 'newPlayersAdded' flag to true if the tool creates any new players.
 
 - Identify the game played.
 - Identify all players who participated.
