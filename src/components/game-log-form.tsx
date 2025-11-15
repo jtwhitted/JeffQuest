@@ -252,12 +252,16 @@ export default function GameLogForm() {
             const base64Audio = reader.result as string;
             if (base64Audio) {
               try {
-                const { text } = await transcribeAudio({ audioDataUri: base64Audio });
-                form.setValue('notes', text);
-                toast({ title: 'Transcription Successful' });
+                const { text: newText } = await transcribeAudio({ audioDataUri: base64Audio });
+                
+                const currentNotes = form.getValues('notes') || '';
+                const combinedNotes = currentNotes ? `${currentNotes} ${newText}` : newText;
+                
+                form.setValue('notes', combinedNotes);
+                toast({ title: 'Transcription Appended' });
                 
                 setProcessingMessage('Extracting details...');
-                await handleExtractDetails(text);
+                await handleExtractDetails(combinedNotes);
 
               } catch (error: any) {
                 console.error('Transcription or Extraction error:', error);
