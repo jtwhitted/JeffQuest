@@ -157,8 +157,8 @@ const extractDetailsFlow = ai.defineFlow(
     }
 
     // Transform scores to include playerId
-    const finalScores: z.infer<typeof FinalScoreSchema>[] = [];
-    if (output.scores) {
+    let finalScores: z.infer<typeof FinalScoreSchema>[] = [];
+    if (output.scores && output.scores.length > 0) {
         for (const score of output.scores) {
             const lowerCaseName = score.name.toLowerCase();
             const matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
@@ -166,6 +166,9 @@ const extractDetailsFlow = ai.defineFlow(
                 finalScores.push({ playerId: matchedPlayer.id, score: score.score });
             }
         }
+    } else {
+        // Ensure scores is an empty array if not present in output
+        finalScores = [];
     }
     
     return {

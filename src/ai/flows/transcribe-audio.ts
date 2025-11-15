@@ -40,23 +40,18 @@ const transcribeAudioFlow = ai.defineFlow(
     outputSchema: TranscribeAudioOutputSchema,
   },
   async (input) => {
-    try {
-      const { text } = await ai.generate({
+    const { text } = await ai.generate({
         model: 'googleai/gemini-2.5-flash',
         prompt: [
-          { media: { url: input.audioDataUri, contentType: 'audio/webm' } },
-          { text: 'Transcribe the spoken words from this audio. Return only the text transcription.' },
+            { media: { url: input.audioDataUri, contentType: 'audio/webm' } },
+            { text: 'Transcribe the spoken words from this audio. Return only the text transcription.' },
         ],
-      });
+    });
 
-      if (text) {
+    if (text) {
         return { text };
-      } else {
+    } else {
         throw new Error('Transcription failed. AI returned no text output.');
-      }
-    } catch (e: any) {
-      console.error('An error occurred during transcription:', e);
-      throw new Error(`Transcription flow failed: ${e.message}`);
     }
   }
 );

@@ -34,7 +34,7 @@ import type { Player, Game } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square, Sparkles } from 'lucide-react';
+import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
@@ -306,13 +306,13 @@ export default function GameLogForm() {
             const base64Audio = reader.result as string;
             if (base64Audio) {
               try {
-                const { text: newText } = await transcribeAudio({ audioDataUri: base64Audio });
+                const { text } = await transcribeAudio({ audioDataUri: base64Audio });
                 
                 const currentNotes = form.getValues('notes') || '';
-                const combinedNotes = currentNotes ? `${currentNotes} ${newText}` : newText;
+                const combinedNotes = currentNotes ? `${currentNotes} ${text}` : text;
                 
                 form.setValue('notes', combinedNotes);
-                
+
                 if (currentNotes) {
                     toast({ title: 'Transcription Appended' });
                 } else {
