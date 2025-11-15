@@ -85,7 +85,7 @@ const findAndCreatePlayersByNames = ai.defineTool(
     outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
   },
   async ({ names }) => {
-    const playerIds: (string | null)[] = [];
+    const validPlayerIds: string[] = [];
     let newPlayersAdded = false;
 
     for (const name of names) {
@@ -93,22 +93,20 @@ const findAndCreatePlayersByNames = ai.defineTool(
       let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
 
       if (matchedPlayer) {
-        playerIds.push(matchedPlayer.id);
+        validPlayerIds.push(matchedPlayer.id);
       } else {
         try {
           const newPlayer = await addPlayerToDB({ name });
           allPlayers.push(newPlayer); // Add to in-memory list for this session
-          playerIds.push(newPlayer.id);
+          validPlayerIds.push(newPlayer.id);
           newPlayersAdded = true;
         } catch (error) {
           console.error(`Failed to create new player "${name}":`, error);
-          // On failure, do not add anything to the array, it will be filtered out.
-          playerIds.push(null);
+          // On failure, we simply don't add anything to the validPlayerIds array.
         }
       }
     }
-    // Filter out any nulls that might have been added on error.
-    const validPlayerIds = playerIds.filter((id): id is string => id !== null);
+    // This guarantees we only return an array of valid strings.
     return { playerIds: validPlayerIds, newPlayersAdded };
   }
 );
