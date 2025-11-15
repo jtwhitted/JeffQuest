@@ -200,20 +200,6 @@ export default function GameLogForm() {
     toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
   };
   
-  useEffect(() => {
-    // This effect runs when the list of available players changes, or when we have a pending AI result to process.
-    if (pendingAiResult) {
-      const allPlayersInResultAreAvailable = pendingAiResult.playerIds?.every(id => players.some(p => p.id === id));
-      
-      if (allPlayersInResultAreAvailable) {
-        // Now it's safe to populate the form.
-        populateFormFromAI(pendingAiResult);
-        setPendingAiResult(null); // Clear the pending result.
-      }
-    }
-  }, [players, pendingAiResult, form]); // Dependency array is key
-
-
   const handleExtractDetails = async (transcription: string) => {
     if (!transcription) return;
 
@@ -226,15 +212,7 @@ export default function GameLogForm() {
             throw new Error("The AI failed to extract any details from the transcription.");
         }
         
-        // If there are no new players, populate the form directly.
-        if (!result.newPlayersAdded) {
-            populateFormFromAI(result);
-        } else {
-            // If there are new players, store the result and wait for the player list to update.
-            toast({ title: "New Players Found!", description: "Refreshing player list..." });
-            setPendingAiResult(result);
-            await refreshData();
-        }
+        populateFormFromAI(result);
 
     } catch(e: any) {
         console.error('Error extracting details:', e);
@@ -514,7 +492,7 @@ export default function GameLogForm() {
         <FormField
           control={form.control}
           name="playerIds"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <div className="mb-4 flex items-center justify-between">
                 <FormLabel>Players</FormLabel>
@@ -530,39 +508,38 @@ export default function GameLogForm() {
               </div>
               <div className="space-y-2 rounded-md border p-4">
                 {players.map((player) => (
-                  <FormField
-                    key={player.id}
-                    control={form.control}
-                    name="playerIds"
-                    render={({ field }) => {
-                      return (
-                        <FormItem
-                          key={player.id}
-                          className="flex flex-row items-center space-x-3 space-y-0"
-                        >
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value?.includes(player.id)}
-                              onCheckedChange={(checked) => {
-                                return checked
-                                  ? field.onChange([
-                                      ...(field.value || []),
-                                      player.id,
-                                    ])
-                                  : field.onChange(
-                                      field.value?.filter(
-                                        (value) => value !== player.id
-                                      )
-                                    );
-                              }}
-                            />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            {player.name}
-                          </FormLabel>
-                        </FormItem>
-                      );
-                    }}
+                    <FormField
+                        key={player.id}
+                        control={form.control}
+                        name="playerIds"
+                        render={({ field }) => {
+                        return (
+                            <FormItem
+                                className="flex flex-row items-center space-x-3 space-y-0"
+                            >
+                                <FormControl>
+                                <Checkbox
+                                    checked={field.value?.includes(player.id)}
+                                    onCheckedChange={(checked) => {
+                                    return checked
+                                        ? field.onChange([
+                                            ...(field.value || []),
+                                            player.id,
+                                        ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                            (value) => value !== player.id
+                                            )
+                                        );
+                                    }}
+                                />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                {player.name}
+                                </FormLabel>
+                            </FormItem>
+                        );
+                        }}
                   />
                 ))}
               </div>

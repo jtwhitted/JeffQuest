@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { getInitialData, addPlayerToDB } from '@/lib/data';
+import { getInitialData } from '@/lib/data';
 import type { Game, Player } from '@/lib/types';
 
 // Define the schema for the data we want to extract
@@ -27,7 +27,6 @@ const FinalScoreSchema = z.object({
 const ExtractSessionDetailsOutputSchema = z.object({
   gameId: z.string().optional().describe('The ID of the game that was played.'),
   playerIds: z.array(z.string()).optional().describe('An array of IDs for the players who participated.'),
-  newPlayersAdded: z.boolean().describe('Whether new players were added to the database.'),
   isCooperative: z.boolean().optional().describe('Whether the game was cooperative.'),
   winnerId: z.string().optional().describe('The ID of the winning player.'),
   cooperativeResult: z.enum(['win', 'loss']).optional().describe("The result if it was a cooperative game."),
@@ -76,39 +75,26 @@ const findGameByName = ai.defineTool(
     }
 );
 
-// Tool to find players by name, and create them if they don't exist
-const findAndCreatePlayersByNames = ai.defineTool(
+// Tool to find players by name. This tool ONLY finds existing players.
+const findPlayersByNames = ai.defineTool(
     {
-      name: 'findAndCreatePlayersByNames',
-      description: "Finds player IDs based on names. If a player doesn't exist, they are created.",
-      inputSchema: z.object({ names: z.array(z.string()) }),
-      outputSchema: z.object({ playerIds: z.array(z.string()), newPlayersAdded: z.boolean() }),
+        name: 'findPlayersByNames',
+        description: "Finds the player IDs for existing players based on their names. Does not create new players.",
+        inputSchema: z.object({ names: z.array(z.string()) }),
+        outputSchema: z.object({ playerIds: z.array(z.string()) }),
     },
     async ({ names }) => {
-      let newPlayersAdded = false;
-      const validPlayerIds: string[] = [];
-  
-      for (const name of names) {
-        const lowerCaseName = name.toLowerCase();
-        let matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
-  
-        if (matchedPlayer) {
-          validPlayerIds.push(matchedPlayer.id);
-        } else {
-          try {
-            const newPlayer = await addPlayerToDB({ name });
-            allPlayers.push(newPlayer);
-            validPlayerIds.push(newPlayer.id);
-            newPlayersAdded = true;
-          } catch (error) {
-            console.error(`Failed to create new player "${name}":`, error);
-          }
+        const foundPlayerIds: string[] = [];
+        for (const name of names) {
+            const lowerCaseName = name.toLowerCase();
+            const matchedPlayer = allPlayers.find(p => p.name.toLowerCase() === lowerCaseName);
+            if (matchedPlayer) {
+                foundPlayerIds.push(matchedPlayer.id);
+            }
         }
-      }
-  
-      return { playerIds: validPlayerIds, newPlayersAdded };
+        return { playerIds: foundPlayerIds };
     }
-  );
+);
 
 
 export async function extractSessionDetails(input: ExtractSessionDetailsInput): Promise<ExtractSessionDetailsOutput> {
@@ -118,18 +104,17 @@ export async function extractSessionDetails(input: ExtractSessionDetailsInput): 
 const extractDetailsPrompt = ai.definePrompt({
     name: 'extractDetailsPrompt',
     model: 'googleai/gemini-2.5-flash',
-    tools: [findGameByName, findAndCreatePlayersByNames],
+    tools: [findGameByName, findPlayersByNames],
     input: { schema: ExtractSessionDetailsInputSchema },
     output: { schema: ExtractSessionDetailsOutputSchema },
     prompt: `You are an expert at analyzing game session notes.
 Your task is to extract structured information from the provided transcription.
-First, use the tools provided to find the correct game ID and player IDs. If new players are mentioned, the tool will create them.
-It is very important to set the 'newPlayersAdded' flag to true if the tool creates any new players.
+First, use the tools provided to find the correct game ID and player IDs for EXISTING players. Do not invent players who are not in the list.
 
 After using the tools to find the game and player IDs, you MUST proceed to extract all other details from the transcription, including the date, winner or cooperative result, scores, and duration. Do NOT stop after using the tools.
 
 - Identify the game played.
-- Identify all players who participated.
+- Identify all EXISTING players who participated.
 - Identify the date the game was played. If no date is mentioned, do not return a date.
 - Determine if the game was cooperative. If it was, determine if the team won or lost.
 - If the game was competitive, identify the winner.
