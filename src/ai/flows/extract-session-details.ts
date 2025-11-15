@@ -103,10 +103,12 @@ const findAndCreatePlayersByNames = ai.defineTool(
                     newPlayersAdded = true;
                 } catch (error) {
                     console.error(`Failed to create new player "${name}":`, error);
+                    // Push a placeholder that can be filtered out later to avoid schema errors
+                    playerIds.push('');
                 }
             }
         }
-        return { playerIds, newPlayersAdded };
+        return { playerIds: playerIds.filter(Boolean), newPlayersAdded };
     }
 );
 
