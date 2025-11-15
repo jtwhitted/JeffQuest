@@ -170,6 +170,7 @@ const updatePlayerSchema = z.object({
   avatarUrl: z.string().optional(),
   legendaryTitle: z.string().optional(),
   legendaryBio: z.string().optional(),
+  bggUsername: z.string().optional(),
 });
 
 export async function updatePlayerAction(playerId: string, values: z.infer<typeof updatePlayerSchema>) {

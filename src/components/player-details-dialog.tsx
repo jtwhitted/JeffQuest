@@ -7,10 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake, Save } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -32,6 +33,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 type GameHistoryItem = {
     game: Game;
@@ -70,12 +73,15 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const { updatePlayer } = useGames();
   const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, data: null });
   const [isCaptureOpen, setCaptureOpen] = useState(false);
+  const [bggUsername, setBggUsername] = useState(player.bggUsername || '');
+  const [isSaving, setIsSaving] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Conjuring epicness...');
   
 
   // Effect to populate the card state if the player already has legendary data
   useEffect(() => {
     if (open) { // Only run when the dialog is open
+      setBggUsername(player.bggUsername || '');
       if (player.legendaryTitle && player.legendaryBio) {
         setLegendaryCardState({
           loading: false,
@@ -138,6 +144,26 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             title: 'AI Error',
             description: errorMessage,
         });
+    }
+  };
+
+  const handleBggUsernameSave = async () => {
+    if (bggUsername === player.bggUsername) return; // No changes
+    setIsSaving(true);
+    try {
+        await updatePlayer(player.id, { bggUsername });
+        toast({
+            title: 'BGG Username Updated',
+        });
+    } catch (error) {
+        console.error('Error updating BGG username:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not save the BGG username.',
+        });
+    } finally {
+        setIsSaving(false);
     }
   };
   
@@ -330,6 +356,26 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 </CardContent>
               </Card>
 
+                <div className="space-y-2">
+                    <Label htmlFor="bggUsername">BGG Username</Label>
+                    <div className="flex items-center gap-2">
+                        <Input 
+                            id="bggUsername"
+                            value={bggUsername}
+                            onChange={(e) => setBggUsername(e.target.value)}
+                            placeholder="e.g. BoardGameGeek"
+                        />
+                        <Button 
+                            size="icon" 
+                            onClick={handleBggUsernameSave} 
+                            disabled={isSaving || bggUsername === player.bggUsername}
+                        >
+                            {isSaving ? <Loader2 className="animate-spin"/> : <Save />}
+                            <span className="sr-only">Save BGG Username</span>
+                        </Button>
+                    </div>
+                </div>
+
               {player.gameHistory.length > 0 && (
                 <Accordion type="single" collapsible>
                     <AccordionItem value="game-stats">
@@ -399,6 +445,9 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
               </div>
             </div>
           </ScrollArea>
+           <DialogFooter>
+             <Button variant="outline" onClick={handleClose}>Close</Button>
+           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
