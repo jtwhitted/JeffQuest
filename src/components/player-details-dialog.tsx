@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, User, Users, Shield, Heart, ShieldOff, Link as LinkIcon, Flame, Snowflake } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -26,11 +26,18 @@ import { Separator } from './ui/separator';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from './ui/badge';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 type GameHistoryItem = {
     game: Game;
     sessions: (Session & { players: Player[]; winner?: Player })[];
     winRate: number;
+    playCount: number;
 };
 
 export type PlayerWithFullStats = Player & {
@@ -224,7 +231,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                      <div className="flex items-center justify-between">
                        <span className="flex items-center text-muted-foreground"><Heart className="mr-2"/> Favorite Game</span>
                        <Link href={`/games/${player.favoriteGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
-                          <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} width={24} height={24} className="rounded-sm object-cover" />
+                          <Image src={player.favoriteGame.imageUrl} alt={player.favoriteGame.name} width={24} height={24} className="rounded-sm object-cover" unoptimized/>
                           <span>{player.favoriteGame.name}</span>
                        </Link>
                      </div>
@@ -286,7 +293,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Shield className="mr-2"/> Best Game</span>
                             <Link href={`/games/${player.bestGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
-                                <Image src={player.bestGame.imageUrl} alt={player.bestGame.name} width={24} height={24} className="rounded-sm object-cover" />
+                                <Image src={player.bestGame.imageUrl} alt={player.bestGame.name} width={24} height={24} className="rounded-sm object-cover" unoptimized/>
                                 <span>{player.bestGame.name}</span>
                             </Link>
                         </div>
@@ -306,7 +313,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                         <div className="flex items-center justify-between">
                             <span className="flex items-center text-muted-foreground"><Dices className="mr-2"/> Worst Game</span>
                             <Link href={`/games/${player.worstGame.id}`} className="flex items-center gap-2 font-medium hover:underline">
-                                <Image src={player.worstGame.imageUrl} alt={player.worstGame.name} width={24} height={24} className="rounded-sm object-cover" />
+                                <Image src={player.worstGame.imageUrl} alt={player.worstGame.name} width={24} height={24} className="rounded-sm object-cover" unoptimized/>
                                 <span>{player.worstGame.name}</span>
                             </Link>
                         </div>
@@ -322,6 +329,37 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                     )}
                 </CardContent>
               </Card>
+
+              {player.gameHistory.length > 0 && (
+                <Accordion type="single" collapsible>
+                    <AccordionItem value="game-stats">
+                        <AccordionTrigger>Game-by-Game Stats</AccordionTrigger>
+                        <AccordionContent>
+                        <ul className="space-y-4">
+                            {player.gameHistory.map(gh => (
+                            <li key={gh.game.id}>
+                                <div className="flex items-start gap-4">
+                                <Link href={`/games/${gh.game.id}`}>
+                                    <Image src={gh.game.imageUrl} alt={gh.game.name} width={48} height={48} className="rounded-md object-cover h-12 w-12" unoptimized/>
+                                </Link>
+                                <div className="flex-1 text-sm">
+                                    <Link href={`/games/${gh.game.id}`} className="font-semibold hover:underline">{gh.game.name}</Link>
+                                    <p className="text-xs text-muted-foreground">{gh.playCount} {gh.playCount === 1 ? 'play' : 'plays'}</p>
+                                    <div className="flex justify-between mt-1">
+                                    <span>Win Rate</span>
+                                    <span className="text-muted-foreground">{gh.winRate}%</span>
+                                    </div>
+                                    <Progress value={gh.winRate} className="h-2 mt-1" />
+                                </div>
+                                </div>
+                            </li>
+                            ))}
+                        </ul>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+                )}
+
 
               <div>
                 <div className="space-y-2">

@@ -4,7 +4,7 @@ import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Swords, Trophy, PlusCircle, Trash2, Loader2, Sparkles, ChevronDown } from 'lucide-react';
+import { Swords, Trophy, PlusCircle, Trash2, Loader2, Sparkles, ChevronDown, Flame, Snowflake } from 'lucide-react';
 import { useState } from 'react';
 import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { PlayerDetailsDialog, type PlayerWithFullStats } from '@/components/play
 import { useGames } from '@/context/game-context';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LegendaryPlayerCard } from '@/components/legendary-player-card';
+import { Badge } from '@/components/ui/badge';
 
 export default function PlayersPage() {
   const { toast } = useToast();
@@ -87,9 +88,11 @@ export default function PlayersPage() {
           game,
           sessions,
           winRate: winRateInGame,
+          playCount: gameSessionsForThisGame.length,
         };
       })
-      .filter(Boolean) as PlayerWithFullStats['gameHistory'];
+      .filter(Boolean)
+      .sort((a, b) => b!.playCount - a!.playCount) as PlayerWithFullStats['gameHistory'];
 
     const competitiveGames = playerSessions.filter(s => !s.isCooperative && s.playerIds.length > 1);
 
@@ -118,7 +121,7 @@ export default function PlayersPage() {
     const mostPlayedWith = players.find(p => p.id === topPartnerId);
     
     const gameWinRates = gameHistory
-        .filter(gh => competitiveGames.some(cg => cg.gameId === gh.game.id)) // Only include competitive games
+        .filter(gh => competitiveGames.some(cg => cg.game.id === gh.game.id)) // Only include competitive games
         .sort((a, b) => b.winRate - a.winRate);
 
     const bestGame = gameWinRates[0]?.game;
@@ -202,7 +205,11 @@ export default function PlayersPage() {
                       <AvatarFallback className="text-xl">{player.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-2xl">{player.name}</CardTitle>
+                      <div className='flex items-center gap-2'>
+                        <CardTitle className="text-2xl">{player.name}</CardTitle>
+                        {player.streak === 'hot' && <Badge variant="outline" className="border-orange-400 text-orange-400"><Flame className="mr-1 h-3 w-3"/>Hot</Badge>}
+                        {player.streak === 'cold' && <Badge variant="outline" className="border-blue-400 text-blue-400"><Snowflake className="mr-1 h-3 w-3"/>Cold</Badge>}
+                      </div>
                       {player.legendaryTitle && (
                         <p className="flex items-center gap-1 text-sm text-amber-400 italic">
                           <Sparkles className="h-4 w-4" />
