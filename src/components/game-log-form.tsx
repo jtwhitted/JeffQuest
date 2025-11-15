@@ -1,4 +1,3 @@
-
 'use client';
 
 import { z } from 'zod';
@@ -35,7 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { GameScanDialog } from './game-scan-dialog';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { AddPlayerDialog } from './add-player-dialog';
@@ -96,7 +95,6 @@ export default function GameLogForm() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingMessage, setProcessingMessage] = useState('');
-  const [pendingAiResult, setPendingAiResult] = useState<ExtractSessionDetailsOutput | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -172,17 +170,6 @@ export default function GameLogForm() {
     }
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
-  // This is the key effect to solve the race condition.
-  // It waits until the player list is updated and a pending AI result exists.
-  useEffect(() => {
-    if (pendingAiResult && pendingAiResult.newPlayersAdded) {
-      // The `players` dependency ensures this runs *after* refreshData has updated the context
-      populateFormFromAI(pendingAiResult);
-      setPendingAiResult(null); // Clear the pending result
-    }
-  }, [players, pendingAiResult]);
-
-
   const handleScanComplete = async (results: {id: string, name: string}[], query: string) => {
     setScanDialogOpen(false);
     if (results.length === 1) {
@@ -229,15 +216,12 @@ export default function GameLogForm() {
   }
 
   const handlePlayerAdded = async () => {
-    // When a player is added manually, we must refresh the data context
     await refreshData();
-    // No need to set value here, as the user will select from the updated list.
   };
   
   const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
     if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
     if (result.date) {
-        // Ensure date is treated as local timezone, not UTC
         const localDate = new Date(result.date + 'T00:00:00');
         form.setValue('date', localDate, { shouldValidate: true });
     }
@@ -276,14 +260,10 @@ export default function GameLogForm() {
 
         if (result.newPlayersAdded) {
             toast({ title: "New Players Found!", description: "Refreshing player list..." });
-            // Store result in temporary state and trigger a refresh.
-            // The useEffect hook will handle populating the form.
-            setPendingAiResult(result);
             await refreshData();
-        } else {
-            // No new players, we can populate the form directly.
-            populateFormFromAI(result);
         }
+        
+        populateFormFromAI(result);
 
     } catch(e: any) {
         console.error('Error extracting details:', e);
@@ -310,7 +290,7 @@ export default function GameLogForm() {
 
         mediaRecorderRef.current.onstop = async () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          stream.getTracks().forEach(track => track.stop()); // Stop mic indicator immediately
+          stream.getTracks().forEach(track => track.stop());
           
           setIsProcessing(true);
           setProcessingMessage('Transcribing...');
@@ -324,9 +304,7 @@ export default function GameLogForm() {
                 const { text } = await transcribeAudio({ audioDataUri: base64Audio });
                 
                 const currentNotes = form.getValues('notes') || '';
-                const combinedNotes = currentNotes ? `${currentNotes} ${text}` : text;
-                
-                form.setValue('notes', combinedNotes);
+                form.setValue('notes', text);
 
                 if (currentNotes) {
                     toast({ title: 'Transcription Appended' });
@@ -334,7 +312,7 @@ export default function GameLogForm() {
                     toast({ title: 'Transcription Complete!' });
                 }
                 
-                await handleExtractDetails(combinedNotes);
+                await handleExtractDetails(text);
 
               } catch (error: any) {
                 console.error('Transcription or Extraction error:', error);
