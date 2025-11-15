@@ -96,6 +96,7 @@ export default function GameLogForm() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingMessage, setProcessingMessage] = useState('');
+  const [pendingAiResult, setPendingAiResult] = useState<ExtractSessionDetailsOutput | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -171,6 +172,16 @@ export default function GameLogForm() {
     }
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
+  // This is the key effect to solve the race condition.
+  // It waits until the player list is updated and a pending AI result exists.
+  useEffect(() => {
+    if (pendingAiResult && pendingAiResult.newPlayersAdded) {
+      // The `players` dependency ensures this runs *after* refreshData has updated the context
+      populateFormFromAI(pendingAiResult);
+      setPendingAiResult(null); // Clear the pending result
+    }
+  }, [players, pendingAiResult]);
+
 
   const handleScanComplete = async (results: {id: string, name: string}[], query: string) => {
     setScanDialogOpen(false);
@@ -226,8 +237,9 @@ export default function GameLogForm() {
   const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
     if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
     if (result.date) {
-        const date = parseISO(result.date);
-        form.setValue('date', date, { shouldValidate: true });
+        // Ensure date is treated as local timezone, not UTC
+        const localDate = new Date(result.date + 'T00:00:00');
+        form.setValue('date', localDate, { shouldValidate: true });
     }
     if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
     if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
@@ -263,12 +275,15 @@ export default function GameLogForm() {
         }
 
         if (result.newPlayersAdded) {
-            toast({ title: "New Players Found!", description: "Adding them to your group and refreshing..." });
-            await refreshData(); // Refresh data to get new players
+            toast({ title: "New Players Found!", description: "Refreshing player list..." });
+            // Store result in temporary state and trigger a refresh.
+            // The useEffect hook will handle populating the form.
+            setPendingAiResult(result);
+            await refreshData();
+        } else {
+            // No new players, we can populate the form directly.
+            populateFormFromAI(result);
         }
-
-        // Now that data is refreshed (if it needed to be), populate the form.
-        populateFormFromAI(result);
 
     } catch(e: any) {
         console.error('Error extracting details:', e);
