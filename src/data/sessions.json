@@ -113,5 +113,23 @@
     ],
     "notes": "Jeffrey played a game of the King's Dilemma on November 10th. The game was 47 minutes long and he won with a score of 77.",
     "duration": 47
+  },
+  {
+    "id": "s1763180493889",
+    "gameId": "205637",
+    "date": "2025-11-11T05:00:00.000Z",
+    "playerIds": [
+      "p1762879138303"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "win",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 19
+      }
+    ],
+    "notes": "Jeffrey played a solo version of Arkham Horror, the card game on December 11th, and he won the game with 19 points.\n Sorry, I meant November 11th. The correct date is November 11th. puts The game took 17 minutes to complete.",
+    "duration": 17
   }
 ]
