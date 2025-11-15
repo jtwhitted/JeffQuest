@@ -37,7 +37,7 @@ interface GameContextType {
   players: Player[];
   sessions: Session[];
   addGame: (gameData: GameData) => Promise<Game>;
-  addPlayer: (playerData: { name: string; avatarUrl?: string }) => Promise<Player>;
+  addPlayer: (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => Promise<Player>;
   updatePlayer: (playerId: string, playerData: Partial<Pick<Player, 'name' | 'avatarUrl' | 'legendaryTitle' | 'legendaryBio'>>) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
@@ -94,7 +94,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
-  const addPlayer = useCallback(async (playerData: { name: string; avatarUrl?: string }) => {
+  const addPlayer = useCallback(async (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => {
     setIsLoading(true);
     try {
       const newPlayer = await addPlayerAction(playerData);

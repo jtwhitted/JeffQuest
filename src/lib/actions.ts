@@ -138,6 +138,7 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
 const playerFormSchema = z.object({
     name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
     avatarUrl: z.string().optional(),
+    bggUsername: z.string().optional(),
 });
 
 export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
@@ -148,12 +149,13 @@ export async function addPlayer(values: z.infer<typeof playerFormSchema>) {
         throw new Error('Invalid player data.');
     }
     
-    const { name, avatarUrl } = validatedFields.data;
+    const { name, avatarUrl, bggUsername } = validatedFields.data;
 
     const newPlayer: Player = {
         id: `p${Date.now()}`,
         name,
         avatarUrl: avatarUrl || `https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(name)}`,
+        bggUsername: bggUsername || undefined,
     };
 
     await addPlayerToDB(newPlayer);

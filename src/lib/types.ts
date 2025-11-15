@@ -3,6 +3,7 @@ export interface Player {
   id: string;
   name: string;
   avatarUrl: string;
+  bggUsername?: string;
   legendaryTitle?: string;
   legendaryBio?: string;
 }

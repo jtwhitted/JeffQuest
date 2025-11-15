@@ -18,6 +18,7 @@ import type { Player } from '@/lib/types';
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -39,6 +40,7 @@ interface AddPlayerDialogProps {
 const formSchema = z.object({
     name: z.string().min(1, 'Player name is required.').max(50, 'Name must be 50 characters or less.'),
     avatarUrl: z.string().optional(),
+    bggUsername: z.string().optional(),
 });
 
 export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayerDialogProps) {
@@ -51,6 +53,7 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
     defaultValues: {
         name: '',
         avatarUrl: '',
+        bggUsername: '',
     }
   });
   
@@ -140,6 +143,21 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
                                   </FormLabel>
                                   <FormControl>
                                       <Input id="name" {...field} className="col-span-3" />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                       <FormField
+                          control={form.control}
+                          name="bggUsername"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel htmlFor="bggUsername" className="text-right">
+                                  BGG Username (Optional)
+                                  </FormLabel>
+                                  <FormControl>
+                                      <Input id="bggUsername" {...field} className="col-span-3" />
                                   </FormControl>
                                   <FormMessage />
                               </FormItem>
