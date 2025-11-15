@@ -199,7 +199,6 @@ export default function GameLogForm() {
     toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
   };
   
-  // This effect safely populates the form after the player list has been updated.
   useEffect(() => {
     if (pendingAiResult) {
       // Check if all players from the AI result are now present in the context's player list.
@@ -223,14 +222,12 @@ export default function GameLogForm() {
             throw new Error("The AI failed to extract any details from the transcription.");
         }
         
+        // Always set the pending result. The useEffect will handle populating.
+        setPendingAiResult(result);
+        
         if (result.newPlayersAdded) {
             toast({ title: "New Players Found!", description: "Refreshing player list..." });
-            // Store the result and trigger a refresh. The useEffect will handle populating the form.
-            setPendingAiResult(result);
             await refreshData();
-        } else {
-            // No new players, we can populate the form directly.
-            populateFormFromAI(result);
         }
 
     } catch(e: any) {
@@ -709,5 +706,3 @@ export default function GameLogForm() {
     </>
   );
 }
-
-    
