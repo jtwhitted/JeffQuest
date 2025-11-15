@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to extract structured session details from transcribed text.
@@ -127,8 +126,10 @@ const extractDetailsPrompt = ai.definePrompt({
     output: { schema: ExtractSessionDetailsOutputSchema },
     prompt: `You are an expert at analyzing game session notes.
 Your task is to extract structured information from the provided transcription.
-Use the tools provided to find the correct game and player IDs. If new players are mentioned, the tool will create them.
+First, use the tools provided to find the correct game ID and player IDs. If new players are mentioned, the tool will create them.
 It is very important to set the 'newPlayersAdded' flag to true if the tool creates any new players.
+
+After using the tools to find the game and player IDs, you MUST proceed to extract all other details from the transcription, including the date, winner or cooperative result, scores, and duration. Do NOT stop after using the tools.
 
 - Identify the game played.
 - Identify all players who participated.
