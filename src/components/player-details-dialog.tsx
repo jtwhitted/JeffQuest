@@ -356,26 +356,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                 </CardContent>
               </Card>
 
-                <div className="space-y-2">
-                    <Label htmlFor="bggUsername">BGG Username</Label>
-                    <div className="flex items-center gap-2">
-                        <Input 
-                            id="bggUsername"
-                            value={bggUsername}
-                            onChange={(e) => setBggUsername(e.target.value)}
-                            placeholder="e.g. BoardGameGeek"
-                        />
-                        <Button 
-                            size="icon" 
-                            onClick={handleBggUsernameSave} 
-                            disabled={isSaving || bggUsername === player.bggUsername}
-                        >
-                            {isSaving ? <Loader2 className="animate-spin"/> : <Save />}
-                            <span className="sr-only">Save BGG Username</span>
-                        </Button>
-                    </div>
-                </div>
-
               {player.gameHistory.length > 0 && (
                 <Accordion type="single" collapsible>
                     <AccordionItem value="game-stats">
@@ -405,6 +385,26 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                     </AccordionItem>
                 </Accordion>
                 )}
+
+                <div className="space-y-2">
+                    <Label htmlFor="bggUsername">BGG Username</Label>
+                    <div className="flex items-center gap-2">
+                        <Input 
+                            id="bggUsername"
+                            value={bggUsername}
+                            onChange={(e) => setBggUsername(e.target.value)}
+                            placeholder="e.g. BoardGameGeek"
+                        />
+                        <Button 
+                            size="icon" 
+                            onClick={handleBggUsernameSave} 
+                            disabled={isSaving || bggUsername === player.bggUsername}
+                        >
+                            {isSaving ? <Loader2 className="animate-spin"/> : <Save />}
+                            <span className="sr-only">Save BGG Username</span>
+                        </Button>
+                    </div>
+                </div>
 
 
               <div>
