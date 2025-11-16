@@ -126,19 +126,6 @@ export default function GameDetailPage() {
                                         </Link>
                                     </>
                                 )}
-                                <Separator />
-                                <div className='space-y-2'>
-                                  <Button variant="outline" size="sm" className="w-full" onClick={() => setRulebookUploadOpen(true)}>
-                                    <UploadCloud className="mr-2 h-4 w-4" />
-                                    Upload Rulebook
-                                  </Button>
-                                  {game.rulebookText && (
-                                    <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
-                                      <WandSparkles className="mr-2 h-4 w-4" />
-                                      Rules Wizard
-                                    </Button>
-                                  )}
-                                </div>
                              </div>
                         </div>
                         <div className="md:w-2/3 space-y-4">
@@ -209,6 +196,19 @@ export default function GameDetailPage() {
                     <div className="flex items-center justify-between">
                         <span className="flex items-center text-muted-foreground"><BarChart3 className="mr-2"/> Difficulty</span>
                         <span className="font-medium">{game.difficulty}</span>
+                    </div>
+                     <Separator />
+                    <div className='space-y-2'>
+                        <Button variant="outline" size="sm" className="w-full" onClick={() => setRulebookUploadOpen(true)}>
+                        <UploadCloud className="mr-2 h-4 w-4" />
+                        Upload Rulebook
+                        </Button>
+                        {game.rulebookText && (
+                        <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
+                            <WandSparkles className="mr-2 h-4 w-4" />
+                            Rules Wizard
+                        </Button>
+                        )}
                     </div>
                 </CardContent>
             </Card>
