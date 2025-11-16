@@ -61,7 +61,11 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
     setIsSpeaking(false);
 
     try {
-      const result = await askRulebook({ rulebookText: game.rulebookText || '', query });
+      if (!game.documents || game.documents.length === 0) {
+        throw new Error("No rulebook documents found for this game.");
+      }
+      
+      const result = await askRulebook({ documents: game.documents, query });
       setAnswer(result.answer);
       
       // After getting the answer, generate the speech with a dynamic persona

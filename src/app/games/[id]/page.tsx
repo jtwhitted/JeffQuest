@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
@@ -13,13 +14,13 @@ import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
-import { RulebookDialog } from '@/components/rulebook-dialog';
+import { RulebookManagerDialog } from '@/components/rulebook-manager-dialog';
 
 export default function GameDetailPage() {
   const { id } = useParams();
   const { games, sessions, players, isLoading } = useGames();
   const [isWizardOpen, setWizardOpen] = useState(false);
-  const [isRulebookUploadOpen, setRulebookUploadOpen] = useState(false);
+  const [isRulebookManagerOpen, setRulebookManagerOpen] = useState(false);
   
   if (isLoading) {
     return (
@@ -61,16 +62,16 @@ export default function GameDetailPage() {
 
   return (
     <>
-    {game.rulebookText && (
+    {game.documents && game.documents.length > 0 && (
       <RulesWizardDialog
         open={isWizardOpen}
         onOpenChange={setWizardOpen}
         game={game}
       />
     )}
-     <RulebookDialog
-        open={isRulebookUploadOpen}
-        onOpenChange={setRulebookUploadOpen}
+     <RulebookManagerDialog
+        open={isRulebookManagerOpen}
+        onOpenChange={setRulebookManagerOpen}
         game={game}
       />
     <div className="space-y-8">
@@ -126,7 +127,7 @@ export default function GameDetailPage() {
                                         </Link>
                                     </>
                                 )}
-                                {game.rulebookText && (
+                                {game.documents && game.documents.length > 0 && (
                                   <>
                                     <Separator />
                                     <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
@@ -208,9 +209,9 @@ export default function GameDetailPage() {
                     </div>
                      <Separator />
                     <div className='space-y-2'>
-                        <Button variant="outline" size="sm" className="w-full" onClick={() => setRulebookUploadOpen(true)}>
+                        <Button variant="outline" size="sm" className="w-full" onClick={() => setRulebookManagerOpen(true)}>
                         <UploadCloud className="mr-2 h-4 w-4" />
-                        Upload Rulebook
+                        Manage Rulebooks
                         </Button>
                     </div>
                 </CardContent>

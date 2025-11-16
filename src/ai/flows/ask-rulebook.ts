@@ -11,8 +11,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
+const DocumentSchema = z.object({
+  name: z.string().describe("The name of the document (e.g., 'Core Rulebook', 'FAQ')."),
+  text: z.string().describe("The full text content of the document."),
+});
+
 const AskRulebookInputSchema = z.object({
-  rulebookText: z.string().describe('The full text content of the game\'s rulebook.'),
+  documents: z.array(DocumentSchema).describe('An array of all rulebook documents for the game.'),
   query: z.string().describe('The user\'s question about the rules.'),
 });
 export type AskRulebookInput = z.infer<typeof AskRulebookInputSchema>;
@@ -31,19 +36,26 @@ const askRulebookPrompt = ai.definePrompt({
   input: { schema: AskRulebookInputSchema },
   output: { schema: AskRulebookOutputSchema },
   model: 'googleai/gemini-2.5-flash',
-  prompt: `You are the "Rules Wizard," an expert on board game rules. Your task is to answer a user's question based *only* on the provided rulebook text.
+  prompt: `You are the "Rules Wizard," an expert on board game rules. Your task is to answer a user's question based *only* on the provided rulebook documents.
 
-If the answer is not in the rulebook text, state that you cannot find the answer in the provided rules. Do not make up information.
+You have been given one or more documents. Use all of them to formulate your answer.
 
-**Rulebook Text:**
+If the answer is not in the provided documents, state that you cannot find the answer in the provided rules. Do not make up information.
+
+**Rulebook Documents:**
 ---
-{{{rulebookText}}}
+{{#each documents}}
+## Document: {{{name}}}
+
+{{{text}}}
+
 ---
+{{/each}}
 
 **User's Question:**
 "{{{query}}}"
 
-Provide a clear and concise answer based on the rulebook.`,
+Provide a clear and concise answer based on the rulebook documents.`,
 });
 
 const askRulebookFlow = ai.defineFlow(
@@ -53,9 +65,9 @@ const askRulebookFlow = ai.defineFlow(
     outputSchema: AskRulebookOutputSchema,
   },
   async (input) => {
-    // If the rulebook text is empty, return a helpful message immediately.
-    if (!input.rulebookText.trim()) {
-      return { answer: "I'm sorry, but no rulebook has been uploaded for this game yet. Please upload a rulebook to ask questions." };
+    // If there are no documents, return a helpful message.
+    if (!input.documents || input.documents.length === 0) {
+      return { answer: "I'm sorry, but no rulebooks have been uploaded for this game yet. Please upload a rulebook to ask questions." };
     }
 
     const { output } = await askRulebookPrompt(input);

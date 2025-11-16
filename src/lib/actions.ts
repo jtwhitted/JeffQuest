@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game, Player, Session } from './types';
+import type { Game, Player, Session, RulebookDocument } from './types';
 import { 
     addGameToDB,
     addSessionToDB,
@@ -433,10 +433,14 @@ export async function importBggRatingsAction(username: string, playerId: string)
 
 
 
-export async function handleRulebookUpload(gameId: string, pdfDataUri: string): Promise<Game> {
+export async function handleRulebookUpload(gameId: string, documentName: string, pdfDataUri: string): Promise<Game> {
     if (!pdfDataUri.startsWith('data:application/pdf;base64,')) {
         throw new Error('Invalid PDF data format.');
     }
+    if (!documentName.trim()) {
+        throw new Error('Document name cannot be empty.');
+    }
+
 
     try {
         const base64Data = pdfDataUri.replace(/^data:application\/pdf;base64,/, "");
@@ -448,8 +452,22 @@ export async function handleRulebookUpload(gameId: string, pdfDataUri: string): 
         if (!textContent) {
             throw new Error('Could not extract any text from the PDF.');
         }
+        
+        const { games } = await getInitialData();
+        const game = games.find(g => g.id === gameId);
+        if (!game) {
+            throw new Error('Game not found');
+        }
 
-        const updatedGame = await updateGameInDB(gameId, { rulebookText: textContent });
+        const newDocument: RulebookDocument = {
+            id: `doc-${Date.now()}`,
+            name: documentName,
+            text: textContent,
+        };
+
+        const updatedDocuments = [...(game.documents || []), newDocument];
+        
+        const updatedGame = await updateGameInDB(gameId, { documents: updatedDocuments });
         
         revalidatePath(`/games/${gameId}`);
 
@@ -459,3 +477,20 @@ export async function handleRulebookUpload(gameId: string, pdfDataUri: string): 
         throw new Error('Failed to process the PDF file.');
     }
 }
+
+
+export async function deleteRulebookDocument(gameId: string, documentId: string): Promise<Game> {
+    const { games } = await getInitialData();
+    const game = games.find(g => g.id === gameId);
+    if (!game) {
+        throw new Error('Game not found');
+    }
+
+    const updatedDocuments = game.documents?.filter(doc => doc.id !== documentId) || [];
+
+    const updatedGame = await updateGameInDB(gameId, { documents: updatedDocuments });
+
+    revalidatePath(`/games/${gameId}`);
+    return updatedGame;
+}
+

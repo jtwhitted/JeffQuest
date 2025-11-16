@@ -8,6 +8,12 @@ export interface Player {
   legendaryBio?: string;
 }
 
+export interface RulebookDocument {
+  id: string;
+  name:string;
+  text: string;
+}
+
 export interface Game {
   id: string;
   name: string;
@@ -26,7 +32,7 @@ export interface Game {
   complexity?: number;
   designers?: string[];
   publishers?: string[];
-  rulebookText?: string;
+  documents?: RulebookDocument[];
   userRatings?: { [playerId: string]: number };
   bggId?: string;
 }
