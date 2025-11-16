@@ -68,14 +68,14 @@ export function RulebookEditor({ game }: RulebookEditorProps) {
             <CardHeader>
                 <CardTitle>Rulebook Editor</CardTitle>
                 <CardDescription>
-                    Upload the game's rulebook here. This will enable the AI to answer rules questions in the future.
+                    Upload the game's rulebook here to enable AI rule assistance in the future.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="relative w-full border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center">
-                    <UploadCloud className="h-12 w-12 text-muted-foreground" />
-                    <p className="mt-4 text-sm text-muted-foreground">
-                        Drag and drop a PDF file here, or click to select a file.
+                <div className="relative w-full border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center text-center">
+                    <UploadCloud className="h-10 w-10 text-muted-foreground" />
+                    <p className="mt-3 text-sm text-muted-foreground">
+                        Drag and drop a PDF, or click to select a file.
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground/80">
                         (File upload is for demonstration only)
@@ -102,4 +102,3 @@ export function RulebookEditor({ game }: RulebookEditorProps) {
         </Card>
     );
 }
-

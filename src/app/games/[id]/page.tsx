@@ -204,8 +204,8 @@ export default function GameDetailPage() {
             </Card>
         </div>
       </div>
-      <RulebookEditor game={game} />
       <GameSessionHistory sessions={gameSessions} allPlayers={players} />
+      <RulebookEditor game={game} />
     </div>
   );
 }
