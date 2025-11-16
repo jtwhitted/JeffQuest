@@ -126,6 +126,15 @@ export default function GameDetailPage() {
                                         </Link>
                                     </>
                                 )}
+                                {game.rulebookText && (
+                                  <>
+                                    <Separator />
+                                    <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
+                                        <WandSparkles className="mr-2 h-4 w-4" />
+                                        Rules Wizard
+                                    </Button>
+                                  </>
+                                )}
                              </div>
                         </div>
                         <div className="md:w-2/3 space-y-4">
@@ -203,12 +212,6 @@ export default function GameDetailPage() {
                         <UploadCloud className="mr-2 h-4 w-4" />
                         Upload Rulebook
                         </Button>
-                        {game.rulebookText && (
-                        <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
-                            <WandSparkles className="mr-2 h-4 w-4" />
-                            Rules Wizard
-                        </Button>
-                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -259,5 +262,3 @@ export default function GameDetailPage() {
     </>
   );
 }
-
-    
