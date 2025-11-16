@@ -12,7 +12,6 @@ import {
     deletePlayerFromDB,
     deleteSessionFromDB,
     updatePlayerInDB,
-    updateGameInDB,
     getInitialData
 } from './data';
 import { searchBgg, getBggDetails, getBggCollection } from './bgg';
@@ -189,24 +188,6 @@ export async function updatePlayerAction(playerId: string, values: z.infer<typeo
     revalidatePath('/');
     
     return updatedPlayer;
-}
-
-const updateGameRulebookSchema = z.object({
-    gameId: z.string(),
-    rulebookText: z.string(),
-});
-
-export async function updateGameRulebookAction(values: z.infer<typeof updateGameRulebookSchema>) {
-    const validatedFields = updateGameRulebookSchema.safeParse(values);
-    if (!validatedFields.success) {
-        throw new Error('Invalid rulebook data.');
-    }
-
-    const { gameId, rulebookText } = validatedFields.data;
-    const updatedGame = await updateGameInDB(gameId, { rulebookText });
-
-    revalidatePath(`/games/${gameId}`);
-    return updatedGame;
 }
 
 export async function deleteGame(gameId: string) {

@@ -13,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RulebookEditor } from './_components/rulebook-editor';
 
 export default function GameDetailPage() {
   const { id } = useParams();
@@ -205,7 +204,6 @@ export default function GameDetailPage() {
         </div>
       </div>
       <GameSessionHistory sessions={gameSessions} allPlayers={players} />
-      <RulebookEditor game={game} />
     </div>
   );
 }

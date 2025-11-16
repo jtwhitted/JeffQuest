@@ -11,7 +11,6 @@ import {
     deletePlayer as deletePlayerAction, 
     deleteSessionAction, 
     updatePlayerAction,
-    updateGameRulebookAction
 } from '@/lib/actions';
 import { getInitialData } from '@/lib/data';
 
@@ -34,7 +33,6 @@ type GameData = {
 }
 
 type PlayerUpdateData = Partial<Pick<Player, 'name' | 'avatarUrl' | 'legendaryTitle' | 'legendaryBio' | 'bggUsername'>>;
-type GameUpdateData = Partial<Pick<Game, 'rulebookText'>>;
 
 
 interface GameContextType {
@@ -44,7 +42,6 @@ interface GameContextType {
   addGame: (gameData: GameData) => Promise<Game>;
   addPlayer: (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => Promise<Player>;
   updatePlayer: (playerId: string, playerData: PlayerUpdateData) => Promise<Player>;
-  updateGame: (gameId: string, gameData: GameUpdateData) => Promise<Game>;
   addSession: (sessionData: any) => Promise<Session>;
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
@@ -56,7 +53,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 interface GameProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
   initialData: {
     games: Game[];
     players: Player[];
@@ -99,23 +96,6 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       setIsLoading(false);
     }
   }, []);
-
-   const updateGame = useCallback(async (gameId: string, gameData: GameUpdateData) => {
-    setIsLoading(true);
-    try {
-        if (gameData.rulebookText !== undefined) {
-            const updatedGame = await updateGameRulebookAction({gameId, rulebookText: gameData.rulebookText});
-            setGames(prevGames => prevGames.map(g => g.id === gameId ? updatedGame : g));
-            return updatedGame;
-        }
-        // Placeholder for other update types
-        const currentGame = games.find(g => g.id === gameId);
-        if (!currentGame) throw new Error("Game not found for update");
-        return currentGame;
-    } finally {
-        setIsLoading(false);
-    }
-  }, [games]);
 
   const addPlayer = useCallback(async (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => {
     setIsLoading(true);
@@ -189,7 +169,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData, updateGame }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData }}>
       {children}
     </GameContext.Provider>
   );
