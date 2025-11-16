@@ -38,11 +38,11 @@ export default function GameDetailPage() {
   const gameSessions = sessions.filter(s => s.gameId === game.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Calculate high score
-  let highScore = { score: 0, playerId: '' };
+  let highScore = { score: 0, playerId: '', sessionId: '' };
   gameSessions.forEach(session => {
     session.scores?.forEach(s => {
       if (s.score && s.score > highScore.score) {
-        highScore = { score: s.score, playerId: s.playerId };
+        highScore = { score: s.score, playerId: s.playerId, sessionId: session.id };
       }
     });
   });
@@ -109,13 +109,13 @@ export default function GameDetailPage() {
                                         <Separator />
                                         <div className="flex items-center justify-between">
                                             <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
-                                            <div className="flex items-center gap-2">
+                                            <Link href={`/sessions/${highScore.sessionId}`} className="flex items-center gap-2 hover:underline">
                                                 <span className="font-medium">{highScore.score}</span>
                                                 <Avatar className="h-6 w-6">
                                                     <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
                                                     <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
-                                            </div>
+                                            </Link>
                                         </div>
                                     </>
                                 )}
