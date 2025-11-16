@@ -68,24 +68,9 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
       const result = await askRulebook({ documents: game.documents, query });
       setAnswer(result.answer);
       
-      // After getting the answer, generate the speech with a dynamic persona
       if (result.answer) {
           try {
-              let persona = 'a helpful game expert'; // Default persona
-              const categories = game.category.map(c => c.toLowerCase());
-              if (categories.includes('fantasy')) {
-                  persona = 'a wise and ancient wizard';
-              } else if (categories.includes('science fiction')) {
-                  persona = 'a futuristic spaceship AI';
-              } else if (categories.includes('horror')) {
-                  persona = 'a spooky storyteller';
-              } else if (categories.includes('party game')) {
-                  persona = 'an energetic and fun game show host';
-              } else if (categories.includes('american west')) {
-                  persona = 'a grizzled old-west prospector';
-              }
-
-              const speechResult = await textToSpeech({ text: result.answer, persona });
+              const speechResult = await textToSpeech({ text: result.answer });
               setAudioDataUri(speechResult.audioDataUri);
               
               // Automatically play the audio
