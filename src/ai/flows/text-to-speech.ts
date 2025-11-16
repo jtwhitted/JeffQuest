@@ -1,6 +1,7 @@
+
 'use server';
 /**
- * @fileOverview A Genkit flow to convert text to speech.
+ * @fileOverview A Genkit flow to convert text to speech with a dynamic persona.
  *
  * - textToSpeech - A function that takes a string and returns a playable audio data URI.
  * - TextToSpeechInput - The input type for the textToSpeech function.
@@ -14,6 +15,7 @@ import wav from 'wav';
 
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe('The text to be converted to speech.'),
+  persona: z.string().optional().describe('An optional persona for the voice (e.g., "a wise old wizard").'),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -51,7 +53,13 @@ const textToSpeechFlow = ai.defineFlow(
     inputSchema: TextToSpeechInputSchema,
     outputSchema: TextToSpeechOutputSchema,
   },
-  async ({ text }) => {
+  async ({ text, persona }) => {
+    const promptText = persona
+        ? `Read the following text in the voice of ${persona}.
+
+${text}`
+        : text;
+
     const { media } = await ai.generate({
       model: googleAI.model('gemini-2.5-flash-preview-tts'),
       config: {
@@ -62,7 +70,7 @@ const textToSpeechFlow = ai.defineFlow(
           },
         },
       },
-      prompt: text,
+      prompt: promptText,
     });
 
     if (!media) {
