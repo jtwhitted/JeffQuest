@@ -169,10 +169,14 @@ export async function getBggCollection(username: string): Promise<{bggId: string
     const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
     
     return items.map((item: any) => {
+        // The user's rating is an attribute on the <rating> tag.
         const ratingValue = item.stats?.rating?.value;
-        // BGG returns 'N/A' for unrated games, which the parser might turn into a string.
-        // We only want to capture actual number ratings.
-        const userRating = typeof ratingValue === 'number' ? ratingValue : undefined;
+        
+        // BGG returns 'N/A' for unrated games. We need to parse the value
+        // and check if it's a valid number.
+        const parsedRating = parseFloat(ratingValue);
+        const userRating = !isNaN(parsedRating) ? parsedRating : undefined;
+        
         return {
             bggId: item.objectid.toString(),
             userRating: userRating,
