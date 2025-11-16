@@ -1,7 +1,7 @@
 
 
 'use client';
-
+import React from 'react';
 import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
