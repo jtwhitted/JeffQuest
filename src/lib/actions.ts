@@ -12,9 +12,11 @@ import {
     deletePlayerFromDB,
     deleteSessionFromDB,
     updatePlayerInDB,
-    getInitialData
+    getInitialData,
+    updateGameInDB
 } from './data';
 import { searchBgg, getBggDetails, getBggCollection } from './bgg';
+import pdf from 'pdf-parse';
 
 // Server Actions for data mutation
 
@@ -296,5 +298,33 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
     } catch (error: any) {
         console.error('BGG collection import failed:', error);
         throw new Error(error.message || 'Failed to import collection from BGG.');
+    }
+}
+
+
+export async function handleRulebookUpload(gameId: string, pdfDataUri: string) {
+    if (!pdfDataUri.startsWith('data:application/pdf;base64,')) {
+        throw new Error('Invalid PDF data format.');
+    }
+
+    try {
+        const base64Data = pdfDataUri.replace(/^data:application\/pdf;base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        const data = await pdf(buffer);
+        const textContent = data.text;
+
+        if (!textContent) {
+            throw new Error('Could not extract any text from the PDF.');
+        }
+
+        await updateGameInDB(gameId, { rulebookText: textContent });
+        
+        revalidatePath(`/games/${gameId}`);
+
+        return { success: true, message: 'Rulebook uploaded and parsed successfully.' };
+    } catch (error) {
+        console.error('PDF parsing or saving error:', error);
+        throw new Error('Failed to process the PDF file.');
     }
 }

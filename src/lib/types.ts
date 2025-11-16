@@ -26,6 +26,7 @@ export interface Game {
   complexity?: number;
   designers?: string[];
   publishers?: string[];
+  rulebookText?: string;
 }
 
 export interface Session {
