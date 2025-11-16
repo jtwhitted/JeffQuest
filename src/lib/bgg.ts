@@ -153,7 +153,7 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
 
 
 export async function getBggCollection(username: string): Promise<{bggId: string, userRating?: number}[]> {
-    const params: Record<string, string> = { username, own: '1', stats: '1' };
+    const params: Record<string, string> = { username, stats: '1' };
 
     const xmlData = await bggFetch('collection', params);
     const parsed = parser.parse(xmlData);
@@ -170,6 +170,8 @@ export async function getBggCollection(username: string): Promise<{bggId: string
     
     return items.map((item: any) => {
         const ratingValue = item.stats?.rating?.value;
+        // BGG returns 'N/A' for unrated games, which the parser might turn into a string.
+        // We only want to capture actual number ratings.
         const userRating = typeof ratingValue === 'number' ? ratingValue : undefined;
         return {
             bggId: item.objectid.toString(),
