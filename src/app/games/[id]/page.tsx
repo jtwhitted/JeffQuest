@@ -107,16 +107,16 @@ export default function GameDetailPage() {
                                 {highScorePlayer && (
                                     <>
                                         <Separator />
-                                        <div className="flex items-center justify-between">
+                                        <Link href={`/sessions/${highScore.sessionId}`} className="flex items-center justify-between hover:bg-muted/50 rounded-md -m-2 p-2">
                                             <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
-                                            <Link href={`/sessions/${highScore.sessionId}`} className="flex items-center gap-2 hover:underline">
+                                            <div className="flex items-center gap-2">
                                                 <span className="font-medium">{highScore.score}</span>
                                                 <Avatar className="h-6 w-6">
                                                     <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
                                                     <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
-                                            </Link>
-                                        </div>
+                                            </div>
+                                        </Link>
                                     </>
                                 )}
                                 {game.rulebookText && (
