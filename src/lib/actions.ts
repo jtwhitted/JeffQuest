@@ -15,7 +15,7 @@ import {
     getInitialData,
     updateGameInDB
 } from './data';
-import { searchBgg, getBggDetails, getBggCollection } from './bgg';
+import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay } from './bgg';
 import pdf from 'pdf-parse';
 
 // Server Actions for data mutation
@@ -298,6 +298,86 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
     } catch (error: any) {
         console.error('BGG collection import failed:', error);
         throw new Error(error.message || 'Failed to import collection from BGG.');
+    }
+}
+
+export async function importBggPlaysAction(username: string): Promise<{ importedCount: number }> {
+    if (!username) {
+        throw new Error('BGG username is required.');
+    }
+
+    try {
+        const { games, players } = await getInitialData();
+        const bggPlays = await getBggPlayHistory(username);
+
+        let importedCount = 0;
+
+        for (const play of bggPlays) {
+            const game = games.find(g => g.bggId === play.bggGameId);
+            if (!game) continue; // Skip plays for games not in our collection
+
+            const playerIds: string[] = [];
+            const scores: { playerId: string; score?: number }[] = [];
+            let winnerId: string | undefined;
+
+            for (const playPlayer of play.players) {
+                // Try to find player by BGG username first, then by name
+                let player = players.find(p => p.bggUsername && p.bggUsername.toLowerCase() === playPlayer.bggUsername?.toLowerCase());
+                if (!player) {
+                    player = players.find(p => p.name.toLowerCase() === playPlayer.name.toLowerCase());
+                }
+                
+                if (player) {
+                    playerIds.push(player.id);
+                    if (playPlayer.score) {
+                        scores.push({ playerId: player.id, score: playPlayer.score });
+                    }
+                    if (playPlayer.win) {
+                        winnerId = player.id;
+                    }
+                }
+            }
+            
+            if (playerIds.length === 0) continue; // Skip if we can't match any players
+
+            const isCooperative = game.mechanics?.includes('Cooperative Game') || false;
+            let cooperativeResult: 'win' | 'loss' | undefined = undefined;
+
+            if (isCooperative) {
+                // For co-op games, if anyone is marked as a winner, it's a team win.
+                if (play.players.some(p => p.win)) {
+                    cooperativeResult = 'win';
+                } else {
+                    cooperativeResult = 'loss';
+                }
+                winnerId = undefined; // Clear individual winner for co-op
+            }
+
+
+            const newSession: Session = {
+                id: `s-bgg-${play.bggPlayId}`,
+                gameId: game.id,
+                date: play.date,
+                playerIds,
+                winnerId,
+                cooperativeResult,
+                scores,
+                notes: play.notes,
+                duration: play.duration,
+                isCooperative,
+            };
+
+            await addSessionToDB(newSession);
+            importedCount++;
+        }
+        
+        revalidatePath('/sessions');
+        revalidatePath('/');
+
+        return { importedCount };
+    } catch (error: any) {
+        console.error('BGG play history import failed:', error);
+        throw new Error(error.message || 'Failed to import play history from BGG.');
     }
 }
 

@@ -11,10 +11,11 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Download } from 'lucide-react';
+import { Loader2, Download, History } from 'lucide-react';
 import React, { useState } from 'react';
 import { useGames } from '@/context/game-context';
-import { importBggCollectionAction } from '@/lib/actions';
+import { importBggCollectionAction, importBggPlaysAction } from '@/lib/actions';
+import { Separator } from './ui/separator';
 
 interface BggImportDialogProps {
   open: boolean;
@@ -26,10 +27,12 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
   const { toast } = useToast();
   const { refreshData } = useGames();
   const [isImporting, setIsImporting] = useState(false);
+  const [importingMessage, setImportingMessage] = useState('');
 
   const handleImportCollection = async () => {
     if (!bggUsername) return;
     setIsImporting(true);
+    setImportingMessage('Importing Collection...');
     try {
         const result = await importBggCollectionAction(bggUsername);
         toast({
@@ -37,7 +40,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
             description: `${result.importedCount} new games were added to your library.`,
         });
         await refreshData();
-        onOpenChange(false); // Close the modal on success
+        onOpenChange(false);
     } catch (error: any) {
         console.error('Error importing BGG collection:', error);
         toast({
@@ -47,6 +50,32 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
         });
     } finally {
         setIsImporting(false);
+        setImportingMessage('');
+    }
+  };
+  
+  const handleImportPlays = async () => {
+    if (!bggUsername) return;
+    setIsImporting(true);
+    setImportingMessage('Importing Plays...');
+    try {
+        const result = await importBggPlaysAction(bggUsername);
+        toast({
+            title: 'Play History Imported',
+            description: `${result.importedCount} new sessions were added.`,
+        });
+        await refreshData();
+        onOpenChange(false);
+    } catch (error: any) {
+        console.error('Error importing BGG plays:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Import Failed',
+            description: error.message || 'Could not import the play history.',
+        });
+    } finally {
+        setIsImporting(false);
+        setImportingMessage('');
     }
   };
 
@@ -60,19 +89,33 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
           <DialogHeader>
             <DialogTitle>Import from BGG</DialogTitle>
             <DialogDescription>
-              Import all owned games from the BoardGameGeek collection of <strong>{bggUsername}</strong>. This will not create duplicates.
+              Import games or play history from the BoardGameGeek collection of <strong>{bggUsername}</strong>.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
+          <div className="py-4 space-y-4">
              <Button 
                 variant="outline" 
                 className="w-full" 
                 onClick={handleImportCollection}
                 disabled={isImporting}
                 >
-                {isImporting ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2" />}
-                {isImporting ? 'Importing...' : 'Import BGG Collection'}
+                {isImporting && importingMessage === 'Importing Collection...' ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2" />}
+                {isImporting && importingMessage === 'Importing Collection...' ? 'Importing...' : 'Import BGG Collection'}
+            </Button>
+            <div className="flex items-center gap-2">
+                <Separator className="flex-1" />
+                <span className="text-xs text-muted-foreground">OR</span>
+                <Separator className="flex-1" />
+            </div>
+             <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleImportPlays}
+                disabled={isImporting}
+                >
+                {isImporting && importingMessage === 'Importing Plays...' ? <Loader2 className="mr-2 animate-spin"/> : <History className="mr-2" />}
+                {isImporting && importingMessage === 'Importing Plays...' ? 'Importing...' : 'Import Play History'}
             </Button>
           </div>
 
@@ -83,5 +126,3 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
       </Dialog>
   );
 }
-
-    

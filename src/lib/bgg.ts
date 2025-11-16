@@ -1,3 +1,4 @@
+
 'use server';
 
 import { XMLParser } from 'fast-xml-parser';
@@ -40,7 +41,7 @@ const parser = new XMLParser({
     decodeHTMLchar: true,
     isArray: (name, jpath) => {
         // These keys should always be arrays, even if there's only one.
-        return ['item', 'link', 'result', 'name', 'poll'].includes(name);
+        return ['item', 'link', 'result', 'name', 'poll', 'play', 'players', 'player'].includes(name);
     }
 });
 
@@ -170,3 +171,52 @@ export async function getBggCollection(username: string): Promise<string[]> {
     
     return items.map((item: any) => item.objectid.toString());
 }
+
+export interface BggPlay {
+    bggPlayId: string;
+    bggGameId: string;
+    date: string;
+    notes?: string;
+    duration?: number;
+    players: {
+        name: string;
+        bggUsername?: string;
+        win: boolean;
+        score?: number;
+    }[];
+}
+
+export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
+    const params: Record<string, string> = { username, subtype: 'boardgame' };
+    const xmlData = await bggFetch('plays', params);
+    const parsed = parser.parse(xmlData);
+
+    if (parsed.errors?.error) {
+        throw new Error(`BGG Error: ${parsed.errors.error.message}`);
+    }
+
+    if (!parsed.plays?.play) {
+        return [];
+    }
+
+    const plays: BggPlay[] = parsed.plays.play.map((play: any): BggPlay => {
+        const playPlayers = play.players?.[0]?.player?.map((p: any) => ({
+            name: p.name,
+            bggUsername: p.username || undefined,
+            win: p.win === 1,
+            score: p.score ? parseFloat(p.score) : undefined,
+        })) || [];
+        
+        return {
+            bggPlayId: play.id,
+            bggGameId: play.item?.objectid,
+            date: play.date,
+            notes: play.comments || undefined,
+            duration: play.length ? parseInt(play.length, 10) : undefined,
+            players: playPlayers,
+        };
+    });
+
+    return plays;
+}
+
