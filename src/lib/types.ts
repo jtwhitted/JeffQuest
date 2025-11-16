@@ -28,6 +28,7 @@ export interface Game {
   publishers?: string[];
   rulebookText?: string;
   userRating?: number;
+  bggId?: string;
 }
 
 export interface Session {

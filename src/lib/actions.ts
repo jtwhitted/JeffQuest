@@ -108,7 +108,8 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         newGame = {
             id: `g${Date.now()}`,
             name: validatedFields.data.name, // Use the name from the selected result
-            ...bggDetails[0]
+            ...bggDetails[0],
+            bggId: validatedFields.data.bggId,
         };
     } else {
         // Manual entry
@@ -288,6 +289,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                 imageUrl: gameDetails.imageUrl || '',
                 minPlayers: gameDetails.minPlayers || 1,
                 maxPlayers: gameDetails.maxPlayers || 1,
+                bggId: gameDetails.id,
             };
             await addGameToDB(newGame);
         }
@@ -389,19 +391,43 @@ export async function importBggRatingsAction(username: string): Promise<{ update
     }
 
     try {
-        const collectionItems = await getBggCollection(username);
-        if (collectionItems.length === 0) {
+        const bggCollection = await getBggCollection(username);
+        if (bggCollection.length === 0) {
             return { updatedCount: 0 };
         }
 
         const { games: currentGames } = await getInitialData();
-        let updatedCount = 0;
+        const currentGamesMap = new Map(currentGames.map(g => [g.bggId, g]));
+        
+        const gamesToAddBggIds = bggCollection
+            .filter(item => !currentGamesMap.has(item.bggId) && item.userRating !== undefined)
+            .map(item => item.bggId);
 
-        for (const game of currentGames) {
+        if (gamesToAddBggIds.length > 0) {
+            const newGamesDetails = await getBggDetails(gamesToAddBggIds, false);
+            for (const gameDetails of newGamesDetails) {
+                const newGame: Game = {
+                    id: `g${Date.now()}-${Math.random()}`,
+                    ...gameDetails,
+                    name: gameDetails.name || 'Unknown Name',
+                    bggId: gameDetails.id,
+                    category: gameDetails.category || [],
+                    imageUrl: gameDetails.imageUrl || '',
+                    minPlayers: gameDetails.minPlayers || 1,
+                    maxPlayers: gameDetails.maxPlayers || 1,
+                };
+                const addedGame = await addGameToDB(newGame);
+                currentGamesMap.set(addedGame.bggId!, addedGame);
+            }
+        }
+
+        let updatedCount = 0;
+        const allGames = Array.from(currentGamesMap.values());
+
+        for (const game of allGames) {
             if (game.bggId) {
-                const bggItem = collectionItems.find(item => item.bggId === game.bggId);
+                const bggItem = bggCollection.find(item => item.bggId === game.bggId);
                 if (bggItem && bggItem.userRating !== undefined) {
-                    // Update the game if the rating has changed or is new
                     if (game.userRating !== bggItem.userRating) {
                         await updateGameInDB(game.id, { userRating: bggItem.userRating });
                         updatedCount++;
@@ -411,6 +437,7 @@ export async function importBggRatingsAction(username: string): Promise<{ update
         }
         
         revalidatePath('/games');
+        revalidatePath('/players');
 
         return { updatedCount };
 

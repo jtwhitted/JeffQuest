@@ -227,4 +227,3 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
 
     return plays;
 }
-

@@ -53,11 +53,15 @@ export async function getInitialData() {
 
 export async function addGameToDB(game: Game): Promise<Game> {
     const games = await readData<Game>(GAMES_PATH);
-    const existingGame = games.find(g => g.name.toLowerCase() === game.name.toLowerCase());
+    
+    // Check for existing game by bggId if it exists, otherwise by name.
+    const existingGame = game.bggId 
+        ? games.find(g => g.bggId === game.bggId)
+        : games.find(g => g.name.toLowerCase() === game.name.toLowerCase());
+        
     if (existingGame) {
-        // Instead of throwing an error, we can decide to update or just return the existing one.
-        // For simplicity, we'll prevent duplicates.
-        throw new Error(`A game named "${game.name}" already exists in your collection.`);
+        // Prevent adding a duplicate.
+        return existingGame;
     }
     games.push(game);
     await writeData(GAMES_PATH, games);
@@ -78,6 +82,10 @@ export async function updateGameInDB(gameId: string, updatedData: Partial<Game>)
 
 export async function addSessionToDB(session: Session): Promise<Session> {
     const sessions = await readData<Session>(SESSIONS_PATH);
+    // Prevent adding duplicate sessions from BGG import
+    if (session.id.startsWith('s-bgg-') && sessions.find(s => s.id === session.id)) {
+        return session;
+    }
     sessions.push(session);
     await writeData(SESSIONS_PATH, sessions);
     return session;
