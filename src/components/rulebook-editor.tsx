@@ -16,6 +16,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ScrollArea } from './ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface RulebookEditorProps {
   game: Game;
@@ -24,10 +25,10 @@ interface RulebookEditorProps {
 export function RulebookEditor({ game }: RulebookEditorProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
+  const handleFileSelect = (selectedFile: File | null | undefined) => {
     if (selectedFile && selectedFile.type === 'application/pdf') {
       setFile(selectedFile);
     } else {
@@ -38,6 +39,27 @@ export function RulebookEditor({ game }: RulebookEditorProps) {
         description: 'Please select a PDF file.',
       });
     }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileSelect(event.target.files?.[0]);
+  };
+  
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const droppedFile = event.dataTransfer.files?.[0];
+    handleFileSelect(droppedFile);
   };
 
   const handleUpload = async () => {
@@ -98,7 +120,15 @@ export function RulebookEditor({ game }: RulebookEditorProps) {
           </AccordionTrigger>
           <AccordionContent className="px-6 pb-6">
             <div className="space-y-4">
-              <div className="flex flex-col items-center justify-center space-y-2 rounded-lg border-2 border-dashed border-muted p-6 text-center">
+              <div 
+                className={cn(
+                  "flex flex-col items-center justify-center space-y-2 rounded-lg border-2 border-dashed border-muted p-6 text-center transition-colors",
+                  isDragging && "border-primary bg-accent"
+                )}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+               >
                   <UploadCloud className="h-12 w-12 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
                       {file ? `Selected: ${file.name}` : 'Drag & drop a PDF or click to browse'}
