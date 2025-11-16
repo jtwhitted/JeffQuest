@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
@@ -107,14 +106,16 @@ export default function GameDetailPage() {
                                 {highScorePlayer && (
                                     <>
                                         <Separator />
-                                        <Link href={`/sessions/${highScore.sessionId}`} className="flex items-center justify-between hover:bg-muted/50 rounded-md -m-2 p-2">
-                                            <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium">{highScore.score}</span>
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
-                                                    <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
+                                        <Link href={`/sessions/${highScore.sessionId}`} className="block -m-2 p-2 rounded-md hover:bg-muted/50">
+                                            <div className="flex items-center justify-between">
+                                                <span className="flex items-center text-muted-foreground"><Trophy className="mr-2 text-amber-400"/> High Score</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium">{highScore.score}</span>
+                                                    <Avatar className="h-6 w-6">
+                                                        <AvatarImage src={highScorePlayer.avatarUrl} alt={highScorePlayer.name} />
+                                                        <AvatarFallback>{highScorePlayer.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                </div>
                                             </div>
                                         </Link>
                                     </>
@@ -244,9 +245,7 @@ export default function GameDetailPage() {
         </div>
       </div>
       <GameSessionHistory sessions={gameSessions} allPlayers={players} />
-      <div className="mx-auto max-w-2xl">
-        <RulebookEditor game={game} />
-      </div>
+      <RulebookEditor game={game} />
     </div>
     </>
   );
