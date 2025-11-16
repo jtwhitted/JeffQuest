@@ -433,7 +433,7 @@ export async function importBggRatingsAction(username: string, playerId: string)
 
 
 
-export async function handleRulebookUpload(gameId: string, pdfDataUri: string) {
+export async function handleRulebookUpload(gameId: string, pdfDataUri: string): Promise<Game> {
     if (!pdfDataUri.startsWith('data:application/pdf;base64,')) {
         throw new Error('Invalid PDF data format.');
     }
@@ -449,11 +449,11 @@ export async function handleRulebookUpload(gameId: string, pdfDataUri: string) {
             throw new Error('Could not extract any text from the PDF.');
         }
 
-        await updateGameInDB(gameId, { rulebookText: textContent });
+        const updatedGame = await updateGameInDB(gameId, { rulebookText: textContent });
         
         revalidatePath(`/games/${gameId}`);
 
-        return { success: true, message: 'Rulebook uploaded and parsed successfully.' };
+        return updatedGame;
     } catch (error) {
         console.error('PDF parsing or saving error:', error);
         throw new Error('Failed to process the PDF file.');

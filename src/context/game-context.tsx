@@ -33,6 +33,7 @@ type GameData = {
 }
 
 type PlayerUpdateData = Partial<Pick<Player, 'name' | 'avatarUrl' | 'legendaryTitle' | 'legendaryBio' | 'bggUsername'>>;
+type GameUpdateData = Partial<Game>;
 
 
 interface GameContextType {
@@ -40,6 +41,7 @@ interface GameContextType {
   players: Player[];
   sessions: Session[];
   addGame: (gameData: GameData) => Promise<Game>;
+  updateGame: (gameId: string, gameData: GameUpdateData) => void;
   addPlayer: (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => Promise<Player>;
   updatePlayer: (playerId: string, playerData: PlayerUpdateData) => Promise<Player>;
   addSession: (sessionData: any) => Promise<Session>;
@@ -95,6 +97,10 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     finally {
       setIsLoading(false);
     }
+  }, []);
+
+  const updateGame = useCallback((gameId: string, gameData: GameUpdateData) => {
+    setGames(prevGames => prevGames.map(g => g.id === gameId ? { ...g, ...gameData } : g));
   }, []);
 
   const addPlayer = useCallback(async (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => {
@@ -169,7 +175,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData }}>
       {children}
     </GameContext.Provider>
   );

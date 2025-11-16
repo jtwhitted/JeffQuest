@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/accordion";
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { useGames } from '@/context/game-context';
 
 interface RulebookEditorProps {
   game: Game;
@@ -27,6 +28,7 @@ export function RulebookEditor({ game }: RulebookEditorProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+  const { updateGame } = useGames();
 
   const handleFileSelect = (selectedFile: File | null | undefined) => {
     if (selectedFile && selectedFile.type === 'application/pdf') {
@@ -80,10 +82,11 @@ export function RulebookEditor({ game }: RulebookEditorProps) {
     reader.onload = async () => {
         try {
             const pdfDataUri = reader.result as string;
-            const result = await handleRulebookUpload(game.id, pdfDataUri);
+            const updatedGame = await handleRulebookUpload(game.id, pdfDataUri);
+            updateGame(updatedGame.id, { rulebookText: updatedGame.rulebookText });
             toast({
                 title: 'Upload Successful',
-                description: result.message,
+                description: 'Rulebook uploaded and parsed. The Rules Wizard is now available!',
             });
             setFile(null);
         } catch (error: any) {
