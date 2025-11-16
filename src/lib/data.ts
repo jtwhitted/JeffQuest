@@ -64,6 +64,18 @@ export async function addGameToDB(game: Game): Promise<Game> {
     return game;
 }
 
+export async function updateGameInDB(gameId: string, updatedData: Partial<Game>): Promise<Game> {
+    const games = await readData<Game>(GAMES_PATH);
+    const gameIndex = games.findIndex(g => g.id === gameId);
+    if (gameIndex === -1) {
+        throw new Error('Game not found');
+    }
+    const updatedGame = { ...games[gameIndex], ...updatedData };
+    games[gameIndex] = updatedGame;
+    await writeData(GAMES_PATH, games);
+    return updatedGame;
+}
+
 export async function addSessionToDB(session: Session): Promise<Session> {
     const sessions = await readData<Session>(SESSIONS_PATH);
     sessions.push(session);

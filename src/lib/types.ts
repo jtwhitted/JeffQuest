@@ -19,6 +19,7 @@ export interface Game {
   mechanics?: string[];
   yearPublished?: number;
   description?: string;
+  rulebookText?: string;
   minPlaytime?: number;
   maxPlaytime?: number;
   rating?: number;
