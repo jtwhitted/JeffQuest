@@ -258,7 +258,8 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
 
     try {
         // 1. Fetch collection IDs from BGG
-        const bggIds = await getBggCollection(username);
+        const collectionItems = await getBggCollection(username);
+        const bggIds = collectionItems.map(item => item.bggId);
         if (bggIds.length === 0) {
             return { importedCount: 0 };
         }
@@ -368,7 +369,7 @@ export async function importBggPlaysAction(username: string): Promise<{ imported
             };
 
             await addSessionToDB(newSession);
-            importedCount++;
+importedCount++;
         }
         
         revalidatePath('/sessions');
@@ -380,6 +381,45 @@ export async function importBggPlaysAction(username: string): Promise<{ imported
         throw new Error(error.message || 'Failed to import play history from BGG.');
     }
 }
+
+
+export async function importBggRatingsAction(username: string): Promise<{ updatedCount: number }> {
+    if (!username) {
+        throw new Error('BGG username is required.');
+    }
+
+    try {
+        const collectionItems = await getBggCollection(username);
+        if (collectionItems.length === 0) {
+            return { updatedCount: 0 };
+        }
+
+        const { games: currentGames } = await getInitialData();
+        let updatedCount = 0;
+
+        for (const game of currentGames) {
+            if (game.bggId) {
+                const bggItem = collectionItems.find(item => item.bggId === game.bggId);
+                if (bggItem && bggItem.userRating !== undefined) {
+                    // Update the game if the rating has changed or is new
+                    if (game.userRating !== bggItem.userRating) {
+                        await updateGameInDB(game.id, { userRating: bggItem.userRating });
+                        updatedCount++;
+                    }
+                }
+            }
+        }
+        
+        revalidatePath('/games');
+
+        return { updatedCount };
+
+    } catch (error: any) {
+        console.error('BGG ratings import failed:', error);
+        throw new Error(error.message || 'Failed to import ratings from BGG.');
+    }
+}
+
 
 
 export async function handleRulebookUpload(gameId: string, pdfDataUri: string) {

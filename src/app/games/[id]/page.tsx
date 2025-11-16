@@ -190,6 +190,15 @@ export default function GameDetailPage() {
                         <span className="flex items-center text-muted-foreground"><Star className="mr-2"/> Average Rating</span>
                         <span className="font-medium">{formatRating(game.rating)} / 10</span>
                     </div>
+                     {game.userRating !== undefined && (
+                        <>
+                        <Separator />
+                        <div className="flex items-center justify-between ml-4">
+                            <span className="flex items-center text-muted-foreground"><Star className="mr-2 text-primary fill-primary"/> Your Rating</span>
+                            <span className="font-medium">{formatRating(game.userRating)} / 10</span>
+                        </div>
+                        </>
+                    )}
                     <Separator />
                      <div className="flex items-center justify-between">
                         <span className="flex items-center text-muted-foreground"><Users className="mr-2"/>Total Ratings</span>

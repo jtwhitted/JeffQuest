@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Download, History } from 'lucide-react';
+import { Loader2, Download, History, Star } from 'lucide-react';
 import React, { useState } from 'react';
 import { useGames } from '@/context/game-context';
-import { importBggCollectionAction, importBggPlaysAction } from '@/lib/actions';
+import { importBggCollectionAction, importBggPlaysAction, importBggRatingsAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 
 interface BggImportDialogProps {
@@ -79,6 +79,31 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
     }
   };
 
+  const handleImportRatings = async () => {
+    if (!bggUsername) return;
+    setIsImporting(true);
+    setImportingMessage('Importing Ratings...');
+    try {
+        const result = await importBggRatingsAction(bggUsername);
+        toast({
+            title: 'Ratings Synced',
+            description: `${result.updatedCount} game ratings were updated.`,
+        });
+        await refreshData();
+        onOpenChange(false);
+    } catch (error: any) {
+        console.error('Error importing BGG ratings:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Import Failed',
+            description: error.message || 'Could not import your game ratings.',
+        });
+    } finally {
+        setIsImporting(false);
+        setImportingMessage('');
+    }
+  };
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -89,7 +114,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
           <DialogHeader>
             <DialogTitle>Import from BGG</DialogTitle>
             <DialogDescription>
-              Import games or play history from the BoardGameGeek collection of <strong>{bggUsername}</strong>.
+              Import data from the BoardGameGeek account of <strong>{bggUsername}</strong>.
             </DialogDescription>
           </DialogHeader>
           
@@ -103,11 +128,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
                 {isImporting && importingMessage === 'Importing Collection...' ? <Loader2 className="mr-2 animate-spin"/> : <Download className="mr-2" />}
                 {isImporting && importingMessage === 'Importing Collection...' ? 'Importing...' : 'Import BGG Collection'}
             </Button>
-            <div className="flex items-center gap-2">
-                <Separator className="flex-1" />
-                <span className="text-xs text-muted-foreground">OR</span>
-                <Separator className="flex-1" />
-            </div>
+            
              <Button 
                 variant="outline" 
                 className="w-full" 
@@ -116,6 +137,15 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
                 >
                 {isImporting && importingMessage === 'Importing Plays...' ? <Loader2 className="mr-2 animate-spin"/> : <History className="mr-2" />}
                 {isImporting && importingMessage === 'Importing Plays...' ? 'Importing...' : 'Import Play History'}
+            </Button>
+             <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleImportRatings}
+                disabled={isImporting}
+                >
+                {isImporting && importingMessage === 'Importing Ratings...' ? <Loader2 className="mr-2 animate-spin"/> : <Star className="mr-2" />}
+                {isImporting && importingMessage === 'Importing Ratings...' ? 'Importing...' : 'Import Game Ratings'}
             </Button>
           </div>
 

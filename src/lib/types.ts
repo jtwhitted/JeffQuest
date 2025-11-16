@@ -27,6 +27,7 @@ export interface Game {
   designers?: string[];
   publishers?: string[];
   rulebookText?: string;
+  userRating?: number;
 }
 
 export interface Session {
