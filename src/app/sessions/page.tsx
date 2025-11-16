@@ -11,6 +11,7 @@ import type { Session } from '@/lib/types';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Separator } from '@/components/ui/separator';
 
 export default function SessionsPage() {
   const { sessions, games, players, isLoading, deleteSession } = useGames();
@@ -18,6 +19,16 @@ export default function SessionsPage() {
   const { toast } = useToast();
 
   const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const sessionsByMonth = sortedSessions.reduce((acc, session) => {
+    const monthYear = format(new Date(session.date), 'MMMM yyyy');
+    if (!acc[monthYear]) {
+      acc[monthYear] = [];
+    }
+    acc[monthYear].push(session);
+    return acc;
+  }, {} as Record<string, Session[]>);
+
 
   const handleDelete = async () => {
     if (!sessionToDelete) return;
@@ -66,25 +77,33 @@ export default function SessionsPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : sortedSessions.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {sortedSessions.map((session) => {
-            const game = games.find((g) => g.id === session.gameId);
-            const sessionPlayers = players.filter((p) => session.playerIds.includes(p.id));
-            const winner = players.find(p => p.id === session.winnerId);
-            
-            if (!game) return null;
+        <div className="space-y-8">
+          {Object.entries(sessionsByMonth).map(([month, monthSessions]) => (
+            <div key={month}>
+              <h2 className="text-xl font-bold tracking-tight mb-4">{month}</h2>
+              <Separator className="mb-4" />
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {monthSessions.map((session) => {
+                  const game = games.find((g) => g.id === session.gameId);
+                  const sessionPlayers = players.filter((p) => session.playerIds.includes(p.id));
+                  const winner = players.find(p => p.id === session.winnerId);
+                  
+                  if (!game) return null;
 
-            return (
-              <SessionCard
-                key={session.id}
-                session={session}
-                game={game}
-                players={sessionPlayers}
-                winner={winner}
-                onDelete={() => setSessionToDelete(session)}
-              />
-            );
-          })}
+                  return (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      game={game}
+                      players={sessionPlayers}
+                      winner={winner}
+                      onDelete={() => setSessionToDelete(session)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="text-center py-12 text-muted-foreground">
