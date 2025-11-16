@@ -9,4 +9,5 @@ import '@/ai/flows/extract-session-details.ts';
 import '@/ai/flows/get-game-title-from-image.ts';
 import '@/ai/flows/select-game-from-images.ts';
 import '@/ai/flows/generate-legendary-card.ts';
+import '@/ai/flows/ask-rulebook.ts';
 

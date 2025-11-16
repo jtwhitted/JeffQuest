@@ -1,11 +1,11 @@
 
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,10 +14,12 @@ import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RulebookEditor } from '@/components/rulebook-editor';
+import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
 
 export default function GameDetailPage() {
   const { id } = useParams();
   const { games, sessions, players, isLoading } = useGames();
+  const [isWizardOpen, setWizardOpen] = useState(false);
   
   if (isLoading) {
     return (
@@ -58,6 +60,14 @@ export default function GameDetailPage() {
   const userRatings = game.userRatings ? Object.entries(game.userRatings) : [];
 
   return (
+    <>
+    {game.rulebookText && (
+      <RulesWizardDialog
+        open={isWizardOpen}
+        onOpenChange={setWizardOpen}
+        game={game}
+      />
+    )}
     <div className="space-y-8">
        <PageHeader
         title={game.name}
@@ -108,6 +118,15 @@ export default function GameDetailPage() {
                                             </div>
                                         </div>
                                     </>
+                                )}
+                                {game.rulebookText && (
+                                  <>
+                                    <Separator />
+                                    <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
+                                      <WandSparkles className="mr-2 h-4 w-4" />
+                                      Rules Wizard
+                                    </Button>
+                                  </>
                                 )}
                              </div>
                         </div>
@@ -229,5 +248,6 @@ export default function GameDetailPage() {
         <RulebookEditor game={game} />
       </div>
     </div>
+    </>
   );
 }
