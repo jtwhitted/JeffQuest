@@ -4,7 +4,7 @@ import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles, UploadCloud } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,13 +12,14 @@ import { Separator } from '@/components/ui/separator';
 import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RulebookEditor } from '@/components/rulebook-editor';
 import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
+import { RulebookDialog } from '@/components/rulebook-dialog';
 
 export default function GameDetailPage() {
   const { id } = useParams();
   const { games, sessions, players, isLoading } = useGames();
   const [isWizardOpen, setWizardOpen] = useState(false);
+  const [isRulebookUploadOpen, setRulebookUploadOpen] = useState(false);
   
   if (isLoading) {
     return (
@@ -37,15 +38,15 @@ export default function GameDetailPage() {
   const gameSessions = sessions.filter(s => s.gameId === game.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // Calculate high score
-  let highScore = { score: 0, playerId: '', sessionId: '' };
+  let highScore: { score: number, playerId: string, sessionId: string } | null = null;
   gameSessions.forEach(session => {
     session.scores?.forEach(s => {
-      if (s.score && s.score > highScore.score) {
+      if (s.score && (!highScore || s.score > highScore.score)) {
         highScore = { score: s.score, playerId: s.playerId, sessionId: session.id };
       }
     });
   });
-  const highScorePlayer = players.find(p => p.id === highScore.playerId);
+  const highScorePlayer = highScore ? players.find(p => p.id === highScore.playerId) : null;
 
   // Calculate average duration
   const sessionsWithDuration = gameSessions.filter(s => typeof s.duration === 'number');
@@ -67,6 +68,11 @@ export default function GameDetailPage() {
         game={game}
       />
     )}
+     <RulebookDialog
+        open={isRulebookUploadOpen}
+        onOpenChange={setRulebookUploadOpen}
+        game={game}
+      />
     <div className="space-y-8">
        <PageHeader
         title={game.name}
@@ -103,7 +109,7 @@ export default function GameDetailPage() {
                                         </div>
                                     </>
                                 )}
-                                {highScorePlayer && (
+                                {highScorePlayer && highScore && (
                                     <>
                                         <Separator />
                                         <Link href={`/sessions/${highScore.sessionId}`} className="block -m-2 p-2 rounded-md hover:bg-muted/50">
@@ -120,15 +126,19 @@ export default function GameDetailPage() {
                                         </Link>
                                     </>
                                 )}
-                                {game.rulebookText && (
-                                  <>
-                                    <Separator />
+                                <Separator />
+                                <div className='space-y-2'>
+                                  <Button variant="outline" size="sm" className="w-full" onClick={() => setRulebookUploadOpen(true)}>
+                                    <UploadCloud className="mr-2 h-4 w-4" />
+                                    Upload Rulebook
+                                  </Button>
+                                  {game.rulebookText && (
                                     <Button variant="outline" size="sm" className="w-full" onClick={() => setWizardOpen(true)}>
                                       <WandSparkles className="mr-2 h-4 w-4" />
                                       Rules Wizard
                                     </Button>
-                                  </>
-                                )}
+                                  )}
+                                </div>
                              </div>
                         </div>
                         <div className="md:w-2/3 space-y-4">
@@ -245,8 +255,9 @@ export default function GameDetailPage() {
         </div>
       </div>
       <GameSessionHistory sessions={gameSessions} allPlayers={players} />
-      <RulebookEditor game={game} />
     </div>
     </>
   );
 }
+
+    
