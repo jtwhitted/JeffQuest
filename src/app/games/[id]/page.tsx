@@ -1,5 +1,4 @@
 
-
 'use client';
 import React from 'react';
 import { useParams, notFound } from 'next/navigation';
@@ -198,7 +197,7 @@ export default function GameDetailPage() {
                         return (
                             <React.Fragment key={playerId}>
                                 <Separator />
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between pl-4">
                                     <span className="flex items-center text-muted-foreground">
                                         <Avatar className="h-6 w-6 mr-2">
                                             <AvatarImage src={player.avatarUrl} alt={player.name} />
