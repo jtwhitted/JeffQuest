@@ -397,34 +397,9 @@ export async function importBggRatingsAction(username: string): Promise<{ update
         }
 
         const { games: currentGames } = await getInitialData();
-        const currentGamesMap = new Map(currentGames.map(g => [g.bggId, g]));
-        
-        const gamesToAddBggIds = bggCollection
-            .filter(item => !currentGamesMap.has(item.bggId) && item.userRating !== undefined)
-            .map(item => item.bggId);
-
-        if (gamesToAddBggIds.length > 0) {
-            const newGamesDetails = await getBggDetails(gamesToAddBggIds, false);
-            for (const gameDetails of newGamesDetails) {
-                const newGame: Game = {
-                    id: `g${Date.now()}-${Math.random()}`,
-                    ...gameDetails,
-                    name: gameDetails.name || 'Unknown Name',
-                    bggId: gameDetails.id,
-                    category: gameDetails.category || [],
-                    imageUrl: gameDetails.imageUrl || '',
-                    minPlayers: gameDetails.minPlayers || 1,
-                    maxPlayers: gameDetails.maxPlayers || 1,
-                };
-                const addedGame = await addGameToDB(newGame);
-                currentGamesMap.set(addedGame.bggId!, addedGame);
-            }
-        }
-
         let updatedCount = 0;
-        const allGames = Array.from(currentGamesMap.values());
 
-        for (const game of allGames) {
+        for (const game of currentGames) {
             if (game.bggId) {
                 const bggItem = bggCollection.find(item => item.bggId === game.bggId);
                 if (bggItem && bggItem.userRating !== undefined) {
