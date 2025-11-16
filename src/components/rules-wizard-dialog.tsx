@@ -12,11 +12,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mic, Sparkles, Square } from 'lucide-react';
-import React, { useState, useRef } from 'react';
+import { Loader2, Mic, Sparkles, Square, Volume2, Play } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { Game } from '@/lib/types';
 import { askRulebook } from '@/ai/flows/ask-rulebook';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -37,6 +38,18 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Cleanup audio element on component unmount or when dialog closes
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, [open]);
+
   const handleAsk = async () => {
     if (!query.trim()) {
       toast({ variant: 'destructive', title: 'Please enter a question.' });
@@ -44,9 +57,36 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
     }
     setIsAsking(true);
     setAnswer('');
+    setAudioDataUri(null);
+    setIsSpeaking(false);
+
     try {
       const result = await askRulebook({ rulebookText: game.rulebookText || '', query });
       setAnswer(result.answer);
+      
+      // After getting the answer, generate the speech
+      if (result.answer) {
+          try {
+              const speechResult = await textToSpeech({ text: result.answer });
+              setAudioDataUri(speechResult.audioDataUri);
+              
+              // Automatically play the audio
+              const audio = new Audio(speechResult.audioDataUri);
+              audioRef.current = audio;
+              audio.play();
+              setIsSpeaking(true);
+              audio.onended = () => setIsSpeaking(false);
+
+          } catch (speechError: any) {
+              console.error('Text-to-speech error:', speechError);
+              toast({
+                  variant: 'destructive',
+                  title: 'Audio Error',
+                  description: 'Could not generate audio for the answer.',
+              });
+          }
+      }
+
     } catch (error: any) {
       console.error('Error asking rulebook:', error);
       toast({
@@ -109,11 +149,20 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
     }
   };
 
+  const handlePlayAudio = () => {
+    if (audioRef.current) {
+        audioRef.current.play();
+        setIsSpeaking(true);
+    }
+  };
+
 
   const handleClose = () => {
     setQuery('');
     setAnswer('');
     setIsAsking(false);
+    setAudioDataUri(null);
+    setIsSpeaking(false);
     onOpenChange(false);
   };
 
@@ -161,13 +210,27 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
               {isAsking ? 'Thinking...' : 'Ask Wizard'}
             </Button>
 
-            {answer && (
-                <div className="pt-4">
-                    <h3 className="font-semibold mb-2">Answer:</h3>
-                    <ScrollArea className="h-48 rounded-md border p-4 text-sm bg-secondary/50">
-                        <p className="whitespace-pre-wrap">{answer}</p>
-                    </ScrollArea>
+            {(isAsking || answer) && (
+              <div className="pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Answer:</h3>
+                  {audioDataUri && (
+                    <Button variant="outline" size="icon" onClick={handlePlayAudio} disabled={isSpeaking}>
+                      {isSpeaking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
+                      <span className="sr-only">Play audio</span>
+                    </Button>
+                  )}
                 </div>
+                <ScrollArea className="h-48 rounded-md border p-4 text-sm bg-secondary/50">
+                  {isAsking && !answer ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{answer}</p>
+                  )}
+                </ScrollArea>
+              </div>
             )}
         </div>
 
