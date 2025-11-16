@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake, Save, Download, Link as LinkIcon } from 'lucide-react';
+import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake, Save, Download, Link as LinkIcon, Pencil } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -33,6 +33,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { BggImportDialog } from './bgg-import-dialog';
+import { EditPlayerDialog } from './edit-player-dialog';
 
 type GameHistoryItem = {
     game: Game;
@@ -72,6 +73,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const [legendaryCardState, setLegendaryCardState] = useState<LegendaryCardState>({ loading: false, error: null, data: null });
   const [isCaptureOpen, setCaptureOpen] = useState(false);
   const [isImportModalOpen, setImportModalOpen] = useState(false);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Conjuring epicness...');
   
 
@@ -179,6 +181,11 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         onOpenChange={setCaptureOpen}
         onAvatarCaptured={handleAvatarCaptured}
       />
+       <EditPlayerDialog
+        open={isEditModalOpen}
+        onOpenChange={setEditModalOpen}
+        player={player}
+      />
       {player.bggUsername && (
          <BggImportDialog
             open={isImportModalOpen}
@@ -197,11 +204,20 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
               <Button
                 size="icon"
                 variant="outline"
-                className="absolute -bottom-2 -right-2 rounded-full h-8 w-8"
+                className="absolute -bottom-2 right-10 rounded-full h-8 w-8"
                 onClick={() => setCaptureOpen(true)}
               >
                 <Camera className="h-4 w-4" />
                 <span className="sr-only">Retake photo</span>
+              </Button>
+               <Button
+                size="icon"
+                variant="outline"
+                className="absolute -bottom-2 -right-2 rounded-full h-8 w-8"
+                onClick={() => setEditModalOpen(true)}
+              >
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Edit player</span>
               </Button>
             </div>
             <div className="flex items-center gap-2 pt-2">
@@ -424,5 +440,3 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
     </>
   );
 }
-
-    
