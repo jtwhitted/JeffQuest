@@ -385,9 +385,12 @@ importedCount++;
 }
 
 
-export async function importBggRatingsAction(username: string): Promise<{ updatedCount: number }> {
+export async function importBggRatingsAction(username: string, playerId: string): Promise<{ updatedCount: number }> {
     if (!username) {
         throw new Error('BGG username is required.');
+    }
+     if (!playerId) {
+        throw new Error('Player ID is required to associate the rating.');
     }
 
     try {
@@ -403,8 +406,14 @@ export async function importBggRatingsAction(username: string): Promise<{ update
             if (game.bggId) {
                 const bggItem = bggCollection.find(item => item.bggId === game.bggId);
                 if (bggItem && bggItem.userRating !== undefined) {
-                    if (game.userRating !== bggItem.userRating) {
-                        await updateGameInDB(game.id, { userRating: bggItem.userRating });
+                    
+                    const newRatings = {
+                        ...(game.userRatings || {}),
+                        [playerId]: bggItem.userRating
+                    };
+
+                    if (game.userRatings?.[playerId] !== bggItem.userRating) {
+                        await updateGameInDB(game.id, { userRatings: newRatings });
                         updatedCount++;
                     }
                 }

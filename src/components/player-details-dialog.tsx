@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -191,6 +192,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             open={isImportModalOpen}
             onOpenChange={setImportModalOpen}
             bggUsername={player.bggUsername}
+            playerId={player.id}
         />
       )}
       <Dialog open={open} onOpenChange={handleClose}>

@@ -1,3 +1,4 @@
+
 [
   {
     "id": "g1762835357259",
@@ -622,6 +623,10 @@
     "maxPlaytime": 120,
     "rating": 6.463,
     "ratingCount": 1327,
-    "complexity": 3.193
+    "complexity": 3.193,
+    "bggId": "171835",
+    "userRatings": {
+      "p1762879138303": 4
+    }
   }
 ]

@@ -27,7 +27,7 @@ export interface Game {
   designers?: string[];
   publishers?: string[];
   rulebookText?: string;
-  userRating?: number;
+  userRatings?: { [playerId: string]: number };
   bggId?: string;
 }
 

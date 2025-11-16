@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useParams, notFound } from 'next/navigation';
@@ -55,6 +56,7 @@ export default function GameDetailPage() {
 
   const formatRating = (rating?: number) => rating ? rating.toFixed(1) : 'N/A';
   const formatComplexity = (complexity?: number) => complexity ? complexity.toFixed(2) : 'N/A';
+  const userRatings = game.userRatings ? Object.entries(game.userRatings) : [];
 
   return (
     <div className="space-y-8">
@@ -190,15 +192,25 @@ export default function GameDetailPage() {
                         <span className="flex items-center text-muted-foreground"><Star className="mr-2"/> Average Rating</span>
                         <span className="font-medium">{formatRating(game.rating)} / 10</span>
                     </div>
-                     {game.userRating !== undefined && (
-                        <>
-                        <Separator />
-                        <div className="flex items-center justify-between ml-4">
-                            <span className="flex items-center text-muted-foreground"><Star className="mr-2 text-primary fill-primary"/> Your Rating</span>
-                            <span className="font-medium">{formatRating(game.userRating)} / 10</span>
-                        </div>
-                        </>
-                    )}
+                     {userRatings.map(([playerId, rating]) => {
+                        const player = players.find(p => p.id === playerId);
+                        if (!player) return null;
+                        return (
+                            <React.Fragment key={playerId}>
+                                <Separator />
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center text-muted-foreground">
+                                        <Avatar className="h-6 w-6 mr-2">
+                                            <AvatarImage src={player.avatarUrl} alt={player.name} />
+                                            <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        {player.name}'s Rating
+                                    </span>
+                                    <span className="font-medium">{formatRating(rating)} / 10</span>
+                                </div>
+                            </React.Fragment>
+                        );
+                     })}
                     <Separator />
                      <div className="flex items-center justify-between">
                         <span className="flex items-center text-muted-foreground"><Users className="mr-2"/>Total Ratings</span>

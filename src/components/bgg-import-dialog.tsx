@@ -21,9 +21,10 @@ interface BggImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bggUsername: string;
+  playerId: string;
 }
 
-export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDialogProps) {
+export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: BggImportDialogProps) {
   const { toast } = useToast();
   const { refreshData } = useGames();
   const [isImporting, setIsImporting] = useState(false);
@@ -84,7 +85,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername }: BggImportDi
     setIsImporting(true);
     setImportingMessage('Importing Ratings...');
     try {
-        const result = await importBggRatingsAction(bggUsername);
+        const result = await importBggRatingsAction(bggUsername, playerId);
         toast({
             title: 'Ratings Synced',
             description: `${result.updatedCount} game ratings were updated.`,
