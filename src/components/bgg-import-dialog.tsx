@@ -110,21 +110,24 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
     setIsImporting(true);
     setImportingMessage('Importing Friends...');
     try {
-        const { importedCount, friendsFound, friendsUsernames } = await importBggFriendsAction(bggUsername);
+        const { importedCount, friendsFound } = await importBggFriendsAction(bggUsername);
         
-        let description = `Found ${friendsFound} friends on BGG. Friends list: ${JSON.stringify(friendsUsernames)}.`;
-        if (importedCount > 0) {
-            description += ` ${importedCount} new player(s) were imported.`;
-        } else if (friendsFound > 0) {
-            description += ` No new players were imported (they may already exist).`;
+        let title = 'Friend Import Complete';
+        let description = '';
+
+        if (friendsFound === 0) {
+            title = 'No Friends Found';
+            description = `No friends were found on BGG for user "${bggUsername}".`;
+        } else if (importedCount > 0) {
+            description = `Found ${friendsFound} friends and imported ${importedCount} new player(s).`;
         } else {
-             description = `No friends found on BGG for user ${bggUsername}.`;
+            title = 'Players Already Exist';
+            description = `Found ${friendsFound} friends on BGG, but they all already exist in your player list.`;
         }
 
         toast({
-            title: 'Friend Import Complete',
+            title: title,
             description: description,
-            duration: 9000,
         });
 
         if (importedCount > 0) {
@@ -150,8 +153,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
   };
   
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Import from BGG</DialogTitle>
@@ -205,6 +207,5 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
            </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
   );
 }

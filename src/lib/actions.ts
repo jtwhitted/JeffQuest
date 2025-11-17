@@ -565,14 +565,14 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         throw new Error('BGG username is required.');
     }
 
+    const { players: currentPlayers } = await getInitialData();
     const friendsUsernames = await getBggFriends(username);
-    const friendsFound = friendsUsernames.length;
+    const friendsFound = Array.isArray(friendsUsernames) ? friendsUsernames.length : 0;
     
     if (friendsFound === 0) {
-        return { importedCount: 0, friendsFound, friendsUsernames };
+        return { importedCount: 0, friendsFound: 0, friendsUsernames: [] };
     }
-
-    const { players: currentPlayers } = await getInitialData();
+    
     const currentPlayerUsernames = new Set(
         currentPlayers.map(p => p.bggUsername?.toLowerCase()).filter(Boolean)
     );
@@ -586,20 +586,22 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     });
     
     let importedCount = 0;
-    for (const friendUsername of newFriendsUsernames) {
-        try {
-            const userDetails = await getBggUserDetails(friendUsername);
-            await addPlayer({
-                name: userDetails.name,
-                avatarUrl: userDetails.avatarUrl,
-                bggUsername: friendUsername,
-            });
-            importedCount++;
-        } catch (error) {
-            console.error(`Failed to import friend ${friendUsername}:`, error);
+    if (newFriendsUsernames.length > 0) {
+        for (const friendUsername of newFriendsUsernames) {
+            try {
+                const userDetails = await getBggUserDetails(friendUsername);
+                await addPlayer({
+                    name: userDetails.name,
+                    avatarUrl: userDetails.avatarUrl,
+                    bggUsername: friendUsername,
+                });
+                importedCount++;
+            } catch (error) {
+                console.error(`Failed to import friend ${friendUsername}:`, error);
+            }
         }
     }
-
+    
     if (importedCount > 0) {
         revalidatePath('/players');
     }
