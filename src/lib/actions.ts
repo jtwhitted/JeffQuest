@@ -551,8 +551,9 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     }
 
     // 1. Fetch friend usernames from BGG
-    const rawFriends = await getBggFriends(username);
-    const friendsUsernames = Array.isArray(rawFriends) ? rawFriends : (rawFriends ? [rawFriends] : []);
+    const bggFriendsList = await getBggFriends(username);
+    // Ensure it's always an array
+    const friendsUsernames = Array.isArray(bggFriendsList) ? bggFriendsList : (bggFriendsList ? [bggFriendsList] : []);
     const friendsFound = friendsUsernames.length;
     
     if (friendsFound === 0) {
@@ -568,10 +569,11 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         currentPlayers.map(p => p.name.toLowerCase())
     );
 
-    // 3. Find which friends are new
+    // 3. Find which friends are new (Corrected Logic)
     const newFriends = friendsUsernames.filter(friendUsername => {
         if (typeof friendUsername !== 'string') return false;
         const lowercasedUsername = friendUsername.toLowerCase();
+        // A friend is new if their username is not in our existing username set AND not in our existing name set.
         return !currentPlayerUsernames.has(lowercasedUsername) && !currentPlayerNames.has(lowercasedUsername);
     });
     
