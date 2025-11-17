@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import ReactPlayer from 'react-player/youtube';
 import type { YoutubeVideo } from '@/lib/types';
+import { useEffect, useState } from 'react';
 
 interface VideoPlayerDialogProps {
   open: boolean;
@@ -17,7 +18,13 @@ interface VideoPlayerDialogProps {
 }
 
 export function VideoPlayerDialog({ open, onOpenChange, video }: VideoPlayerDialogProps) {
-  if (!video) return null;
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!video || !isClient) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

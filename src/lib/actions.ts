@@ -498,7 +498,7 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
     const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
     if (!YOUTUBE_API_KEY) {
         console.error('YOUTUBE_API_KEY environment variable not set.');
-        // Fallback to mock data or return an empty array if the key is missing
+        // Return an empty array if the key is missing
         return [];
     }
     
