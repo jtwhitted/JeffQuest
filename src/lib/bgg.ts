@@ -241,10 +241,10 @@ export async function getBggFriends(username: string): Promise<string[]> {
         throw new Error(`BGG Error: ${parsed.errors.error.message}`);
     }
 
-    if (!parsed.user?.buddies?.[0]?.buddy) {
+    if (!parsed.user?.buddies?.buddy) {
         return [];
     }
 
-    const buddies = parsed.user.buddies[0].buddy;
+    const buddies = parsed.user.buddies.buddy;
     return buddies.map((buddy: any) => buddy.name);
 }
