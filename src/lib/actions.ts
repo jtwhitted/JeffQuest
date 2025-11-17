@@ -545,13 +545,15 @@ export async function setFavoriteVideoAction(gameId: string, videoId: string | u
 }
 
 
-export async function importBggFriendsAction(username: string): Promise<{ importedCount: number, friendsFound: number, friendsUsernames: string[] }> {
+export async function importBggFriendsAction(username: string): Promise<{ importedCount: number; friendsFound: number; friendsUsernames: string[] }> {
     if (!username) {
         throw new Error('BGG username is required.');
     }
 
     // 1. Fetch friend usernames from BGG
-    const friendsUsernames = await getBggFriends(username);
+    const rawFriends = await getBggFriends(username);
+    // Ensure it's always an array
+    const friendsUsernames = Array.isArray(rawFriends) ? rawFriends : (rawFriends ? [rawFriends] : []);
     const friendsFound = friendsUsernames.length;
 
     if (friendsFound === 0) {
@@ -568,10 +570,14 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     );
 
     // 3. Find which friends are new
-    const newFriends = friendsUsernames.filter(friendUsername => 
-        !currentPlayerUsernames.has(friendUsername.toLowerCase()) &&
-        !currentPlayerNames.has(friendUsername.toLowerCase())
-    );
+    const newFriends = friendsUsernames.filter(friendUsername => {
+        // Handle cases where friendUsername might not be a string
+        if (typeof friendUsername !== 'string') return false;
+
+        const lowercasedUsername = friendUsername.toLowerCase();
+        return !currentPlayerUsernames.has(lowercasedUsername) &&
+               !currentPlayerNames.has(lowercasedUsername);
+    });
     
     // 4. Add new players to our DB
     for (const friendUsername of newFriends) {
