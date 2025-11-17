@@ -35,6 +35,7 @@ export interface Game {
   documents?: RulebookDocument[];
   userRatings?: { [playerId: string]: number };
   bggId?: string;
+  favoriteVideoId?: string;
 }
 
 export interface Session {

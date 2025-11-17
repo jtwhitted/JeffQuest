@@ -537,3 +537,9 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
         return [];
     }
 }
+
+export async function setFavoriteVideoAction(gameId: string, videoId: string | undefined): Promise<Game> {
+    const updatedGame = await updateGameInDB(gameId, { favoriteVideoId: videoId });
+    revalidatePath(`/games/${gameId}`);
+    return updatedGame;
+}

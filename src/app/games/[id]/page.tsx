@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
@@ -19,15 +19,19 @@ import { searchYoutubeAction } from '@/lib/actions';
 import type { YoutubeVideo } from '@/lib/types';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { VideoPlayerDialog } from '@/components/video-player-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function GameDetailPage() {
   const { id } = useParams();
-  const { games, sessions, players, isLoading } = useGames();
+  const { games, sessions, players, isLoading, setFavoriteVideo } = useGames();
   const [isWizardOpen, setWizardOpen] = useState(false);
   const [isRulebookManagerOpen, setRulebookManagerOpen] = useState(false);
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isFavoriting, setIsFavoriting] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
+  const { toast } = useToast();
 
   const game = games.find(g => g.id === id);
 
@@ -47,6 +51,32 @@ export default function GameDetailPage() {
       fetchVideos();
     }
   }, [game]);
+
+  const sortedVideos = useMemo(() => {
+    if (!game || !videos) return [];
+    return [...videos].sort((a, b) => {
+      if (a.id === game.favoriteVideoId) return -1;
+      if (b.id === game.favoriteVideoId) return 1;
+      return 0;
+    });
+  }, [videos, game]);
+
+  const handleFavorite = async (videoId: string) => {
+    if (!game) return;
+    setIsFavoriting(true);
+    const newFavoriteId = game.favoriteVideoId === videoId ? undefined : videoId;
+    try {
+        await setFavoriteVideo(game.id, newFavoriteId);
+        toast({
+            title: newFavoriteId ? 'Video Favorited' : 'Favorite Removed',
+            description: newFavoriteId ? 'This is now the top video for this game.' : undefined,
+        });
+    } catch (e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not update favorite video.' });
+    } finally {
+        setIsFavoriting(false);
+    }
+  }
   
   if (isLoading) {
     return (
@@ -187,7 +217,7 @@ export default function GameDetailPage() {
                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </CardContent>
                 </Card>
-            ) : videos.length > 0 && (
+            ) : sortedVideos.length > 0 && (
                 <Card>
                     <CardHeader>
                         <CardTitle>How to Play</CardTitle>
@@ -195,22 +225,38 @@ export default function GameDetailPage() {
                     <CardContent>
                        <Carousel opts={{ align: "start", loop: false }}>
                             <CarouselContent>
-                                {videos.map((video) => (
+                                {sortedVideos.map((video) => (
                                 <CarouselItem key={video.id} className="basis-full md:basis-1/2 lg:basis-1/3">
-                                    <button className="w-full text-left" onClick={() => setSelectedVideo(video)}>
+                                    <div className="relative group">
                                         <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                                            <div className="relative aspect-video">
-                                            <Image src={video.thumbnail} alt={video.title} fill className="object-cover" />
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                                <Youtube className="h-12 w-12 text-white/80" />
-                                            </div>
-                                            </div>
-                                            <div className="p-3">
-                                            <p className="font-semibold text-sm truncate">{video.title}</p>
-                                            <p className="text-xs text-muted-foreground">{video.channel}</p>
-                                            </div>
+                                            <button className="w-full text-left" onClick={() => setSelectedVideo(video)}>
+                                                <div className="relative aspect-video">
+                                                    <Image src={video.thumbnail} alt={video.title} fill className="object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                        <Youtube className="h-12 w-12 text-white/80" />
+                                                    </div>
+                                                </div>
+                                                <div className="p-3">
+                                                    <p className="font-semibold text-sm truncate">{video.title}</p>
+                                                    <p className="text-xs text-muted-foreground">{video.channel}</p>
+                                                </div>
+                                            </button>
                                         </Card>
-                                    </button>
+                                         <Button 
+                                            size="icon" 
+                                            variant="secondary" 
+                                            className={cn("absolute top-2 right-2 h-8 w-8 rounded-full z-10 opacity-0 group-hover:opacity-100 transition-opacity", game.favoriteVideoId === video.id && 'opacity-100')}
+                                            onClick={() => handleFavorite(video.id)}
+                                            disabled={isFavoriting}
+                                            >
+                                            {isFavoriting && game.favoriteVideoId === video.id ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Star className={cn("h-4 w-4", game.favoriteVideoId === video.id ? 'text-amber-400 fill-amber-400' : 'text-white/80')} />
+                                            )}
+                                            <span className="sr-only">Favorite video</span>
+                                        </Button>
+                                    </div>
                                 </CarouselItem>
                                 ))}
                             </CarouselContent>

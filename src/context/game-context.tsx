@@ -11,6 +11,7 @@ import {
     deletePlayer as deletePlayerAction, 
     deleteSessionAction, 
     updatePlayerAction,
+    setFavoriteVideoAction,
 } from '@/lib/actions';
 import { getInitialData } from '@/lib/data';
 
@@ -50,6 +51,7 @@ interface GameContextType {
   deleteSession: (sessionId: string) => Promise<void>;
   isLoading: boolean;
   refreshData: () => Promise<void>;
+  setFavoriteVideo: (gameId: string, videoId: string | undefined) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -173,9 +175,24 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
+  const setFavoriteVideo = useCallback(async (gameId: string, videoId: string | undefined) => {
+    // Optimistic UI update
+    setGames(prevGames => prevGames.map(g => 
+        g.id === gameId ? { ...g, favoriteVideoId: videoId } : g
+    ));
+    try {
+        await setFavoriteVideoAction(gameId, videoId);
+    } catch (error) {
+        console.error("Failed to set favorite video:", error);
+        // Revert UI on error
+        const originalData = await getInitialData();
+        setGames(originalData.games);
+    }
+  }, []);
+
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData }}>
+    <GameContext.Provider value={{ games, players, sessions, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData, setFavoriteVideo }}>
       {children}
     </GameContext.Provider>
   );
