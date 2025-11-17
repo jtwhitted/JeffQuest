@@ -174,6 +174,7 @@ const updatePlayerSchema = z.object({
   avatarUrl: z.string().optional(),
   legendaryTitle: z.string().optional(),
   legendaryBio: z.string().optional(),
+  legendaryImageDataUri: z.string().optional(),
   bggUsername: z.string().optional(),
 });
 
@@ -550,17 +551,13 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         throw new Error('BGG username is required.');
     }
 
-    // 1. Fetch friend usernames from BGG
-    const bggFriendsList = await getBggFriends(username);
-    // Ensure it's always an array
-    const friendsUsernames = Array.isArray(bggFriendsList) ? bggFriendsList : (bggFriendsList ? [bggFriendsList] : []);
+    const friendsUsernames = await getBggFriends(username);
     const friendsFound = friendsUsernames.length;
     
     if (friendsFound === 0) {
         return { importedCount: 0, friendsFound, friendsUsernames };
     }
 
-    // 2. Get current players from our DB
     const { players: currentPlayers } = await getInitialData();
     const currentPlayerUsernames = new Set(
         currentPlayers.map(p => p.bggUsername?.toLowerCase()).filter(Boolean)
@@ -569,15 +566,11 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         currentPlayers.map(p => p.name.toLowerCase())
     );
 
-    // 3. Find which friends are new (Corrected Logic)
     const newFriends = friendsUsernames.filter(friendUsername => {
-        if (typeof friendUsername !== 'string') return false;
         const lowercasedUsername = friendUsername.toLowerCase();
-        // A friend is new if their username is not in our existing username set AND not in our existing name set.
         return !currentPlayerUsernames.has(lowercasedUsername) && !currentPlayerNames.has(lowercasedUsername);
     });
     
-    // 4. Add new players to our DB
     for (const friendUsername of newFriends) {
         await addPlayer({
             name: friendUsername, // Default name to BGG username
@@ -589,6 +582,5 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         revalidatePath('/players');
     }
     
-    // 5. Return detailed results
     return { importedCount: newFriends.length, friendsFound, friendsUsernames };
 }
