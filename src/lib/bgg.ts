@@ -36,7 +36,7 @@ async function bggFetch(path: string, params: Record<string, string>) {
 
 const parser = new XMLParser({
     ignoreAttributes: false,
-    attributeNamePrefix: '',
+    attributeNamePrefix: '@_',
     textNodeName: '_value',
     parseAttributeValue: true,
     decodeHTMLchar: true,
@@ -59,11 +59,11 @@ export async function searchBgg(query: string): Promise<{ id: string, name: stri
 
     const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
 
-    const filteredItems = items.filter(item => item.type === 'boardgame');
+    const filteredItems = items.filter(item => item['@_type'] === 'boardgame');
 
     return filteredItems.map((item: any) => ({
-        id: item.id.toString(),
-        name: Array.isArray(item.name) ? item.name[0].value : item.name.value
+        id: item['@_id'].toString(),
+        name: Array.isArray(item.name) ? item.name[0]['@_value'] : item.name['@_value']
     }));
 }
 
@@ -100,14 +100,14 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
         const chunkDetails = items.map((item: any) => {
             const getPrimaryName = (names: any[]) => {
                 if (!names) return 'Unknown';
-                const primary = names.find(n => n.type === 'primary');
-                return primary ? primary.value : names[0]?.value || 'Unknown';
+                const primary = names.find(n => n['@_type'] === 'primary');
+                return primary ? primary['@_value'] : names[0]?.['@_value'] || 'Unknown';
             };
         
-            const getLinkValue = (type: string) => item.link?.filter((l: any) => l.type === type).map((l: any) => l.value) || [];
+            const getLinkValue = (type: string) => item.link?.filter((l: any) => l['@_type'] === type).map((l: any) => l['@_value']) || [];
             const getStat = (name: string) => {
                 if (!includeStats) return undefined;
-                const value = item.statistics?.ratings?.[name]?.value;
+                const value = item.statistics?.ratings?.[name]?.['@_value'];
                 return typeof value === 'number' ? parseFloat(value.toPrecision(4)) : undefined;
             };
             
@@ -123,20 +123,20 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
             }
         
             return {
-                id: item.id.toString(),
+                id: item['@_id'].toString(),
                 name: getPrimaryName(item.name),
                 imageUrl: item.image || '',
                 description: description,
-                yearPublished: item.yearpublished?.value,
-                minPlayers: item.minplayers?.value,
-                maxPlayers: item.maxplayers?.value,
+                yearPublished: item.yearpublished?.['@_value'],
+                minPlayers: item.minplayers?.['@_value'],
+                maxPlayers: item.maxplayers?.['@_value'],
                 difficulty: difficulty,
                 category: getLinkValue('boardgamecategory'),
                 mechanics: getLinkValue('boardgamemechanic'),
                 designers: getLinkValue('boardgamedesigner'),
                 publishers: getLinkValue('boardgamepublisher'),
-                minPlaytime: item.minplaytime?.value,
-                maxPlaytime: item.maxplaytime?.value,
+                minPlaytime: item.minplaytime?.['@_value'],
+                maxPlaytime: item.maxplaytime?.['@_value'],
                 rating: getStat('average'),
                 ratingCount: getStat('usersrated'),
                 complexity: complexity,
@@ -171,7 +171,7 @@ export async function getBggCollection(username: string): Promise<{bggId: string
     
     return items.map((item: any) => {
         // The user's rating is an attribute on the <rating> tag.
-        const ratingValue = item.stats?.rating?.value;
+        const ratingValue = item.stats?.rating?.['@_value'];
         
         // BGG returns 'N/A' for unrated games. We need to parse the value
         // and check if it's a valid number.
@@ -179,7 +179,7 @@ export async function getBggCollection(username: string): Promise<{bggId: string
         const userRating = !isNaN(parsedRating) ? parsedRating : undefined;
         
         return {
-            bggId: item.objectid.toString(),
+            bggId: item['@_objectid'].toString(),
             userRating: userRating,
         }
     });
@@ -214,18 +214,18 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
 
     const plays: BggPlay[] = parsed.plays.play.map((play: any): BggPlay => {
         const playPlayers = play.players?.[0]?.player?.map((p: any) => ({
-            name: p.name,
-            bggUsername: p.username || undefined,
-            win: p.win === 1,
-            score: p.score ? parseFloat(p.score) : undefined,
+            name: p['@_name'],
+            bggUsername: p['@_username'] || undefined,
+            win: p['@_win'] === 1,
+            score: p['@_score'] ? parseFloat(p['@_score']) : undefined,
         })) || [];
         
         return {
-            bggPlayId: play.id,
-            bggGameId: play.item?.objectid,
-            date: play.date,
+            bggPlayId: play['@_id'],
+            bggGameId: play.item?.['@_objectid'],
+            date: play['@_date'],
             notes: play.comments || undefined,
-            duration: play.length ? parseInt(play.length, 10) : undefined,
+            duration: play['@_length'] ? parseInt(play['@_length'], 10) : undefined,
             players: playPlayers,
         };
     });
@@ -249,7 +249,7 @@ export async function getBggFriends(username: string): Promise<string[]> {
     // The parser is configured to always make 'buddy' an array.
     const buddies = parsed.user.buddies.buddy;
     
-    // Correctly map over the buddy array and extract the 'name' attribute
+    // Correctly map over the buddy array and extract the '@_name' attribute
     // Also, filter out any undefined/null entries just in case.
-    return buddies.map((buddy: any) => buddy.name).filter(Boolean);
+    return buddies.map((buddy: any) => buddy['@_name']).filter(Boolean);
 }
