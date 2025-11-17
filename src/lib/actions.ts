@@ -15,7 +15,7 @@ import {
     getInitialData,
     updateGameInDB
 } from './data';
-import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends } from './bgg';
+import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends, getBggUserDetails } from './bgg';
 import pdf from 'pdf-parse';
 
 // Server Actions for data mutation
@@ -174,7 +174,6 @@ const updatePlayerSchema = z.object({
   avatarUrl: z.string().optional(),
   legendaryTitle: z.string().optional(),
   legendaryBio: z.string().optional(),
-  legendaryImageDataUri: z.string().optional(),
   bggUsername: z.string().optional(),
 });
 
@@ -400,6 +399,7 @@ importedCount++;
 }
 
 
+
 export async function importBggRatingsAction(username: string, playerId: string): Promise<{ updatedCount: number }> {
     if (!username) {
         throw new Error('BGG username is required.');
@@ -565,8 +565,7 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         throw new Error('BGG username is required.');
     }
 
-    const rawFriends = await getBggFriends(username);
-    const friendsUsernames = Array.isArray(rawFriends) ? rawFriends : (rawFriends ? [rawFriends] : []);
+    const friendsUsernames = await getBggFriends(username);
     const friendsFound = friendsUsernames.length;
     
     if (friendsFound === 0) {
@@ -577,25 +576,33 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     const currentPlayerUsernames = new Set(
         currentPlayers.map(p => p.bggUsername?.toLowerCase()).filter(Boolean)
     );
-    const currentPlayerNames = new Set(
+     const currentPlayerNames = new Set(
         currentPlayers.map(p => p.name.toLowerCase())
     );
 
-    const newFriends = friendsUsernames.filter(friendUsername => {
+    const newFriendsUsernames = friendsUsernames.filter(friendUsername => {
         const lowercasedUsername = friendUsername.toLowerCase();
         return !currentPlayerUsernames.has(lowercasedUsername) && !currentPlayerNames.has(lowercasedUsername);
     });
     
-    for (const friendUsername of newFriends) {
-        await addPlayer({
-            name: friendUsername, // Default name to BGG username
-            bggUsername: friendUsername,
-        });
+    let importedCount = 0;
+    for (const friendUsername of newFriendsUsernames) {
+        try {
+            const userDetails = await getBggUserDetails(friendUsername);
+            await addPlayer({
+                name: userDetails.name,
+                avatarUrl: userDetails.avatarUrl,
+                bggUsername: friendUsername,
+            });
+            importedCount++;
+        } catch (error) {
+            console.error(`Failed to import friend ${friendUsername}:`, error);
+        }
     }
 
-    if (newFriends.length > 0) {
+    if (importedCount > 0) {
         revalidatePath('/players');
     }
     
-    return { importedCount: newFriends.length, friendsFound, friendsUsernames };
+    return { importedCount, friendsFound, friendsUsernames };
 }

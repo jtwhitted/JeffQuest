@@ -246,10 +246,28 @@ export async function getBggFriends(username: string): Promise<string[]> {
         return [];
     }
     
-    // The parser is configured to always make 'buddy' an array.
     const buddies = parsed.user.buddies.buddy;
-    
-    // Correctly map over the buddy array and extract the '@_name' attribute
-    // Also, filter out any undefined/null entries just in case.
     return buddies.map((buddy: any) => buddy['@_name']).filter(Boolean);
+}
+
+export async function getBggUserDetails(username: string): Promise<{ name: string; avatarUrl?: string }> {
+    const params: Record<string, string> = { name: username };
+    const xmlData = await bggFetch('user', params);
+    const parsed = parser.parse(xmlData);
+
+    if (parsed.errors?.error || !parsed.user) {
+        // If user not found, fall back to username
+        return { name: username };
+    }
+
+    const user = parsed.user;
+    // BGG provides 'firstname', which is what we'll use as the "real name".
+    // It can be an empty string if not provided.
+    const realName = user.firstname?.['@_value']?.trim();
+    const avatar = user.avatarlink?.['@_value'];
+
+    return {
+        name: realName || username, // Fallback to username if real name is empty
+        avatarUrl: avatar !== 'N/A' ? avatar : undefined,
+    };
 }
