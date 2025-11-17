@@ -15,7 +15,7 @@ import {
     getInitialData,
     updateGameInDB
 } from './data';
-import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay } from './bgg';
+import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends } from './bgg';
 import pdf from 'pdf-parse';
 
 // Server Actions for data mutation
@@ -543,4 +543,54 @@ export async function setFavoriteVideoAction(gameId: string, videoId: string | u
     const updatedGame = await updateGameInDB(gameId, { favoriteVideoId: videoId });
     revalidatePath(`/games/${gameId}`);
     return updatedGame;
+}
+
+
+export async function importBggFriendsAction(username: string): Promise<{ importedCount: number }> {
+    if (!username) {
+        throw new Error('BGG username is required.');
+    }
+
+    try {
+        // 1. Fetch friend usernames from BGG
+        const friendUsernames = await getBggFriends(username);
+        if (friendUsernames.length === 0) {
+            return { importedCount: 0 };
+        }
+
+        // 2. Get current players from our DB
+        const { players: currentPlayers } = await getInitialData();
+        const currentPlayerUsernames = new Set(
+            currentPlayers.map(p => p.bggUsername?.toLowerCase()).filter(Boolean)
+        );
+        const currentPlayerNames = new Set(
+            currentPlayers.map(p => p.name.toLowerCase())
+        );
+
+        // 3. Find which friends are new
+        const newFriends = friendUsernames.filter(friendUsername => 
+            !currentPlayerUsernames.has(friendUsername.toLowerCase()) &&
+            !currentPlayerNames.has(friendUsername.toLowerCase())
+        );
+        
+        if (newFriends.length === 0) {
+            return { importedCount: 0 };
+        }
+        
+        // 4. Add new players to our DB
+        for (const friendUsername of newFriends) {
+            await addPlayer({
+                name: friendUsername, // Default name to BGG username
+                bggUsername: friendUsername,
+            });
+        }
+
+        // 5. Revalidate path and return count
+        revalidatePath('/players');
+        return { importedCount: newFriends.length };
+
+    } catch (error: any) {
+        console.error('BGG friends import failed:', error);
+        throw new Error(error.message || 'Failed to import friends from BGG.');
+    }
 }

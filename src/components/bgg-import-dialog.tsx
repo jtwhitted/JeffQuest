@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Download, History, Star } from 'lucide-react';
+import { Loader2, Download, History, Star, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { useGames } from '@/context/game-context';
-import { importBggCollectionAction, importBggPlaysAction, importBggRatingsAction } from '@/lib/actions';
+import { importBggCollectionAction, importBggFriendsAction, importBggPlaysAction, importBggRatingsAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 
 interface BggImportDialogProps {
@@ -105,6 +105,32 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
     }
   };
 
+  const handleImportFriends = async () => {
+    if (!bggUsername) return;
+    setIsImporting(true);
+    setImportingMessage('Importing Friends...');
+    try {
+        const result = await importBggFriendsAction(bggUsername);
+        toast({
+            title: 'Friends Imported',
+            description: `${result.importedCount} new players were added from your BGG friends list.`,
+        });
+        await refreshData();
+        onOpenChange(false);
+    } catch (error: any) {
+        console.error('Error importing BGG friends:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Import Failed',
+            description: error.message || 'Could not import your BGG friends.',
+        });
+    } finally {
+        setIsImporting(false);
+        setImportingMessage('');
+    }
+  };
+
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -147,6 +173,15 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
                 >
                 {isImporting && importingMessage === 'Importing Ratings...' ? <Loader2 className="mr-2 animate-spin"/> : <Star className="mr-2" />}
                 {isImporting && importingMessage === 'Importing Ratings...' ? 'Importing...' : 'Import Game Ratings'}
+            </Button>
+             <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={handleImportFriends}
+                disabled={isImporting}
+                >
+                {isImporting && importingMessage === 'Importing Friends...' ? <Loader2 className="mr-2 animate-spin"/> : <Users className="mr-2" />}
+                {isImporting && importingMessage === 'Importing Friends...' ? 'Importing...' : 'Import BGG Friends'}
             </Button>
           </div>
 

@@ -41,7 +41,7 @@ const parser = new XMLParser({
     decodeHTMLchar: true,
     isArray: (name, jpath) => {
         // These keys should always be arrays, even if there's only one.
-        return ['item', 'link', 'result', 'name', 'poll', 'play', 'players', 'player'].includes(name);
+        return ['item', 'link', 'result', 'name', 'poll', 'play', 'players', 'player', 'buddy'].includes(name);
     }
 });
 
@@ -230,4 +230,21 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
     });
 
     return plays;
+}
+
+export async function getBggFriends(username: string): Promise<string[]> {
+    const params: Record<string, string> = { name: username, buddies: '1' };
+    const xmlData = await bggFetch('user', params);
+    const parsed = parser.parse(xmlData);
+
+    if (parsed.errors?.error) {
+        throw new Error(`BGG Error: ${parsed.errors.error.message}`);
+    }
+
+    if (!parsed.user?.buddies?.[0]?.buddy) {
+        return [];
+    }
+
+    const buddies = parsed.user.buddies[0].buddy;
+    return buddies.map((buddy: any) => buddy.name);
 }
