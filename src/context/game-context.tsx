@@ -12,6 +12,7 @@ import {
     deleteSessionAction, 
     updatePlayerAction,
     setFavoriteVideoAction,
+    importBggPlayHistory,
 } from '@/lib/actions';
 import { getInitialData } from '@/lib/data';
 
