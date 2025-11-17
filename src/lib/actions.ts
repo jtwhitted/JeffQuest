@@ -495,34 +495,45 @@ export async function deleteRulebookDocument(gameId: string, documentId: string)
 }
 
 export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]> {
-    // In a real application, you would use the YouTube Data API here.
-    // For this example, we'll return mock data.
-    // We'll generate IDs based on the query to make them seem unique.
-    const createId = (text: string) => text.toLowerCase().replace(/\s+/g, '-');
+    const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+    if (!YOUTUBE_API_KEY) {
+        console.error('YOUTUBE_API_KEY environment variable not set.');
+        // Fallback to mock data or return an empty array if the key is missing
+        return [];
+    }
+    
+    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    url.searchParams.append('part', 'snippet');
+    url.searchParams.append('q', `How to play ${query}`);
+    url.searchParams.append('type', 'video');
+    url.searchParams.append('maxResults', '5');
+    url.searchParams.append('key', YOUTUBE_API_KEY);
 
-    const mockVideos: YoutubeVideo[] = [
-        {
-            id: `watch?v=rule-bot-${createId(query)}`,
-            title: `How to Play ${query} in 10 Minutes`,
-            thumbnail: 'https://i.ytimg.com/vi/1_y-9PCu_24/hqdefault.jpg',
-            channel: 'RulesQuest',
-        },
-        {
-            id: `watch?v=watch-it-played-${createId(query)}`,
-            title: `Watch It Played - ${query}`,
-            thumbnail: 'https://i.ytimg.com/vi/Coma_413Q8w/hqdefault.jpg',
-            channel: 'Watch It Played',
-        },
-        {
-            id: `watch?v=shut-up-and-sit-down-${createId(query)}`,
-            title: `${query} - Shut Up & Sit Down Review`,
-            thumbnail: 'https://i.ytimg.com/vi/6pAcN2P9z6Y/hqdefault.jpg',
-            channel: 'Shut Up & Sit Down',
-        },
-    ];
+    try {
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('YouTube API Error:', errorData);
+            throw new Error('Failed to fetch videos from YouTube.');
+        }
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+        const data = await response.json();
+        
+        if (!data.items) {
+            return [];
+        }
 
-    return mockVideos.slice(0, 3);
+        const videos: YoutubeVideo[] = data.items.map((item: any) => ({
+            id: `watch?v=${item.id.videoId}`,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails.high.url,
+            channel: item.snippet.channelTitle,
+        }));
+        
+        return videos.slice(0, 3);
+
+    } catch (error) {
+        console.error('Error fetching from YouTube:', error);
+        return [];
+    }
 }
