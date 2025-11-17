@@ -2,6 +2,7 @@
 'use server';
 
 import { XMLParser } from 'fast-xml-parser';
+import { Game } from './types';
 
 const BGG_API_URL = 'https://boardgamegeek.com/xmlapi2';
 
@@ -244,8 +245,11 @@ export async function getBggFriends(username: string): Promise<string[]> {
     if (!parsed.user?.buddies?.buddy) {
         return [];
     }
-
+    
+    // The parser is configured to always make 'buddy' an array.
     const buddies = parsed.user.buddies.buddy;
     
-    return buddies.map((buddy: any) => buddy.name);
+    // Correctly map over the buddy array and extract the 'name' attribute
+    // Also, filter out any undefined/null entries just in case.
+    return buddies.map((buddy: any) => buddy.name).filter(Boolean);
 }
