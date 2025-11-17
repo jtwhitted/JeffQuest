@@ -214,8 +214,6 @@ export default function GameDetailPage() {
                                 </CarouselItem>
                                 ))}
                             </CarouselContent>
-                            <CarouselPrevious className="hidden sm:flex" />
-                            <CarouselNext className="hidden sm:flex" />
                         </Carousel>
                     </CardContent>
                 </Card>
