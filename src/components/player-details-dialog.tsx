@@ -81,11 +81,15 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   // Effect to populate the card state if the player already has legendary data
   useEffect(() => {
     if (open) { // Only run when the dialog is open
-      if (player.legendaryTitle && player.legendaryBio) {
+      if (player.legendaryTitle && player.legendaryBio && player.legendaryImageDataUri) {
         setLegendaryCardState({
           loading: false,
           error: null,
-          data: { title: player.legendaryTitle, bio: player.legendaryBio }
+          data: { 
+              title: player.legendaryTitle, 
+              bio: player.legendaryBio, 
+              imageDataUri: player.legendaryImageDataUri 
+            }
         });
       } else {
         // Reset when the dialog opens for a new player without a card
@@ -107,6 +111,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             setLoadingMessage('Conjuring epicness...');
             result = await generateLegendaryCard({
                 name: player.name,
+                avatarDataUri: player.avatarUrl,
                 gamesPlayed: player.gamesPlayed,
                 wins: player.wins,
                 winRate: player.winRate,
@@ -128,7 +133,8 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         setLegendaryCardState({ loading: false, error: null, data: result });
         await updatePlayerAction(player.id, { 
             legendaryTitle: result.title, 
-            legendaryBio: result.bio 
+            legendaryBio: result.bio,
+            legendaryImageDataUri: result.imageDataUri,
         });
 
         toast({
@@ -136,7 +142,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             description: "The player's epic tale has been written."
         });
     } else {
-        const errorMessage = 'The AI is very busy right now. Please try again in a minute.';
+        const errorMessage = lastError?.message || 'The AI is very busy right now. Please try again in a minute.';
         setLegendaryCardState({ loading: false, error: errorMessage, data: null });
         toast({
             variant: 'destructive',
@@ -424,7 +430,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                       name={player.name}
                       title={legendaryCardState.data.title}
                       bio={legendaryCardState.data.bio}
-                      avatarDataUri={player.avatarUrl}
+                      avatarDataUri={legendaryCardState.data.imageDataUri || player.avatarUrl}
                       wins={player.wins}
                       gamesPlayed={player.gamesPlayed}
                       winRate={player.winRate}

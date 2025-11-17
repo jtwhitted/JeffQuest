@@ -120,12 +120,21 @@ export default function PlayersPage() {
     const topPartnerId = Object.entries(partnerCounts).sort(([,a], [,b]) => b-a)[0]?.[0];
     const mostPlayedWith = players.find(p => p.id === topPartnerId);
     
+    let bestGame: Game | undefined;
+    let worstGame: Game | undefined;
+
     const gameWinRates = gameHistory
-        .filter(gh => competitiveGames.some(cg => cg.game.id === gh.game.id)) // Only include competitive games
+        .filter(gh => competitiveGames.some(cg => cg.gameId === gh.game.id))
         .sort((a, b) => b.winRate - a.winRate);
 
-    const bestGame = gameWinRates[0]?.game;
-    const worstGame = gameWinRates[gameWinRates.length - 1]?.game;
+    if (gameWinRates.length > 0) {
+        bestGame = gameWinRates[0]?.game;
+        worstGame = gameWinRates[gameWinRates.length - 1]?.game;
+    } else {
+        // Fallback for players with no competitive games
+        bestGame = favoriteGame;
+        worstGame = undefined;
+    }
 
     let streak: 'hot' | 'cold' | undefined = undefined;
     if (playerSessions.length >= 3) {
@@ -255,7 +264,7 @@ export default function PlayersPage() {
                         name={player.name}
                         title={player.legendaryTitle}
                         bio={player.legendaryBio}
-                        avatarDataUri={player.avatarUrl}
+                        avatarDataUri={player.legendaryImageDataUri || player.avatarUrl}
                         wins={player.wins}
                         gamesPlayed={player.gamesPlayed}
                         winRate={player.winRate}
