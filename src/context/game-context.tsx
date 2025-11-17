@@ -177,6 +177,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
   const setFavoriteVideo = useCallback(async (gameId: string, videoId: string | undefined) => {
     // Optimistic UI update
+    const originalGames = games;
     setGames(prevGames => prevGames.map(g => 
         g.id === gameId ? { ...g, favoriteVideoId: videoId } : g
     ));
@@ -185,10 +186,10 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     } catch (error) {
         console.error("Failed to set favorite video:", error);
         // Revert UI on error
-        const originalData = await getInitialData();
-        setGames(originalData.games);
+        setGames(originalGames);
+        throw error; // Re-throw so the component can handle it
     }
-  }, []);
+  }, [games]);
 
 
   return (

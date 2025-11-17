@@ -17,7 +17,7 @@ import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
 import { RulebookManagerDialog } from '@/components/rulebook-manager-dialog';
 import { searchYoutubeAction } from '@/lib/actions';
 import type { YoutubeVideo } from '@/lib/types';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { VideoPlayerDialog } from '@/components/video-player-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -249,7 +249,7 @@ export default function GameDetailPage() {
                                             onClick={() => handleFavorite(video.id)}
                                             disabled={isFavoriting}
                                             >
-                                            {isFavoriting && game.favoriteVideoId === video.id ? (
+                                            {isFavoriting && game.favoriteVideoId !== video.id ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
                                             ) : (
                                                 <Star className={cn("h-4 w-4", game.favoriteVideoId === video.id ? 'text-amber-400 fill-amber-400' : 'text-white/80')} />
