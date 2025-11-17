@@ -525,7 +525,7 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
 
         const videos: YoutubeVideo[] = data.items.map((item: any) => ({
             id: `watch?v=${item.id.videoId}`,
-            title: item.snippet.title,
+            title: item.snippet.title.replace(/&amp;/g, '&'),
             thumbnail: item.snippet.thumbnails.high.url,
             channel: item.snippet.channelTitle,
         }));
@@ -545,14 +545,18 @@ export async function setFavoriteVideoAction(gameId: string, videoId: string | u
 }
 
 
-export async function importBggFriendsAction(username: string): Promise<{ importedCount: number, friendsFound: number }> {
+export async function importBggFriendsAction(username: string): Promise<{ importedCount: number, friendsFound: number, friendsUsernames: string[] }> {
     if (!username) {
         throw new Error('BGG username is required.');
     }
 
     // 1. Fetch friend usernames from BGG
-    const friendUsernames = await getBggFriends(username);
-    const friendsFound = friendUsernames.length;
+    const friendsUsernames = await getBggFriends(username);
+    const friendsFound = friendsUsernames.length;
+
+    if (friendsFound === 0) {
+        return { importedCount: 0, friendsFound, friendsUsernames };
+    }
 
     // 2. Get current players from our DB
     const { players: currentPlayers } = await getInitialData();
@@ -564,14 +568,10 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     );
 
     // 3. Find which friends are new
-    const newFriends = friendUsernames.filter(friendUsername => 
+    const newFriends = friendsUsernames.filter(friendUsername => 
         !currentPlayerUsernames.has(friendUsername.toLowerCase()) &&
         !currentPlayerNames.has(friendUsername.toLowerCase())
     );
-    
-    if (newFriends.length === 0) {
-        return { importedCount: 0, friendsFound };
-    }
     
     // 4. Add new players to our DB
     for (const friendUsername of newFriends) {
@@ -581,7 +581,10 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         });
     }
 
-    // 5. Revalidate path and return count
-    revalidatePath('/players');
-    return { importedCount: newFriends.length, friendsFound };
+    if (newFriends.length > 0) {
+        revalidatePath('/players');
+    }
+    
+    // 5. Return detailed results
+    return { importedCount: newFriends.length, friendsFound, friendsUsernames };
 }
