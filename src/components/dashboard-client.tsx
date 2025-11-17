@@ -61,26 +61,32 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
     const favoriteGameId = Object.entries(playsByGame).sort(([,a],[,b]) => b - a)[0]?.[0];
     const favoriteGame = games.find(g => g.id === favoriteGameId);
   
-    const gameHistory = Object.keys(playsByGame)
+      const gameHistory = Object.keys(playsByGame)
       .map(gameId => {
         const game = games.find(g => g.id === gameId);
         if (!game) return null;
-  
-        const gameSessions = playerSessions
-          .filter(s => s.gameId === gameId)
+
+        const gameSessionsForThisGame = playerSessions.filter(s => s.gameId === gameId);
+        const winsInGame = gameSessionsForThisGame.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
+        const winRateInGame = gameSessionsForThisGame.length > 0 ? Math.round((winsInGame / gameSessionsForThisGame.length) * 100) : 0;
+        
+        const sessions = gameSessionsForThisGame
           .map(session => ({
             ...session,
             players: session.playerIds.map(pid => players.find(p => p.id === pid)).filter(Boolean) as Player[],
             winner: players.find(p => p.id === session.winnerId),
           }))
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
+
         return {
           game,
-          sessions: gameSessions,
+          sessions,
+          winRate: winRateInGame,
+          playCount: gameSessionsForThisGame.length,
         };
       })
-      .filter(Boolean) as PlayerWithFullStats['gameHistory'];
+      .filter(Boolean)
+      .sort((a, b) => b!.playCount - a!.playCount) as PlayerWithFullStats['gameHistory'];
   
     return {
       ...player,
