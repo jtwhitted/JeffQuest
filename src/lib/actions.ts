@@ -175,6 +175,7 @@ const updatePlayerSchema = z.object({
   legendaryTitle: z.string().optional(),
   legendaryBio: z.string().optional(),
   bggUsername: z.string().optional(),
+  legendaryImageDataUri: z.string().optional(),
 });
 
 export async function updatePlayerAction(playerId: string, values: z.infer<typeof updatePlayerSchema>) {
@@ -525,7 +526,7 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
 
         const videos: YoutubeVideo[] = data.items.map((item: any) => ({
             id: `watch?v=${item.id.videoId}`,
-            title: item.snippet.title,
+            title: item.snippet.title.replace(/&amp;/g, '&'),
             thumbnail: item.snippet.thumbnails.high.url,
             channel: item.snippet.channelTitle,
         }));
