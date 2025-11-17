@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Download, History, Star, Users } from 'lucide-react';
 import React, { useState } from 'react';
 import { useGames } from '@/context/game-context';
-import { importBggCollectionAction, importBggFriendsAction, importBggPlaysAction, importBggRatingsAction } from '@/lib/actions';
+import { importBggCollectionAction, importBggFriendsAction, importBggPlayHistory, importBggRatingsAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 
 interface BggImportDialogProps {
@@ -60,7 +60,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
     setIsImporting(true);
     setImportingMessage('Importing Plays...');
     try {
-        const result = await importBggPlaysAction(bggUsername);
+        const result = await importBggPlayHistory(bggUsername);
         toast({
             title: 'Play History Imported',
             description: `${result.importedCount} new sessions were added.`,
@@ -150,6 +150,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
   };
   
   return (
+    <>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -181,7 +182,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
             </Button>
              <Button 
                 variant="outline" 
-                className="w-full" 
+                className="w-full"
                 onClick={handleImportRatings}
                 disabled={isImporting}
                 >
@@ -204,5 +205,6 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
            </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
   );
 }

@@ -305,7 +305,21 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
     }
 }
 
-export async function importBggPlaysAction(username: string): Promise<{ importedCount: number }> {
+export interface BggPlay {
+    bggPlayId: string;
+    bggGameId: string;
+    date: string;
+    notes?: string;
+    duration?: number;
+    players: {
+        name: string;
+        bggUsername?: string;
+        win: boolean;
+        score?: number;
+    }[];
+}
+
+export async function importBggPlayHistory(username: string): Promise<{ importedCount: number }> {
     if (!username) {
         throw new Error('BGG username is required.');
     }
@@ -551,7 +565,8 @@ export async function importBggFriendsAction(username: string): Promise<{ import
         throw new Error('BGG username is required.');
     }
 
-    const friendsUsernames = await getBggFriends(username);
+    const rawFriends = await getBggFriends(username);
+    const friendsUsernames = Array.isArray(rawFriends) ? rawFriends : (rawFriends ? [rawFriends] : []);
     const friendsFound = friendsUsernames.length;
     
     if (friendsFound === 0) {

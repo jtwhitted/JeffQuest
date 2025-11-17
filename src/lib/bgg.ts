@@ -241,12 +241,11 @@ export async function getBggFriends(username: string): Promise<string[]> {
         throw new Error(`BGG Error: ${parsed.errors.error.message}`);
     }
 
-    // Corrected path to check for buddies
     if (!parsed.user?.buddies?.buddy) {
         return [];
     }
 
     const buddies = parsed.user.buddies.buddy;
-    // The parser is now configured to always return an array for 'buddy'
+    
     return buddies.map((buddy: any) => buddy.name);
 }
