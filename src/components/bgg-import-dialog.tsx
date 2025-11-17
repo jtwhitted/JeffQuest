@@ -110,12 +110,23 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
     setIsImporting(true);
     setImportingMessage('Importing Friends...');
     try {
-        const result = await importBggFriendsAction(bggUsername);
+        const { importedCount, friendsFound } = await importBggFriendsAction(bggUsername);
+        
+        let description = `Found ${friendsFound} friends on BGG. `;
+        if (importedCount > 0) {
+            description += `${importedCount} new player(s) were added.`;
+        } else {
+            description += `No new players were added (they may already exist).`;
+        }
+        
         toast({
-            title: 'Friends Imported',
-            description: `${result.importedCount} new players were added from your BGG friends list.`,
+            title: 'Friend Import Complete',
+            description: description,
         });
-        await refreshData();
+
+        if (importedCount > 0) {
+          await refreshData();
+        }
         onOpenChange(false);
     } catch (error: any) {
         console.error('Error importing BGG friends:', error);
