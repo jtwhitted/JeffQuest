@@ -1,11 +1,11 @@
 
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles, UploadCloud } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles, UploadCloud, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,12 +15,38 @@ import { useGames } from '@/context/game-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
 import { RulebookManagerDialog } from '@/components/rulebook-manager-dialog';
+import { searchYoutubeAction } from '@/lib/actions';
+import type { YoutubeVideo } from '@/lib/types';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { VideoPlayerDialog } from '@/components/video-player-dialog';
 
 export default function GameDetailPage() {
   const { id } = useParams();
   const { games, sessions, players, isLoading } = useGames();
   const [isWizardOpen, setWizardOpen] = useState(false);
   const [isRulebookManagerOpen, setRulebookManagerOpen] = useState(false);
+  const [videos, setVideos] = useState<YoutubeVideo[]>([]);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
+
+  const game = games.find(g => g.id === id);
+
+  useEffect(() => {
+    if (game) {
+      const fetchVideos = async () => {
+        setIsVideoLoading(true);
+        try {
+          const videoResults = await searchYoutubeAction(game.name);
+          setVideos(videoResults);
+        } catch (error) {
+          console.error("Failed to fetch youtube videos", error);
+        } finally {
+          setIsVideoLoading(false);
+        }
+      };
+      fetchVideos();
+    }
+  }, [game]);
   
   if (isLoading) {
     return (
@@ -29,8 +55,6 @@ export default function GameDetailPage() {
       </div>
     );
   }
-
-  const game = games.find(g => g.id === id);
 
   if (!game) {
     notFound();
@@ -62,6 +86,13 @@ export default function GameDetailPage() {
 
   return (
     <>
+    {selectedVideo && (
+      <VideoPlayerDialog 
+        open={!!selectedVideo}
+        onOpenChange={() => setSelectedVideo(null)}
+        video={selectedVideo}
+      />
+    )}
     {game.documents && game.documents.length > 0 && (
       <RulesWizardDialog
         open={isWizardOpen}
@@ -147,6 +178,48 @@ export default function GameDetailPage() {
                     </div>
                 </CardContent>
             </Card>
+             {isVideoLoading ? (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>How to Play</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex items-center justify-center h-48">
+                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </CardContent>
+                </Card>
+            ) : videos.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>How to Play</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                       <Carousel opts={{ align: "start", loop: false }}>
+                            <CarouselContent>
+                                {videos.map((video) => (
+                                <CarouselItem key={video.id} className="basis-full md:basis-1/2 lg:basis-1/3">
+                                    <button className="w-full text-left" onClick={() => setSelectedVideo(video)}>
+                                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                                            <div className="relative aspect-video">
+                                            <Image src={video.thumbnail} alt={video.title} fill className="object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                <Youtube className="h-12 w-12 text-white/80" />
+                                            </div>
+                                            </div>
+                                            <div className="p-3">
+                                            <p className="font-semibold text-sm truncate">{video.title}</p>
+                                            <p className="text-xs text-muted-foreground">{video.channel}</p>
+                                            </div>
+                                        </Card>
+                                    </button>
+                                </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="hidden sm:flex" />
+                            <CarouselNext className="hidden sm:flex" />
+                        </Carousel>
+                    </CardContent>
+                </Card>
+            )}
              <Card>
                 <CardHeader>
                     <CardTitle>Mechanics & Details</CardTitle>

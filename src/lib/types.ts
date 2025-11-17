@@ -49,3 +49,10 @@ export interface Session {
   duration?: number; // Duration in minutes
   isCooperative?: boolean;
 }
+
+export interface YoutubeVideo {
+    id: string;
+    title: string;
+    thumbnail: string;
+    channel: string;
+}

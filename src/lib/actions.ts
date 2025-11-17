@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game, Player, Session, RulebookDocument } from './types';
+import type { Game, Player, Session, RulebookDocument, YoutubeVideo } from './types';
 import { 
     addGameToDB,
     addSessionToDB,
@@ -494,3 +494,35 @@ export async function deleteRulebookDocument(gameId: string, documentId: string)
     return updatedGame;
 }
 
+export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]> {
+    // In a real application, you would use the YouTube Data API here.
+    // For this example, we'll return mock data.
+    // We'll generate IDs based on the query to make them seem unique.
+    const createId = (text: string) => text.toLowerCase().replace(/\s+/g, '-');
+
+    const mockVideos: YoutubeVideo[] = [
+        {
+            id: `watch?v=rule-bot-${createId(query)}`,
+            title: `How to Play ${query} in 10 Minutes`,
+            thumbnail: 'https://i.ytimg.com/vi/1_y-9PCu_24/hqdefault.jpg',
+            channel: 'RulesQuest',
+        },
+        {
+            id: `watch?v=watch-it-played-${createId(query)}`,
+            title: `Watch It Played - ${query}`,
+            thumbnail: 'https://i.ytimg.com/vi/Coma_413Q8w/hqdefault.jpg',
+            channel: 'Watch It Played',
+        },
+        {
+            id: `watch?v=shut-up-and-sit-down-${createId(query)}`,
+            title: `${query} - Shut Up & Sit Down Review`,
+            thumbnail: 'https://i.ytimg.com/vi/6pAcN2P9z6Y/hqdefault.jpg',
+            channel: 'Shut Up & Sit Down',
+        },
+    ];
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return mockVideos.slice(0, 3);
+}
