@@ -4,8 +4,8 @@ import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { Crown, Swords, PlusCircle, Users, BarChart3, Loader2, Dices, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Crown, Swords, PlusCircle, Users, BarChart3, Loader2, Dices, Trash2, Search } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import type { Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { AddGameDialog } from '@/components/add-game-dialog';
@@ -14,35 +14,45 @@ import Link from 'next/link';
 import { useGames } from '@/context/game-context';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 export default function GamesPage() {
   const { games, sessions, players, isLoading: areGamesLoading, deleteGame } = useGames();
   const [isAddGameOpen, setAddGameOpen] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<Game | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  const gamesWithStats = games.map(game => {
-    const gameSessions = sessions.filter(s => s.gameId === game.id);
-    const playCount = gameSessions.length;
-    
-    const winsByPlayer = gameSessions.reduce((acc, session) => {
-      const winner = players.find(p => p.id === session.winnerId);
-      if (winner) {
-        acc[winner.name] = (acc[winner.name] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+  const gamesWithStats = useMemo(() => {
+    return games.map(game => {
+        const gameSessions = sessions.filter(s => s.gameId === game.id);
+        const playCount = gameSessions.length;
+        
+        const winsByPlayer = gameSessions.reduce((acc, session) => {
+          const winner = players.find(p => p.id === session.winnerId);
+          if (winner) {
+            acc[winner.name] = (acc[winner.name] || 0) + 1;
+          }
+          return acc;
+        }, {} as Record<string, number>);
 
-    const playerRankings = Object.entries(winsByPlayer)
-        .map(([name, wins]) => ({ name, wins }))
-        .sort((a, b) => b.wins - a.wins);
+        const playerRankings = Object.entries(winsByPlayer)
+            .map(([name, wins]) => ({ name, wins }))
+            .sort((a, b) => b.wins - a.wins);
 
-    return {
-      ...game,
-      playCount,
-      playerRankings
-    };
-  }).sort((a, b) => a.name.localeCompare(b.name));
+        return {
+          ...game,
+          playCount,
+          playerRankings
+        };
+    });
+  }, [games, sessions, players]);
+
+  const filteredGames = useMemo(() => {
+    return gamesWithStats
+      .filter(game => game.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [gamesWithStats, searchQuery]);
 
   const handleDelete = async () => {
     if (!gameToDelete) return;
@@ -84,14 +94,24 @@ export default function GamesPage() {
           Add New Game
         </Button>
       </PageHeader>
+      
+       <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Search for a game in your library..."
+            className="w-full max-w-sm pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
       {areGamesLoading ? (
         <div className="flex h-64 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : gamesWithStats.length > 0 ? (
+      ) : filteredGames.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {gamesWithStats.map(game => (
+          {filteredGames.map(game => (
               <Card key={game.id} className="group/card flex flex-col w-full transition-shadow hover:shadow-lg">
                 <div className='relative'>
                     <Link href={`/games/${game.id}`} className="flex">
@@ -182,7 +202,7 @@ export default function GamesPage() {
       ) : (
          <div className="text-center py-12 text-muted-foreground">
           <h3 className="text-lg font-semibold">No games found.</h3>
-          <p>Add a new game to get started.</p>
+          <p>{searchQuery ? 'Try adjusting your search.' : 'Add a new game to get started.'}</p>
         </div>
       )}
     </div>
