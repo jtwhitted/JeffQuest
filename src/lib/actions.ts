@@ -286,6 +286,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         const { games, players, sessions: currentSessions } = await getInitialData();
         const bggPlays = await getBggPlayHistory(username);
         const existingSessionIds = new Set(currentSessions.map(s => s.id));
+        const newGamesAddedThisSession: Game[] = [];
 
         log(`[BGG Import] Fetched ${bggPlays.length} plays from BGG.`);
         log(`[BGG Import] Found ${currentSessions.length} existing sessions in the database.`);
@@ -301,7 +302,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                 continue;
             }
 
-            let game = games.find(g => g.bggId === play.bggGameId);
+            let game = games.find(g => g.bggId === play.bggGameId) || newGamesAddedThisSession.find(g => g.bggId === play.bggGameId);
 
             if (!game) {
                  log(`[BGG Import] -> Game with BGG ID ${play.bggGameId} not found in local collection. Attempting to fetch from BGG.`);
@@ -320,7 +321,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                         bggId: play.bggGameId,
                     };
                     game = await addGameToDB(newGame);
-                    games.push(game); // Add to in-memory array for this session
+                    newGamesAddedThisSession.push(game);
                     log(`[BGG Import] -> Successfully fetched and added new game: ${game.name}`);
                 } else {
                     log(`[BGG Import] -> Skipping: Could not fetch details for BGG Game ID ${play.bggGameId}.`);
@@ -650,3 +651,6 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
     
 
+
+
+    
