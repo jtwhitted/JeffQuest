@@ -21,7 +21,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { useGames } from '@/context/game-context';
 import { LegendaryPlayerCard } from './legendary-player-card';
-import { generateLegendaryCard, GenerateLegendaryCardOutput } from '@/ai/flows/generate-legendary-card';
+import { generateLegendaryCard } from '@/ai/flows/generate-legendary-card';
 import { updatePlayerAction } from '@/lib/actions';
 import { Separator } from './ui/separator';
 import Link from 'next/link';
@@ -65,7 +65,7 @@ interface PlayerDetailsDialogProps {
 type LegendaryCardState = {
   loading: boolean;
   error: string | null;
-  data: GenerateLegendaryCardOutput | null;
+  data: { title: string; bio: string; } | null;
 }
 
 export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetailsDialogProps) {
@@ -81,14 +81,13 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   // Effect to populate the card state if the player already has legendary data
   useEffect(() => {
     if (open) { // Only run when the dialog is open
-      if (player.legendaryTitle && player.legendaryBio && player.legendaryImageDataUri) {
+      if (player.legendaryTitle && player.legendaryBio) {
         setLegendaryCardState({
           loading: false,
           error: null,
           data: { 
               title: player.legendaryTitle, 
               bio: player.legendaryBio, 
-              imageDataUri: player.legendaryImageDataUri 
             }
         });
       } else {
@@ -101,7 +100,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
   const handleGenerateCard = async () => {
     setLegendaryCardState({ loading: true, error: null, data: null });
     
-    let result: GenerateLegendaryCardOutput | null = null;
+    let result: { title: string; bio: string; } | null = null;
     let lastError: any = null;
     const retries = 3;
     let delayMs = 1000;
@@ -111,7 +110,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             setLoadingMessage('Conjuring epicness...');
             result = await generateLegendaryCard({
                 name: player.name,
-                avatarDataUri: player.avatarUrl,
                 gamesPlayed: player.gamesPlayed,
                 wins: player.wins,
                 winRate: player.winRate,
@@ -134,7 +132,6 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
         await updatePlayerAction(player.id, { 
             legendaryTitle: result.title, 
             legendaryBio: result.bio,
-            legendaryImageDataUri: result.imageDataUri,
         });
 
         toast({
@@ -430,7 +427,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
                       name={player.name}
                       title={legendaryCardState.data.title}
                       bio={legendaryCardState.data.bio}
-                      avatarDataUri={legendaryCardState.data.imageDataUri || player.avatarUrl}
+                      avatarDataUri={player.avatarUrl}
                       wins={player.wins}
                       gamesPlayed={player.gamesPlayed}
                       winRate={player.winRate}

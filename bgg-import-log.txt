@@ -3,8 +3,7 @@
 [BGG Import] Found 6 existing sessions in the database.
 
 [BGG Import] Processing BGG Play ID: 106164445 for BGG Game ID: 171835
-[BGG Import] -> Game with BGG ID 171835 not found in local collection. Attempting to fetch from BGG.
-[BGG Import] -> Successfully fetched and added new game: Posthuman
+[BGG Import] -> Found matching local game: Posthuman (ID: 171835)
 [BGG Import] -> SUCCESS: Imported session for Posthuman.
 
 [BGG Import] Finished. Total imported: 1
