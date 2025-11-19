@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useGames } from '@/context/game-context';
+import { format, parseISO } from 'date-fns';
 
 export default function SessionDetailPage() {
   const { id } = useParams();
@@ -40,7 +41,7 @@ export default function SessionDetailPage() {
     <div className="space-y-8">
        <PageHeader
         title={game.name}
-        description={`Session played on ${new Date(session.date).toLocaleDateString()}`}
+        description={`Session played on ${format(parseISO(session.date), 'MMMM d, yyyy')}`}
       >
         <Button asChild variant="outline">
           <Link href="/sessions">

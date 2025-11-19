@@ -10,7 +10,7 @@ import { useGames } from '@/context/game-context';
 import type { Session } from '@/lib/types';
 import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 
 export default function SessionsPage() {
@@ -21,7 +21,7 @@ export default function SessionsPage() {
   const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const sessionsByMonth = sortedSessions.reduce((acc, session) => {
-    const monthYear = format(new Date(session.date), 'MMMM yyyy');
+    const monthYear = format(parseISO(session.date), 'MMMM yyyy');
     if (!acc[monthYear]) {
       acc[monthYear] = [];
     }
@@ -37,7 +37,7 @@ export default function SessionsPage() {
       const game = games.find(g => g.id === sessionToDelete.gameId);
       toast({
         title: 'Session Deleted',
-        description: `The session for ${game?.name} on ${format(new Date(sessionToDelete.date), 'MM/dd/yyyy')} has been removed.`,
+        description: `The session for ${game?.name} on ${format(parseISO(sessionToDelete.date), 'MM/dd/yyyy')} has been removed.`,
       });
     } catch (e) {
       toast({

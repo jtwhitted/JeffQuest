@@ -3,7 +3,7 @@ import type { Session, Player } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Crown, ShieldCheck, ShieldX, Users } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import Link from 'next/link';
 
 interface GameSessionHistoryProps {
@@ -40,7 +40,7 @@ export function GameSessionHistory({ sessions, allPlayers }: GameSessionHistoryP
               <li key={session.id}>
                 <Link href={`/sessions/${session.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <p className="font-semibold">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+                        <p className="font-semibold">{format(parseISO(session.date), 'MMMM d, yyyy')}</p>
                         <div className="flex -space-x-2 overflow-hidden mt-2 sm:mt-0">
                             {sessionPlayers.map((player) => (
                                 <Avatar key={player.id} className="h-8 w-8 border-2 border-card">

@@ -13,7 +13,7 @@ import { PlayerDetailsDialog, type PlayerWithFullStats } from './player-details-
 import { useGames } from '@/context/game-context';
 import Link from 'next/link';
 import Image from 'next/image';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { AiInsightWidget } from './dashboard/ai-insight-widget';
 import { SavedInsightWidget } from './dashboard/saved-insight-widget';
 
@@ -343,7 +343,7 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <h4 className="font-semibold">{game.name}</h4>
-                                                        <p className="text-sm text-muted-foreground">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+                                                        <p className="text-sm text-muted-foreground">{format(parseISO(session.date), 'MMMM d, yyyy')}</p>
                                                     </div>
                                                     <div className="flex -space-x-2 overflow-hidden">
                                                         {sessionPlayers.map((player) => (

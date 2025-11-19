@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import type { Session, Game, Player } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { Crown, ArrowRight, ShieldCheck, ShieldX, Trash2 } from 'lucide-react';
 
 interface SessionCardProps {
@@ -80,7 +80,7 @@ export default function SessionCard({ session, game, players, winner, onDelete }
             </div>
             <div>
                 <CardTitle className="text-xl font-bold text-white">{game.name}</CardTitle>
-                <p className="text-sm text-gray-300">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+                <p className="text-sm text-gray-300">{format(parseISO(session.date), 'MMMM d, yyyy')}</p>
             </div>
         </div>
       </CardHeader>

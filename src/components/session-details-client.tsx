@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Bot, Crown, Loader2, ShieldCheck, ShieldX, Sparkles, Trophy, Users } from 'lucide-react';
 import Image from 'next/image';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 interface SessionDetailsClientProps {
   session: Session;
@@ -100,7 +100,7 @@ export default function SessionDetailsClient({ session, game, players, winner }:
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                  <div className="absolute bottom-0 left-0 p-6">
                     <h2 className="text-3xl font-bold text-white">{game.name}</h2>
-                    <p className="text-lg text-gray-300">{format(new Date(session.date), 'MMMM d, yyyy')}</p>
+                    <p className="text-lg text-gray-300">{format(parseISO(session.date), 'MMMM d, yyyy')}</p>
                 </div>
             </CardHeader>
             <CardContent className="p-6">
