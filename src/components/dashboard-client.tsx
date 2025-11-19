@@ -185,26 +185,30 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
               <DataExporter data={{ sessions, players, games }} />
           </div>
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-              <Swords className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalSessions}</div>
-              <p className="text-xs text-muted-foreground">games played</p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Players</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalPlayers}</div>
-              <p className="text-xs text-muted-foreground">in your group</p>
-            </CardContent>
-          </Card>
+          <Link href="/sessions" className="cursor-pointer">
+            <Card className="transition-shadow hover:shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
+                <Swords className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalSessions}</div>
+                <p className="text-xs text-muted-foreground">games played</p>
+              </CardContent>
+            </Card>
+          </Link>
+           <Link href="/players" className="cursor-pointer">
+            <Card className="transition-shadow hover:shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Players</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalPlayers}</div>
+                <p className="text-xs text-muted-foreground">in your group</p>
+              </CardContent>
+            </Card>
+          </Link>
           <Card
             className={mostPlayedGame ? 'cursor-pointer transition-shadow hover:shadow-lg' : ''}
            >
