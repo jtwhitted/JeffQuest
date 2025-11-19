@@ -2,6 +2,7 @@
 [
   {
     "id": "g1762835357259",
+    "bggId": "390431",
     "name": "Vantage",
     "category": [
       "Adventure",
@@ -46,6 +47,7 @@
   },
   {
     "id": "g1762881557498",
+    "bggId": "248924",
     "name": "Just One",
     "category": [
       "Deduction",
@@ -98,6 +100,7 @@
   },
   {
     "id": "g1762884180986",
+    "bggId": "245655",
     "name": "The King's Dilemma",
     "category": [
       "Fantasy",
@@ -146,6 +149,7 @@
   },
   {
     "id": "g1762884203323",
+    "bggId": "34119",
     "name": "Tales of the Arabian Nights",
     "category": [
       "Adventure",
@@ -190,6 +194,7 @@
   },
   {
     "id": "g1762884245351",
+    "bggId": "232414",
     "name": "Western Legends",
     "category": [
       "Adventure",
@@ -238,6 +243,7 @@
   },
   {
     "id": "g1762884281021",
+    "bggId": "300329",
     "name": "Regicide",
     "category": [
       "Card Game",
@@ -279,6 +285,7 @@
   },
   {
     "id": "g1762884301543",
+    "bggId": "220517",
     "name": "The Shipwreck Arcana",
     "category": [
       "Card Game",
@@ -315,6 +322,7 @@
   },
   {
     "id": "g1762884322402",
+    "bggId": "232398",
     "name": "The Mind",
     "category": [
       "Card Game",
@@ -371,6 +379,7 @@
   },
   {
     "id": "g1763014225374",
+    "bggId": "391784",
     "name": "Moon Colony Bloodbath",
     "category": [
       "Card Game",
@@ -458,7 +467,8 @@
     "maxPlaytime": 120,
     "rating": 8.126,
     "ratingCount": 46750,
-    "complexity": 3.564
+    "complexity": 3.564,
+    "bggId": "205637"
   },
   {
     "id": "284083",
@@ -513,7 +523,8 @@
     "maxPlaytime": 20,
     "rating": 7.767,
     "ratingCount": 46870,
-    "complexity": 1.962
+    "complexity": 1.962,
+    "bggId": "284083"
   },
   {
     "id": "171835",
