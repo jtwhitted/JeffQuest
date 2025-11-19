@@ -310,7 +310,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                 if (gameDetails.length > 0) {
                     const newGameData = gameDetails[0];
                     const newGame: Game = {
-                        id: `g-bgg-${play.bggGameId}`,
+                        id: `g-${play.bggGameId}`,
                         ...newGameData,
                         name: newGameData.name || 'Unknown Name',
                         category: newGameData.category || [],
@@ -652,5 +652,7 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     
 
 
+
+    
 
     

@@ -1,9 +1,10 @@
 [BGG Import] Starting play history import for user: jeff_whitted
 [BGG Import] Fetched 1 plays from BGG.
-[BGG Import] Found 7 existing sessions in the database.
+[BGG Import] Found 6 existing sessions in the database.
 
-[BGG Import] Processing BGG Play ID: 106164445 for BGG Game ID: undefined
-[BGG Import] -> Game with BGG ID undefined not found in local collection. Attempting to fetch from BGG.
-[BGG Import] -> Skipping: Could not fetch details for BGG Game ID undefined.
+[BGG Import] Processing BGG Play ID: 106164445 for BGG Game ID: 171835
+[BGG Import] -> Game with BGG ID 171835 not found in local collection. Attempting to fetch from BGG.
+[BGG Import] -> Successfully fetched and added new game: Posthuman
+[BGG Import] -> SUCCESS: Imported session for Posthuman.
 
-[BGG Import] Finished. Total imported: 0
+[BGG Import] Finished. Total imported: 1

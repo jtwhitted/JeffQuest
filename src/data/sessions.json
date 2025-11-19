@@ -114,5 +114,23 @@
     ],
     "notes": "Jeffrey played a solo version of Arkham Horror, the card game on December 11th, and he won the game with 19 points.\n Sorry, I meant November 11th. The correct date is November 11th. puts The game took 17 minutes to complete.",
     "duration": 17
+  },
+  {
+    "id": "s-bgg-106164445",
+    "gameId": "171835",
+    "date": "2025-11-18",
+    "playerIds": [
+      "p1762879138303"
+    ],
+    "winnerId": "p1762879138303",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 47
+      }
+    ],
+    "notes": "Jeffrey won",
+    "duration": 150,
+    "isCooperative": false
   }
 ]
