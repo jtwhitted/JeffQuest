@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game, Player, Session, RulebookDocument, YoutubeVideo } from './types';
+import type { Game, Player, Session, RulebookDocument, YoutubeVideo, DashboardInsight } from './types';
 import { 
     addGameToDB,
     addSessionToDB,
@@ -13,7 +13,8 @@ import {
     deleteSessionFromDB,
     updatePlayerInDB,
     getInitialData,
-    updateGameInDB
+    updateGameInDB,
+    deleteInsightFromDB
 } from './data';
 import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends, getBggUserDetails } from './bgg';
 import pdf from 'pdf-parse';
@@ -220,6 +221,12 @@ export async function deleteSessionAction(sessionId: string) {
     revalidatePath('/players');
 }
 
+export async function deleteInsightAction(insightId: string) {
+    await deleteInsightFromDB(insightId);
+    revalidatePath('/');
+}
+
+
 export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
   if (!query) {
     return [];
@@ -315,7 +322,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                 if (gameDetails.length > 0) {
                     const newGameData = gameDetails[0];
                     const newGame: Game = {
-                        id: `g-${play.bggGameId}`,
+                        id: `g-${Date.now()}`, // Ensure unique ID
                         ...newGameData,
                         name: newGameData.name || 'Unknown Name',
                         category: newGameData.category || [],

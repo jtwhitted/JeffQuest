@@ -57,3 +57,8 @@ export interface YoutubeVideo {
     thumbnail: string;
     channel: string;
 }
+
+export interface DashboardInsight {
+    id: string;
+    query: string;
+}

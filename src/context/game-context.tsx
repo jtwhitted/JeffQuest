@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import type { Game, Player, Session } from '@/lib/types';
+import type { Game, Player, Session, DashboardInsight } from '@/lib/types';
 import { 
     addGame as addGameAction,
     addPlayer as addPlayerAction, 
@@ -13,6 +13,7 @@ import {
     updatePlayerAction,
     setFavoriteVideoAction,
     importBggPlayHistory,
+    deleteInsightAction,
 } from '@/lib/actions';
 import { getInitialData } from '@/lib/data';
 
@@ -42,6 +43,7 @@ interface GameContextType {
   games: Game[];
   players: Player[];
   sessions: Session[];
+  dashboardInsights: DashboardInsight[];
   addGame: (gameData: GameData) => Promise<Game>;
   updateGame: (gameId: string, gameData: GameUpdateData) => void;
   addPlayer: (playerData: { name: string; avatarUrl?: string; bggUsername?: string }) => Promise<Player>;
@@ -50,6 +52,7 @@ interface GameContextType {
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
+  deleteInsight: (insightId: string) => Promise<void>;
   isLoading: boolean;
   refreshData: () => Promise<void>;
   setFavoriteVideo: (gameId: string, videoId: string | undefined) => Promise<void>;
@@ -63,6 +66,7 @@ interface GameProviderProps {
     games: Game[];
     players: Player[];
     sessions: Session[];
+    dashboard: DashboardInsight[];
   };
 }
 
@@ -70,6 +74,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
   const [games, setGames] = useState<Game[]>(initialData.games);
   const [players, setPlayers] = useState<Player[]>(initialData.players);
   const [sessions, setSessions] = useState<Session[]>(initialData.sessions);
+  const [dashboardInsights, setDashboardInsights] = useState<DashboardInsight[]>(initialData.dashboard);
   const [isLoading, setIsLoading] = useState(false);
 
   const refreshData = useCallback(async () => {
@@ -79,6 +84,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
         setGames(newData.games);
         setPlayers(newData.players);
         setSessions(newData.sessions);
+        setDashboardInsights(newData.dashboard);
     } catch (error) {
         console.error("Failed to refresh data:", error);
     } finally {
@@ -176,6 +182,16 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
+  const deleteInsight = useCallback(async (insightId: string) => {
+    setIsLoading(true);
+    try {
+      await deleteInsightAction(insightId);
+      setDashboardInsights(prev => prev.filter(i => i.id !== insightId));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const setFavoriteVideo = useCallback(async (gameId: string, videoId: string | undefined) => {
     // Optimistic UI update
     const originalGames = games;
@@ -194,7 +210,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, isLoading, refreshData, setFavoriteVideo }}>
+    <GameContext.Provider value={{ games, players, sessions, dashboardInsights, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, deleteInsight, isLoading, refreshData, setFavoriteVideo }}>
       {children}
     </GameContext.Provider>
   );

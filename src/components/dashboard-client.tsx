@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Session, Player, Game } from '@/lib/types';
+import type { Session, Player, Game, DashboardInsight } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
 import { WinLossChart } from '@/components/charts/win-loss-chart';
@@ -14,6 +15,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { AiInsightWidget } from './dashboard/ai-insight-widget';
+import { SavedInsightWidget } from './dashboard/saved-insight-widget';
 
 interface DashboardClientProps {
   sessions: Session[];
@@ -22,6 +24,7 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ sessions, players, games }: DashboardClientProps) {
+  const { dashboardInsights } = useGames();
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerWithFullStats | null>(null);
 
   const totalSessions = sessions.length;
@@ -292,6 +295,9 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
         </div>
         <div className="grid grid-cols-1 gap-8">
             <AiInsightWidget />
+             {dashboardInsights.map((insight) => (
+                <SavedInsightWidget key={insight.id} insight={insight} />
+            ))}
         </div>
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="grid grid-cols-1 gap-8">

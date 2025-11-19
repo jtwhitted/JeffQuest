@@ -1,7 +1,7 @@
 
 'use server';
 
-import type { Player, Game, Session } from './types';
+import type { Player, Game, Session, DashboardInsight } from './types';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -10,6 +10,8 @@ const dataDir = path.join(process.cwd(), 'src', 'data');
 const PLAYERS_PATH = path.join(dataDir, 'players.json');
 const GAMES_PATH = path.join(dataDir, 'games.json');
 const SESSIONS_PATH = path.join(dataDir, 'sessions.json');
+const DASHBOARD_PATH = path.join(dataDir, 'dashboard.json');
+
 
 // Helper function to read data from a JSON file
 async function readData<T>(filePath: string): Promise<T[]> {
@@ -41,12 +43,13 @@ async function writeData<T>(filePath: string, data: T[]): Promise<void> {
 
 // --- Data Accessor ---
 export async function getInitialData() {
-    const [players, games, sessions] = await Promise.all([
+    const [players, games, sessions, dashboard] = await Promise.all([
         readData<Player>(PLAYERS_PATH),
         readData<Game>(GAMES_PATH),
-        readData<Session>(SESSIONS_PATH)
+        readData<Session>(SESSIONS_PATH),
+        readData<DashboardInsight>(DASHBOARD_PATH),
     ]);
-    return { players, games, sessions };
+    return { players, games, sessions, dashboard };
 }
 
 // --- Data Mutation Functions ---
@@ -147,4 +150,10 @@ export async function deleteSessionFromDB(sessionId: string): Promise<void> {
     let sessions = await readData<Session>(SESSIONS_PATH);
     sessions = sessions.filter(s => s.id !== sessionId);
     await writeData(SESSIONS_PATH, sessions);
+}
+
+export async function deleteInsightFromDB(insightId: string): Promise<void> {
+    let insights = await readData<DashboardInsight>(DASHBOARD_PATH);
+    insights = insights.filter(i => i.id !== insightId);
+    await writeData(DASHBOARD_PATH, insights);
 }
