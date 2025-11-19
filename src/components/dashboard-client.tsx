@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -14,6 +13,7 @@ import { useGames } from '@/context/game-context';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
+import { AiInsightWidget } from './dashboard/ai-insight-widget';
 
 interface DashboardClientProps {
   sessions: Session[];
@@ -102,6 +102,18 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
     const topNemesisId = Object.entries(nemesisCounts).sort(([,a], [,b]) => b - a)[0]?.[0];
     const nemesis = players.find(p => p.id === topNemesisId);
     
+    const partnerCounts = playerSessions.reduce((acc, session) => {
+        session.playerIds.forEach(pId => {
+            if (pId !== player.id) {
+                acc[pId] = (acc[pId] || 0) + 1;
+            }
+        });
+        return acc;
+    }, {} as Record<string, number>);
+
+    const topPartnerId = Object.entries(partnerCounts).sort(([,a], [,b]) => b-a)[0]?.[0];
+    const mostPlayedWith = players.find(p => p.id === topPartnerId);
+    
     let bestGame: Game | undefined;
     let worstGame: Game | undefined;
 
@@ -117,6 +129,18 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
         worstGame = undefined;
     }
 
+    let streak: 'hot' | 'cold' | undefined = undefined;
+    if (playerSessions.length >= 3) {
+      const lastThreeGames = playerSessions.slice(0, 3);
+      const winsInLastThree = lastThreeGames.filter(s => s.winnerId === player.id || (s.cooperativeResult === 'win' && s.playerIds.includes(player.id))).length;
+      if (winsInLastThree >= 2) {
+        streak = 'hot';
+      } else if (winsInLastThree === 0) {
+        streak = 'cold';
+      }
+    }
+
+
     return {
       ...player,
       gamesPlayed,
@@ -125,8 +149,10 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
       favoriteGame,
       gameHistory,
       nemesis,
+      mostPlayedWith,
       bestGame,
-      worstGame
+      worstGame,
+      streak,
     };
   };
 
@@ -263,6 +289,9 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
               )}
             </CardContent>
           </Card>
+        </div>
+        <div className="grid grid-cols-1 gap-8">
+            <AiInsightWidget />
         </div>
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="grid grid-cols-1 gap-8">
