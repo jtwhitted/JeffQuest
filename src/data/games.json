@@ -555,45 +555,5 @@
     "ratingCount": 256,
     "complexity": 2,
     "bggId": "365647"
-  },
-  {
-    "id": "157723",
-    "name": "We Didn&#039;t Playtest This at All with Chaos Pack Expansion",
-    "imageUrl": "https://cf.geekdo-images.com/ln2wZ5mlnbqgWtZL5DKsTA__original/img/KyarogRGx8Lp7o6cDZaD5qq3fPA=/0x0/filters:format(png)/pic1955488.png",
-    "description": "This version of We Didn't Playtest This at All includes the Chaos Pack Expansion and comes in a sturdy 2-deck-playing-card-type box with a lift top.\n\nThe Chaos Pack Expansion contains a side deck of 15 cards you can use alongside We Didn't Playtest This at All. Every game, you randomly draw one Chaos card, and it becomes a rule that must be followed for the entire game.\n\nFrom the publisher's website:\n\n\"The most aptly named game ever!\n\nIn this exceptionally silly and awesome game, your objective is to win! Simple enough. Sadly, all of your opponents have the same simple goal, and they're trying to make you lose. Between Rock Paper Scissors battles, being eaten by a random Dragon, or saved by a Kitten Ambush, there are many hazards to avoid.\"\n\nPlay Summary\n\nEveryone starts with 2 cards. On your turn, draw one card from the deck, and then play one from your hand following the instructions on the card. There are many hazards to avoid, including: bombs, dragons, arrows, laser pointers, black holes, Rock Paper Scissors battles, number battles, zombies, etc. Luckily items abound that can save you, too: spaceships, science, shields, dinosaurs and a kitten ambush!\n\nThere are Star Cards: they are clearly superior to normal cards. Every player has an equal chance of drawing a Star Card from the deck.\n\nIntegrates with:\n\n    We Didn't Playtest This Either",
-    "yearPublished": 2012,
-    "minPlayers": 2,
-    "maxPlayers": 10,
-    "difficulty": "Beginner",
-    "category": [
-      "Card Game",
-      "Humor",
-      "Party Game"
-    ],
-    "mechanics": [
-      "Hand Management",
-      "Player Elimination",
-      "Rock-Paper-Scissors",
-      "Simultaneous Action Selection"
-    ],
-    "designers": [
-      "Chris Cieslik"
-    ],
-    "publishers": [
-      "Asmadi Games",
-      "Board Game Leisure",
-      "Bureau de Juegos",
-      "Buró",
-      "Czacha Games",
-      "IELLO",
-      "Nosolorol Ediciones",
-      "Reflexshop"
-    ],
-    "minPlaytime": 10,
-    "maxPlaytime": 10,
-    "rating": 5.631,
-    "ratingCount": 816,
-    "complexity": 1.063,
-    "bggId": "157723"
   }
 ]

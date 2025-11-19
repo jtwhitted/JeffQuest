@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Session, Player, Game } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
@@ -87,7 +87,36 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
       })
       .filter(Boolean)
       .sort((a, b) => b!.playCount - a!.playCount) as PlayerWithFullStats['gameHistory'];
-  
+      
+    const competitiveGames = playerSessions.filter(s => !s.isCooperative && s.playerIds.length > 1);
+
+    const nemesisCounts = competitiveGames
+        .filter(s => s.winnerId !== player.id)
+        .reduce((acc, session) => {
+            if (session.winnerId) {
+                acc[session.winnerId] = (acc[session.winnerId] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+    const topNemesisId = Object.entries(nemesisCounts).sort(([,a], [,b]) => b - a)[0]?.[0];
+    const nemesis = players.find(p => p.id === topNemesisId);
+    
+    let bestGame: Game | undefined;
+    let worstGame: Game | undefined;
+
+    const gameWinRates = gameHistory
+        .filter(gh => competitiveGames.some(cg => cg.gameId === gh.game.id))
+        .sort((a, b) => b.winRate - a.winRate);
+
+    if (gameWinRates.length > 0) {
+        bestGame = gameWinRates[0]?.game;
+        worstGame = gameWinRates[gameWinRates.length - 1]?.game;
+    } else {
+        bestGame = favoriteGame;
+        worstGame = undefined;
+    }
+
     return {
       ...player,
       gamesPlayed,
@@ -95,6 +124,9 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
       winRate,
       favoriteGame,
       gameHistory,
+      nemesis,
+      bestGame,
+      worstGame
     };
   };
 
