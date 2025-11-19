@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2, WandSparkles } from "lucide-react";
@@ -70,6 +70,16 @@ export function AiInsightWidget() {
                     {isLoading ? 'Analyzing...' : 'Generate Insight'}
                 </Button>
             </CardContent>
+            <CardFooter className="flex flex-col items-start gap-2 text-sm text-muted-foreground border-t pt-4">
+                <p>Ask about your <strong className="text-foreground">games</strong>, <strong className="text-foreground">players</strong>, and <strong className="text-foreground">sessions</strong>.</p>
+                <p className="font-semibold">Example questions:</p>
+                <ul className="list-disc pl-5 text-xs space-y-1">
+                    <li>Chart my wins per player.</li>
+                    <li>What is my most played game category?</li>
+                    <li>Who has the highest win rate in competitive games?</li>
+                    <li>Show a breakdown of my sessions per month.</li>
+                </ul>
+            </CardFooter>
         </Card>
     )
 }
