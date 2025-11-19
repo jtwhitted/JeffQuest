@@ -10,6 +10,20 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const apiKey = process.env.BGG_API_KEY;
 
+// Helper function to decode common HTML entities that fast-xml-parser might miss.
+function decodeBggText(text: string | undefined): string {
+    if (!text) return '';
+    return text
+        .replace(/&#039;/g, "'")
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&ldquo;/g, '“')
+        .replace(/&rdquo;/g, '”')
+        .replace(/&lsquo;/g, '‘')
+        .replace(/&rsquo;/g, '’');
+}
+
+
 async function bggFetch(path: string, params: Record<string, string>) {
     const url = new URL(`${BGG_API_URL}/${path}`);
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
@@ -61,10 +75,13 @@ export async function searchBgg(query: string): Promise<{ id: string, name: stri
 
     const filteredItems = items.filter(item => item['@_type'] === 'boardgame');
 
-    return filteredItems.map((item: any) => ({
-        id: item['@_id'].toString(),
-        name: Array.isArray(item.name) ? item.name[0]['@_value'] : item.name['@_value']
-    }));
+    return filteredItems.map((item: any) => {
+        const rawName = Array.isArray(item.name) ? item.name[0]['@_value'] : item.name['@_value'];
+        return {
+            id: item['@_id'].toString(),
+            name: decodeBggText(rawName)
+        };
+    });
 }
 
 
@@ -104,14 +121,14 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
                 return primary ? primary['@_value'] : names[0]?.['@_value'] || 'Unknown';
             };
         
-            const getLinkValue = (type: string) => item.link?.filter((l: any) => l['@_type'] === type).map((l: any) => l['@_value']) || [];
+            const getLinkValue = (type: string) => item.link?.filter((l: any) => l['@_type'] === type).map((l: any) => decodeBggText(l['@_value'])) || [];
             const getStat = (name: string) => {
                 if (!includeStats) return undefined;
                 const value = item.statistics?.ratings?.[name]?.['@_value'];
                 return typeof value === 'number' ? parseFloat(value.toPrecision(4)) : undefined;
             };
             
-            const description = item.description || 'No description available.';
+            const rawDescription = item.description || 'No description available.';
         
             const complexity = getStat('averageweight');
             let difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' = 'Intermediate';
@@ -124,9 +141,9 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
         
             return {
                 id: item['@_id'].toString(),
-                name: getPrimaryName(item.name),
+                name: decodeBggText(getPrimaryName(item.name)),
                 imageUrl: item.image || '',
-                description: description,
+                description: decodeBggText(rawDescription),
                 yearPublished: item.yearpublished?.['@_value'],
                 minPlayers: item.minplayers?.['@_value'],
                 maxPlayers: item.maxplayers?.['@_value'],
@@ -193,7 +210,7 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
 
     const plays: BggPlay[] = parsed.plays.play.map((play: any): BggPlay => {
         const playPlayers = play.players?.[0]?.player?.map((p: any) => ({
-            name: p['@_name'],
+            name: decodeBggText(p['@_name']),
             bggUsername: p['@_username'] || undefined,
             win: p['@_win'] === 1,
             score: p['@_score'] ? parseFloat(p['@_score']) : undefined,
@@ -205,7 +222,7 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
             bggPlayId: play['@_id'],
             bggGameId: play.item?.[0]?.['@_objectid'],
             date: play['@_date'],
-            notes: play.comments || undefined,
+            notes: decodeBggText(play.comments),
             duration: play['@_length'] ? parseInt(play['@_length'], 10) : undefined,
             players: playPlayers,
         };
@@ -248,7 +265,7 @@ export async function getBggUserDetails(username: string): Promise<{ name: strin
     const avatar = user.avatarlink?.['@_value'];
 
     return {
-        name: realName || username, // Fallback to username if real name is empty
+        name: decodeBggText(realName) || username, // Fallback to username if real name is empty
         avatarUrl: avatar !== 'N/A' ? avatar : undefined,
     };
 }
