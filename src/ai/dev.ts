@@ -11,4 +11,5 @@ import '@/ai/flows/select-game-from-images.ts';
 import '@/ai/flows/generate-legendary-card.ts';
 import '@/ai/flows/ask-rulebook.ts';
 import '@/ai/flows/text-to-speech.ts';
+import '@/ai/flows/generate-dashboard-insight.ts';
 
