@@ -153,9 +153,8 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
 }
 
 
-export async function getBggCollection(username: string): Promise<{bggId: string, userRating?: number}[]> {
-    const params: Record<string, string> = { username, stats: '1' };
-
+export async function getBggCollection(username: string): Promise<{ bggId: string, userRating?: number }[]> {
+    const params: Record<string, string> = { username, subtype: 'boardgame', stats: '1' };
     const xmlData = await bggFetch('collection', params);
     const parsed = parser.parse(xmlData);
 
@@ -168,36 +167,16 @@ export async function getBggCollection(username: string): Promise<{bggId: string
     }
 
     const items = Array.isArray(parsed.items.item) ? parsed.items.item : [parsed.items.item];
-    
+
     return items.map((item: any) => {
-        // The user's rating is an attribute on the <rating> tag.
-        const ratingValue = item.stats?.rating?.['@_value'];
-        
-        // BGG returns 'N/A' for unrated games. We need to parse the value
-        // and check if it's a valid number.
-        const parsedRating = parseFloat(ratingValue);
-        const userRating = !isNaN(parsedRating) ? parsedRating : undefined;
-        
+        const rating = item.stats?.rating?.['@_value'];
         return {
-            bggId: item['@_objectid'].toString(),
-            userRating: userRating,
-        }
+            bggId: item['@_objectid'],
+            userRating: rating && rating !== 'N/A' ? parseFloat(rating) : undefined,
+        };
     });
 }
 
-export interface BggPlay {
-    bggPlayId: string;
-    bggGameId: string;
-    date: string;
-    notes?: string;
-    duration?: number;
-    players: {
-        name: string;
-        bggUsername?: string;
-        win: boolean;
-        score?: number;
-    }[];
-}
 
 export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
     const params: Record<string, string> = { username, subtype: 'boardgame' };
@@ -220,9 +199,11 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
             score: p['@_score'] ? parseFloat(p['@_score']) : undefined,
         })) || [];
         
+        console.log('[BGG Import Debug] Raw play object:', JSON.stringify(play, null, 2));
+
         return {
             bggPlayId: play['@_id'],
-            bggGameId: play.item?.['@_objectid'],
+            bggGameId: play.item?.[0]?.['@_objectid'],
             date: play['@_date'],
             notes: play.comments || undefined,
             duration: play['@_length'] ? parseInt(play['@_length'], 10) : undefined,
