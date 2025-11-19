@@ -283,7 +283,11 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
     log(`[BGG Import] Starting play history import for user: ${username}`);
 
     try {
-        const { games, players, sessions: currentSessions } = await getInitialData();
+        const initialData = await getInitialData();
+        const games = initialData.games;
+        const players = initialData.players;
+        const currentSessions = initialData.sessions;
+
         const bggPlays = await getBggPlayHistory(username);
         const existingSessionIds = new Set(currentSessions.map(s => s.id));
         const newGamesAddedThisSession: Game[] = [];
@@ -302,7 +306,8 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                 continue;
             }
 
-            let game = games.find(g => g.bggId === play.bggGameId) || newGamesAddedThisSession.find(g => g.bggId === play.bggGameId);
+            // Robust check against existing games and games added in this session.
+            let game = games.find(g => String(g.bggId) === String(play.bggGameId)) || newGamesAddedThisSession.find(g => String(g.bggId) === String(play.bggGameId));
 
             if (!game) {
                  log(`[BGG Import] -> Game with BGG ID ${play.bggGameId} not found in local collection. Attempting to fetch from BGG.`);
