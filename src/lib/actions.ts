@@ -472,14 +472,14 @@ export async function importBggRatingsAction(username: string, playerId: string)
         for (const game of currentGames) {
             if (game.bggId) {
                 const bggItem = bggCollection.find(item => item.bggId === game.bggId);
+                // Check if a rating exists on BGG and if it's different from the local one, or if there's no local rating yet.
                 if (bggItem && bggItem.userRating !== undefined) {
-                    
-                    const newRatings = {
-                        ...(game.userRatings || {}),
-                        [playerId]: bggItem.userRating
-                    };
-
-                    if (game.userRatings?.[playerId] !== bggItem.userRating) {
+                    const localRating = game.userRatings?.[playerId];
+                    if (localRating === undefined || localRating !== bggItem.userRating) {
+                        const newRatings = {
+                            ...(game.userRatings || {}),
+                            [playerId]: bggItem.userRating,
+                        };
                         await updateGameInDB(game.id, { userRatings: newRatings });
                         updatedCount++;
                     }
@@ -664,6 +664,8 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     
 
 
+
+    
 
     
 
