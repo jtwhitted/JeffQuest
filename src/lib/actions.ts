@@ -105,21 +105,18 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     let finalGameData: Game;
 
     if (bggId && !validatedFields.data.description) {
-        // This case is for when a bggId is known, but full details aren't provided yet
-        // (e.g., from a quick add form).
         const bggDetails = await getBggDetails([bggId], true);
         if (bggDetails.length === 0) {
             throw new Error('Could not fetch details from BGG.');
         }
         const details = bggDetails[0];
         finalGameData = {
-            id: `g${Date.now()}`, // Always generate a new local ID
-            bggId, // Keep the BGG ID
+            id: `g${Date.now()}`,
+            bggId,
             name: details.name || name,
             ...details
         } as Game;
     } else {
-        // This case handles manual additions or additions where all data is already provided.
         finalGameData = {
             id: `g${Date.now()}`,
             ...validatedFields.data,
@@ -283,7 +280,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
 
     try {
         const initialData = await getInitialData();
-        const games = initialData.games;
+        let games = initialData.games;
         const players = initialData.players;
         const currentSessions = initialData.sessions;
 
@@ -317,6 +314,8 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                         bggId: play.bggGameId,
                     };
                     game = await addGame(newGameData);
+                    // After adding a new game, we need to refresh our local copy
+                    games.push(game);
                     log(`[BGG Import] -> Successfully fetched and added new game: ${game.name}`);
                 } else {
                     log(`[BGG Import] -> Skipping: Could not fetch details for BGG Game ID ${play.bggGameId}.`);
@@ -679,3 +678,4 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
 
     
+
