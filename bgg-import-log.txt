@@ -1,9 +1,2 @@
-[BGG Import] Starting play history import for user: jeff_whitted
-[BGG Import] Fetched 1 plays from BGG.
-[BGG Import] Found 6 existing sessions in the database.
 
-[BGG Import] Processing BGG Play ID: 106164445 for BGG Game ID: 171835
-[BGG Import] -> Found matching local game: Posthuman (ID: 171835)
-[BGG Import] -> SUCCESS: Imported session for Posthuman.
-
-[BGG Import] Finished. Total imported: 1
+    

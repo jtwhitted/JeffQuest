@@ -80,8 +80,8 @@ const gameFormSchema = z.object({
     // Manual fields
     description: z.string().optional(),
     yearPublished: z.number().optional(),
-    minPlayers: z.number().optional(),
-    maxPlayers: z.number().optional(),
+    minPlayers: z.number().min(1, 'Must have at least 1 player'),
+    maxPlayers: z.number().min(1, 'Must have at least 1 player'),
     minPlaytime: z.number().optional(),
     maxPlaytime: z.number().optional(),
     difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']).optional(),
@@ -267,7 +267,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         }
 
         let game = games.find(g => g.bggId === play.bggGameId || g.id === play.bggGameId);
-
+        
         if (!game) {
             const gameDetails = await getBggDetails([play.bggGameId], true);
             if (gameDetails.length > 0) {
@@ -333,27 +333,46 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
     return { importedCount };
 }
 
+// Log utility
+const logToFile = async (message: string) => {
+    const logPath = path.join(process.cwd(), 'bgg-import-log.txt');
+    const timestamp = new Date().toISOString();
+    await fs.appendFile(logPath, `[${timestamp}] ${message}\n`, 'utf-8');
+};
+
 export async function importBggCollectionAction(username: string): Promise<{ importedCount: number }> {
+    const logPath = path.join(process.cwd(), 'bgg-import-log.txt');
+    await fs.writeFile(logPath, '', 'utf-8'); // Clear the log file at the start
+    await logToFile(`[BGG Import] Starting collection import for user: ${username}`);
+
     if (!username) {
         throw new Error('BGG username is required.');
     }
 
     try {
         const bggCollection = await getBggCollection(username);
+        await logToFile(`[BGG Import] Fetched ${bggCollection.length} games from BGG collection.`);
+
         const { games: currentGames } = await getInitialData();
         const currentBggIds = new Set(currentGames.map(g => g.bggId).filter(Boolean));
+        await logToFile(`[BGG Import] Found ${currentGames.length} existing local games.`);
 
         const newGamesFromBgg = bggCollection.filter(item => !currentBggIds.has(item.bggId));
+        await logToFile(`[BGG Import] Found ${newGamesFromBgg.length} new games to import.`);
         
         if (newGamesFromBgg.length === 0) {
             return { importedCount: 0 };
         }
 
         for (const item of newGamesFromBgg) {
+            await logToFile(`[BGG Import] Processing new game BGG ID: ${item.bggId}`);
             const gameDetailsList = await getBggDetails([item.bggId], true);
             
             if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
                 const gameDetails = gameDetailsList[0];
+                await logToFile(`[BGG Import] -> Fetched details for: ${gameDetails.name}`);
+                await logToFile(`[BGG Import] -> Raw details object: ${JSON.stringify(gameDetails, null, 2)}`);
+
                 const newGameData = {
                     name: gameDetails.name!,
                     bggId: item.bggId,
@@ -372,21 +391,27 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                 };
                 
                 try {
+                    await logToFile(`[BGG Import] -> Attempting to add game with data: ${JSON.stringify(newGameData, null, 2)}`);
                     await addGame(newGameData);
+                    await logToFile(`[BGG Import] -> SUCCESS: Added ${newGameData.name}`);
                 } catch (addError: any) {
+                    await logToFile(`[BGG Import] -> ERROR adding game ${item.bggId}: ${addError.message}`);
+                    await logToFile(`[BGG Import] -> Failing data: ${JSON.stringify(newGameData, null, 2)}`);
                     throw addError;
                 }
 
             } else {
-                 console.log(`[BGG Import] No details found for BGG ID: ${item.bggId}, skipping.`);
+                 await logToFile(`[BGG Import] -> No details found for BGG ID: ${item.bggId}, skipping.`);
             }
         }
         
         revalidatePath('/games');
         revalidatePath('/sessions/new');
-
+        
+        await logToFile(`[BGG Import] Finished. Total imported: ${newGamesFromBgg.length}`);
         return { importedCount: newGamesFromBgg.length };
     } catch (error: any) {
+        await logToFile(`[BGG Import] CRITICAL FAILURE: ${error.message}`);
         console.error('BGG Collection import failed:', error);
         throw new Error(error.message || 'Failed to import collection from BGG.');
     }
@@ -616,3 +641,6 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     
 
 
+
+
+    
