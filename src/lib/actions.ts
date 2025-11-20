@@ -103,16 +103,15 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     let newGame: Game;
 
     if (validatedFields.data.bggId) {
-        // Fetch full details including stats for the single selected game.
         const bggDetails = await getBggDetails([validatedFields.data.bggId], true);
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
         newGame = {
-            id: `g${Date.now()}`,
-            name: validatedFields.data.name, // Use the name from the selected result
+            id: `g${Date.now()}`, // Generate a unique local ID
+            name: validatedFields.data.name,
             ...bggDetails[0],
-            bggId: validatedFields.data.bggId,
+            bggId: validatedFields.data.bggId, // Ensure bggId is correctly set
         };
     } else {
         // Manual entry
@@ -313,7 +312,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                 continue;
             }
 
-            // Robust check against existing games and games added in this session.
+            // More robust check for existing games
             let game = games.find(g => String(g.bggId) === String(play.bggGameId)) || newGamesAddedThisSession.find(g => String(g.bggId) === String(play.bggGameId));
 
             if (!game) {
@@ -325,11 +324,6 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                         id: `g-${Date.now()}`, // Ensure unique ID
                         ...newGameData,
                         name: newGameData.name || 'Unknown Name',
-                        category: newGameData.category || [],
-                        imageUrl: newGameData.imageUrl || '',
-                        minPlayers: newGameData.minPlayers || 1,
-                        maxPlayers: newGameData.maxPlayers || 1,
-                        difficulty: newGameData.difficulty || 'Intermediate',
                         bggId: play.bggGameId,
                     };
                     game = await addGameToDB(newGame);
