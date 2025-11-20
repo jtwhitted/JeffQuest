@@ -83,12 +83,12 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
   const handleImportRatings = async () => {
     if (!bggUsername) return;
     setIsImporting(true);
-    setImportingMessage('Importing Ratings...');
+    setImportingMessage('Importing...');
     try {
         const result = await importBggRatingsAction(bggUsername, playerId);
         toast({
-            title: 'Ratings Synced',
-            description: `${result.updatedCount} game ratings were updated.`,
+            title: 'Ratings & Comments Synced',
+            description: `${result.updatedCount} games were updated.`,
         });
         await refreshData();
         onOpenChange(false);
@@ -97,7 +97,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
         toast({
             variant: 'destructive',
             title: 'Import Failed',
-            description: error.message || 'Could not import your game ratings.',
+            description: error.message || 'Could not import your game ratings & comments.',
         });
     } finally {
         setIsImporting(false);
@@ -188,8 +188,8 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
                 onClick={handleImportRatings}
                 disabled={isImporting}
                 >
-                {isImporting && importingMessage === 'Importing Ratings...' ? <Loader2 className="mr-2 animate-spin"/> : <Star className="mr-2" />}
-                {isImporting && importingMessage === 'Importing Ratings...' ? 'Importing...' : 'Import Game Ratings'}
+                {isImporting && importingMessage === 'Importing...' ? <Loader2 className="mr-2 animate-spin"/> : <Star className="mr-2" />}
+                {isImporting && importingMessage === 'Importing...' ? 'Importing...' : 'Import Ratings & Comments'}
             </Button>
              <Button 
                 variant="outline" 

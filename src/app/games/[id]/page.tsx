@@ -5,7 +5,7 @@ import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles, UploadCloud, Youtube } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BarChart3, Star, Scale, Dices, Loader2, Trophy, LineChart, WandSparkles, UploadCloud, Youtube, MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,8 @@ import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carouse
 import { VideoPlayerDialog } from '@/components/video-player-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function GameDetailPage() {
   const { id } = useParams();
@@ -113,6 +115,7 @@ export default function GameDetailPage() {
   const formatRating = (rating?: number) => rating ? rating.toFixed(1) : 'N/A';
   const formatComplexity = (complexity?: number) => complexity ? complexity.toFixed(2) : 'N/A';
   const userRatings = game.userRatings ? Object.entries(game.userRatings) : [];
+  const bggComments = game.bggComments || [];
 
   return (
     <>
@@ -371,6 +374,30 @@ export default function GameDetailPage() {
                         <span className="flex items-center text-muted-foreground"><Scale className="mr-2"/> Complexity</span>
                         <span className="font-medium">{formatComplexity(game.complexity)} / 5</span>
                     </div>
+                    {bggComments.length > 0 && (
+                        <>
+                        <Separator />
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="item-1" className="border-b-0">
+                                <AccordionTrigger className="p-0 hover:no-underline">
+                                     <span className="flex items-center text-muted-foreground"><MessageSquare className="mr-2"/>BGG Comments</span>
+                                </AccordionTrigger>
+                                <AccordionContent className="pt-2">
+                                    <ScrollArea className="h-48 rounded-md border bg-muted/50 p-3">
+                                        <div className="space-y-4">
+                                            {bggComments.map((comment, index) => (
+                                                <div key={index}>
+                                                    <p className="font-semibold text-xs">{comment.username}</p>
+                                                    <p className="text-xs text-muted-foreground italic">&quot;{comment.comment}&quot;</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>

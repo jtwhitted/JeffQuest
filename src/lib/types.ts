@@ -30,10 +30,9 @@ export interface Game {
   rating?: number;
   ratingCount?: number;
   complexity?: number;
-  designers?: string[];
-  publishers?: string[];
   documents?: RulebookDocument[];
   userRatings?: { [playerId: string]: number };
+  bggComments?: { username: string; comment: string }[];
   bggId?: string;
   favoriteVideoId?: string;
 }

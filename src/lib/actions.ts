@@ -92,6 +92,7 @@ const gameFormSchema = z.object({
     rating: z.number().optional(),
     ratingCount: z.number().optional(),
     complexity: z.number().optional(),
+    bggComments: z.array(z.object({ username: z.string(), comment: z.string() })).optional(),
 });
 
 export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -277,7 +278,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                     const gameDetails = gameDetailsList[0];
                      const newGameData = {
                         name: gameDetails.name!,
-                        bggId: play.bggGameId.toString(),
+                        bggId: play.bggGameId,
                         description: gameDetails.description,
                         yearPublished: gameDetails.yearPublished,
                         minPlayers: gameDetails.minPlayers || 1,
@@ -292,7 +293,8 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                         imageUrl: gameDetails.imageUrl,
                         rating: gameDetails.rating,
                         ratingCount: gameDetails.ratingCount,
-                        complexity: gameDetails.complexity
+                        complexity: gameDetails.complexity,
+                        bggComments: gameDetails.bggComments || [],
                     };
                     game = await addGame(newGameData);
                     games.push(game);
@@ -385,7 +387,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
 
                 const newGameData = {
                     name: gameDetails.name!,
-                    bggId: item.bggId.toString(),
+                    bggId: item.bggId,
                     description: gameDetails.description,
                     yearPublished: gameDetails.yearPublished,
                     minPlayers: gameDetails.minPlayers || 1,
@@ -400,7 +402,8 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                     imageUrl: gameDetails.imageUrl,
                     rating: gameDetails.rating,
                     ratingCount: gameDetails.ratingCount,
-                    complexity: gameDetails.complexity
+                    complexity: gameDetails.complexity,
+                    bggComments: gameDetails.bggComments || [],
                 };
                 
                 await addGame(newGameData);
@@ -433,27 +436,56 @@ export async function importBggRatingsAction(username: string, playerId: string)
 
     try {
         const bggCollection = await getBggCollection(username);
-        const { games } = await getInitialData();
+        const { games, players } = await getInitialData();
+        const bggUser = players.find(p => p.id === playerId);
+        const bggUsername = bggUser?.bggUsername;
         
         let updatedCount = 0;
 
         for (const bggItem of bggCollection) {
-            if (bggItem.userRating === undefined) {
-                continue;
-            }
-
             const localGame = games.find(g => g.bggId === bggItem.bggId);
 
-            if (localGame) {
+            if (!localGame) {
+                continue;
+            }
+            
+            let gameWasUpdated = false;
+            const updates: Partial<Game> = {};
+
+            // Update user's personal rating
+            if (bggItem.userRating !== undefined) {
                 const localRating = localGame.userRatings?.[playerId];
                 if (localRating === undefined || localRating !== bggItem.userRating) {
-                    const newRatings = {
+                    updates.userRatings = {
                         ...(localGame.userRatings || {}),
                         [playerId]: bggItem.userRating,
                     };
-                    await updateGameInDB(localGame.id, { userRatings: newRatings });
-                    updatedCount++;
+                    gameWasUpdated = true;
                 }
+            }
+
+            // Update user's personal comment
+            if (bggItem.userComment && bggUsername) {
+                const existingComments = localGame.bggComments || [];
+                const userCommentIndex = existingComments.findIndex(c => c.username === bggUsername);
+                
+                if (userCommentIndex > -1) {
+                    // Update existing comment if it has changed
+                    if (existingComments[userCommentIndex].comment !== bggItem.userComment) {
+                        existingComments[userCommentIndex].comment = bggItem.userComment;
+                        updates.bggComments = existingComments;
+                        gameWasUpdated = true;
+                    }
+                } else {
+                    // Add new comment
+                    updates.bggComments = [...existingComments, { username: bggUsername, comment: bggItem.userComment }];
+                    gameWasUpdated = true;
+                }
+            }
+
+            if (gameWasUpdated) {
+                await updateGameInDB(localGame.id, updates);
+                updatedCount++;
             }
         }
         
@@ -465,8 +497,8 @@ export async function importBggRatingsAction(username: string, playerId: string)
         return { updatedCount };
 
     } catch (error: any) {
-        console.error('BGG ratings import failed:', error);
-        throw new Error(error.message || 'Failed to import ratings from BGG.');
+        console.error('BGG ratings/comments import failed:', error);
+        throw new Error(error.message || 'Failed to import ratings/comments from BGG.');
     }
 }
 

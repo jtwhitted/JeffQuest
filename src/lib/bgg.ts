@@ -56,7 +56,7 @@ const parser = new XMLParser({
     decodeHTMLchar: true,
     isArray: (name, jpath) => {
         // These keys should always be arrays, even if there's only one.
-        return ['item', 'link', 'result', 'name', 'poll', 'play', 'players', 'player', 'buddy'].includes(name);
+        return ['item', 'link', 'result', 'name', 'poll', 'play', 'players', 'player', 'buddy', 'comment'].includes(name);
     }
 });
 
@@ -102,7 +102,7 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
     const idString = chunk.join(',');
 
     try {
-        const fetchParams: Record<string, string> = { id: idString };
+        const fetchParams: Record<string, string> = { id: idString, comments: '1' };
         if (includeStats) {
             fetchParams.stats = '1';
         }
@@ -141,6 +141,11 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
                 else if (complexity < 4) difficulty = 'Advanced';
                 else difficulty = 'Expert';
             }
+
+             const comments = item.comments?.comment?.map((c: any) => ({
+                username: c['@_username'],
+                comment: decodeBggText(c['@_value']),
+            })).filter((c: any) => c.comment) || [];
         
             return {
                 id: item['@_id'].toString(),
@@ -160,6 +165,7 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
                 rating: getStat('average'),
                 ratingCount: getStat('usersrated'),
                 complexity: complexity,
+                bggComments: comments,
             };
         });
         allDetails.push(...chunkDetails);
@@ -173,8 +179,8 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
 }
 
 
-export async function getBggCollection(username: string): Promise<{ bggId: string, userRating?: number }[]> {
-    const params: Record<string, string> = { username, subtype: 'boardgame', stats: '1' };
+export async function getBggCollection(username: string): Promise<{ bggId: string, userRating?: number, userComment?: string }[]> {
+    const params: Record<string, string> = { username, subtype: 'boardgame', stats: '1', commented: '1' };
     const xmlData = await bggFetch('collection', params);
     const parsed = parser.parse(xmlData);
 
@@ -190,9 +196,11 @@ export async function getBggCollection(username: string): Promise<{ bggId: strin
 
     return items.map((item: any) => {
         const rating = item.stats?.rating?.['@_value'];
+        const comment = item.comment || undefined;
         return {
             bggId: item['@_objectid'].toString(),
             userRating: rating && rating !== 'N/A' ? parseFloat(rating) : undefined,
+            userComment: decodeBggText(comment),
         };
     });
 }
