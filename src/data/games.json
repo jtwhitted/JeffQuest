@@ -353,8 +353,96 @@
     "imageUrl": "https://cf.geekdo-images.com/KDrRxEKQMmHyM0QQ2ONX4Q__original/img/XD-aeaMShk-TN_n0n6O9kbczxNY=/0x0/filters:format(jpeg)/pic8638247.jpg"
   },
   {
-    "id": "g1763664911028",
+    "id": "g1763665148376",
     "name": "We Didn't Playtest This at All with Chaos Pack Expansion",
-    "bggId": "157723"
+    "bggId": "157723",
+    "description": "This version of We Didn't Playtest This at All includes the Chaos Pack Expansion and comes in a sturdy 2-deck-playing-card-type box with a lift top.\n\nThe Chaos Pack Expansion contains a side deck of 15 cards you can use alongside We Didn't Playtest This at All. Every game, you randomly draw one Chaos card, and it becomes a rule that must be followed for the entire game.\n\nFrom the publisher's website:\n\n\"The most aptly named game ever!\n\nIn this exceptionally silly and awesome game, your objective is to win! Simple enough. Sadly, all of your opponents have the same simple goal, and they're trying to make you lose. Between Rock Paper Scissors battles, being eaten by a random Dragon, or saved by a Kitten Ambush, there are many hazards to avoid.\"\n\nPlay Summary\n\nEveryone starts with 2 cards. On your turn, draw one card from the deck, and then play one from your hand following the instructions on the card. There are many hazards to avoid, including: bombs, dragons, arrows, laser pointers, black holes, Rock Paper Scissors battles, number battles, zombies, etc. Luckily items abound that can save you, too: spaceships, science, shields, dinosaurs and a kitten ambush!\n\nThere are Star Cards: they are clearly superior to normal cards. Every player has an equal chance of drawing a Star Card from the deck.\n\nIntegrates with:\n\n    We Didn't Playtest This Either",
+    "yearPublished": 2012,
+    "minPlayers": 2,
+    "maxPlayers": 10,
+    "minPlaytime": 10,
+    "maxPlaytime": 10,
+    "difficulty": "Beginner",
+    "category": [
+      "Card Game",
+      "Humor",
+      "Party Game"
+    ],
+    "mechanics": [
+      "Hand Management",
+      "Player Elimination",
+      "Rock-Paper-Scissors",
+      "Simultaneous Action Selection"
+    ],
+    "designers": [
+      "Chris Cieslik"
+    ],
+    "publishers": [
+      "Asmadi Games",
+      "Board Game Leisure",
+      "Bureau de Juegos",
+      "Buró",
+      "Czacha Games",
+      "IELLO",
+      "Nosolorol Ediciones",
+      "Reflexshop"
+    ],
+    "imageUrl": "https://cf.geekdo-images.com/ln2wZ5mlnbqgWtZL5DKsTA__original/img/KyarogRGx8Lp7o6cDZaD5qq3fPA=/0x0/filters:format(png)/pic1955488.png"
+  },
+  {
+    "id": "284083",
+    "bggId": "284083",
+    "name": "The Crew: The Quest for Planet Nine",
+    "imageUrl": "https://cf.geekdo-images.com/98LnQShydr11OBKS46xY-Q__original/img/Q-ZkgnuBu9OTBr7J3qnqPjqamAE=/0x0/filters:format(jpeg)/pic5687013.jpg",
+    "description": "In the co-operative trick-taking game The Crew: The Quest for Planet Nine, the players set out as astronauts on an uncertain space adventure. What are the rumors regarding the unknown planet about? The eventful journey through space extends over 50 exciting missions. But this game can only be defeated by meeting common individual tasks of each player. In order to meet the varied challenges communication is essential in the team. But this is more difficult than expected in space.\n\nWith each mission the game becomes more difficult. After each mission the game can be paused and continued later. During each mission it is not the number of tricks but the right tricks at the right time that count.\n\nThe team completes a mission only if every single player is successful in fulfilling their tasks.\n\nThe game comes with 50 missions, with three additional missions published in spielbox 2/2020.",
+    "yearPublished": 2019,
+    "minPlayers": 2,
+    "maxPlayers": 5,
+    "difficulty": "Beginner",
+    "category": [
+      "Card Game",
+      "Science Fiction",
+      "Space Exploration"
+    ],
+    "mechanics": [
+      "Communication Limits",
+      "Cooperative Game",
+      "Hand Management",
+      "Scenario / Mission / Campaign Game",
+      "Trick-taking"
+    ],
+    "designers": [
+      "Thomas Sing"
+    ],
+    "publishers": [
+      "KOSMOS",
+      "999 Games",
+      "Black Sea Games",
+      "Brain Games",
+      "CoolPlay",
+      "Devir",
+      "Galakta",
+      "Geekach LLC",
+      "Giochi Uniti",
+      "GP Games",
+      "HaKubia",
+      "Ideal Board Games",
+      "IELLO",
+      "Igroljub",
+      "Kaissa Chess & Games",
+      "Korea Boardgames",
+      "Lautapelit.fi",
+      "MINDOK",
+      "NeoTroy Games",
+      "Piatnik",
+      "Swan Panasia Co., Ltd.",
+      "Thames & Kosmos",
+      "Zvezda"
+    ],
+    "minPlaytime": 20,
+    "maxPlaytime": 20,
+    "rating": 7.766,
+    "ratingCount": 46930,
+    "complexity": 1.962
   }
 ]
