@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
-import { searchBggAction } from '@/lib/actions';
+import { getBggDetailsAction, searchBggAction } from '@/lib/actions';
 import { useGames } from '@/context/game-context';
 import type { Game } from '@/lib/types';
 import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
@@ -102,11 +102,9 @@ export function GameScanDialog({
         return;
       }
       
-      // Filter out candidates without an image URL for visual comparison
       const candidatesWithImages = searchResults.filter(r => r.imageUrl);
 
       if (candidatesWithImages.length === 0) {
-        // We have text matches but no images, let user choose from text
         onGameAdded(searchResults, title);
         return;
       }
@@ -123,20 +121,42 @@ export function GameScanDialog({
 
       const bestMatch = searchResults.find(r => r.id === bestMatchBggId);
 
-      if (!bestMatch) {
-         // AI failed to find a confident match, let the user decide from the list
+      if (!bestMatch || !bestMatch.id) {
          onGameAdded(searchResults, title);
          return;
       }
 
-      // We have a confident visual match, add it automatically.
-      await addGame({ name: bestMatch.name!, bggId: bestMatch.id! });
+      // We have a confident visual match, fetch full details and add it.
+      setLoadingMessage(`Adding "${bestMatch.name}"...`);
+      const fullDetailsList = await getBggDetailsAction(bestMatch.id);
+      if (fullDetailsList.length === 0 || !fullDetailsList[0].name) {
+          throw new Error(`Could not fetch details for ${bestMatch.name} from BGG.`);
+      }
+      const gameDetails = fullDetailsList[0];
+
+      await addGame({
+          name: gameDetails.name!,
+          bggId: gameDetails.id,
+          description: gameDetails.description,
+          yearPublished: gameDetails.yearPublished,
+          minPlayers: gameDetails.minPlayers,
+          maxPlayers: gameDetails.maxPlayers,
+          minPlaytime: gameDetails.minPlaytime,
+          maxPlaytime: gameDetails.maxPlaytime,
+          difficulty: gameDetails.difficulty,
+          category: gameDetails.category,
+          mechanics: gameDetails.mechanics,
+          designers: gameDetails.designers,
+          publishers: gameDetails.publishers,
+          imageUrl: gameDetails.imageUrl,
+      });
+
       toast({
           title: 'Game Added!',
           description: `${bestMatch.name} has been added to your collection.`,
       });
-      onOpenChange(false); // Close scan dialog
-      onGameAdded([], 'SUCCESS'); // Signal to close parent Add Game dialog
+      onOpenChange(false);
+      onGameAdded([], 'SUCCESS');
 
     } catch (error: any) {
       console.error('Error during scan and search process:', error);
