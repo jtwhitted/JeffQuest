@@ -271,32 +271,38 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         let game = games.find(g => g.bggId === play.bggGameId || g.id === play.bggGameId);
         
         if (!game) {
-            const gameDetailsList = await getBggDetails([play.bggGameId], true);
-            if (gameDetailsList.length > 0) {
-                const gameDetails = gameDetailsList[0];
-                const newGameData = { 
-                    name: gameDetails.name!, 
-                    bggId: play.bggGameId,
-                    description: gameDetails.description,
-                    yearPublished: gameDetails.yearPublished,
-                    minPlayers: gameDetails.minPlayers || 1,
-                    maxPlayers: gameDetails.maxPlayers || 1,
-                    minPlaytime: gameDetails.minPlaytime,
-                    maxPlaytime: gameDetails.maxPlaytime,
-                    difficulty: gameDetails.difficulty,
-                    category: Array.isArray(gameDetails.category) ? gameDetails.category : (gameDetails.category ? [gameDetails.category] : []),
-                    mechanics: Array.isArray(gameDetails.mechanics) ? gameDetails.mechanics : (gameDetails.mechanics ? [gameDetails.mechanics] : []),
-                    designers: Array.isArray(gameDetails.designers) ? gameDetails.designers : (gameDetails.designers ? [gameDetails.designers] : []),
-                    publishers: Array.isArray(gameDetails.publishers) ? gameDetails.publishers : (gameDetails.publishers ? [gameDetails.publishers] : []),
-                    imageUrl: gameDetails.imageUrl,
-                    rating: gameDetails.rating,
-                    ratingCount: gameDetails.ratingCount,
-                    complexity: gameDetails.complexity
-                };
-                game = await addGame(newGameData);
-                games.push(game);
-            } else {
-                continue;
+            try {
+                const gameDetailsList = await getBggDetails([play.bggGameId], true);
+                if (gameDetailsList.length > 0) {
+                    const gameDetails = gameDetailsList[0];
+                    const newGameData = { 
+                        name: gameDetails.name!, 
+                        bggId: play.bggGameId,
+                        description: gameDetails.description,
+                        yearPublished: gameDetails.yearPublished,
+                        minPlayers: gameDetails.minPlayers || 1,
+                        maxPlayers: gameDetails.maxPlayers || 1,
+                        minPlaytime: gameDetails.minPlaytime,
+                        maxPlaytime: gameDetails.maxPlaytime,
+                        difficulty: gameDetails.difficulty,
+                        category: Array.isArray(gameDetails.category) ? gameDetails.category : (gameDetails.category ? [gameDetails.category] : []),
+                        mechanics: Array.isArray(gameDetails.mechanics) ? gameDetails.mechanics : (gameDetails.mechanics ? [gameDetails.mechanics] : []),
+                        designers: Array.isArray(gameDetails.designers) ? gameDetails.designers : (gameDetails.designers ? [gameDetails.designers] : []),
+                        publishers: Array.isArray(gameDetails.publishers) ? gameDetails.publishers : (gameDetails.publishers ? [gameDetails.publishers] : []),
+                        imageUrl: gameDetails.imageUrl,
+                        rating: gameDetails.rating,
+                        ratingCount: gameDetails.ratingCount,
+                        complexity: gameDetails.complexity
+                    };
+                    game = await addGame(newGameData);
+                    games.push(game); // Add to the local list to avoid re-fetching in the same run
+                } else {
+                    console.warn(`Could not find details for BGG ID ${play.bggGameId}. Skipping play record.`);
+                    continue; // Skip this play if we can't find the game details
+                }
+            } catch (error) {
+                console.error(`Error adding game with BGG ID ${play.bggGameId}:`, error);
+                throw new Error('Invalid game data.');
             }
         }
 
@@ -378,7 +384,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
 
                 const newGameData = {
                     name: gameDetails.name!,
-                    bggId: item.bggId.toString(),
+                    bggId: item.bggId.toString(), // Ensure bggId is a string
                     description: gameDetails.description,
                     yearPublished: gameDetails.yearPublished,
                     minPlayers: gameDetails.minPlayers || 1,
@@ -401,7 +407,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
             }
         } catch (error) {
             console.error(`Error importing game with BGG ID ${item.bggId}:`, error);
-            // Optionally decide to continue or re-throw
+            throw new Error('Invalid game data.');
         }
     }
     
