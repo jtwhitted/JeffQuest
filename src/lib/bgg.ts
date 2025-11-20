@@ -198,6 +198,20 @@ export async function getBggCollection(username: string): Promise<{ bggId: strin
 }
 
 
+export interface BggPlay {
+    bggPlayId: string;
+    bggGameId: string;
+    date: string;
+    notes?: string;
+    duration?: number;
+    players: {
+        name: string;
+        bggUsername?: string;
+        win: boolean;
+        score?: number;
+    }[];
+}
+
 export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
     const params: Record<string, string> = { username, subtype: 'boardgame' };
     const xmlData = await bggFetch('plays', params);
@@ -219,8 +233,6 @@ export async function getBggPlayHistory(username: string): Promise<BggPlay[]> {
             score: p['@_score'] ? parseFloat(p['@_score']) : undefined,
         })) || [];
         
-        console.log('[BGG Import Debug] Raw play object:', JSON.stringify(play, null, 2));
-
         return {
             bggPlayId: play['@_id'],
             bggGameId: play.item?.[0]?.['@_objectid'],
