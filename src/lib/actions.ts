@@ -398,10 +398,27 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
         const newGameIds = newGamesFromBgg.map(item => item.bggId);
         
         for (const bggId of newGameIds) {
-            const gameDetails = await getBggDetails([bggId], true);
-            if (gameDetails.length > 0 && gameDetails[0].name) {
-                // Pass the full details object to addGame
-                await addGame({ ...gameDetails[0], bggId: bggId });
+            const gameDetailsList = await getBggDetails([bggId], true);
+            if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
+                const gameDetails = gameDetailsList[0];
+                // Construct the object carefully to match the schema
+                const newGameData = {
+                    name: gameDetails.name!,
+                    bggId: bggId,
+                    description: gameDetails.description,
+                    yearPublished: gameDetails.yearPublished,
+                    minPlayers: gameDetails.minPlayers,
+                    maxPlayers: gameDetails.maxPlayers,
+                    minPlaytime: gameDetails.minPlaytime,
+                    maxPlaytime: gameDetails.maxPlaytime,
+                    difficulty: gameDetails.difficulty,
+                    category: gameDetails.category,
+                    mechanics: gameDetails.mechanics,
+                    designers: gameDetails.designers,
+                    publishers: gameDetails.publishers,
+                    imageUrl: gameDetails.imageUrl,
+                };
+                await addGame(newGameData);
             }
         }
         
@@ -636,3 +653,6 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
     
 
+
+
+    
