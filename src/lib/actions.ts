@@ -100,7 +100,6 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         throw new Error('Invalid game data.');
     }
 
-    // Always generate a new local ID
     const newGame: Game = {
         id: `g${Date.now()}`,
         ...validatedFields.data,
@@ -615,3 +614,4 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
 
     
+
