@@ -223,7 +223,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
 }
 
 export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {id: string}>[]> {
-  if (!ids) return [];
+  if (!ids || ids.length === 0) return [];
   try {
     const details = await getBggDetails(ids.split(','), true);
     return details;
@@ -277,7 +277,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                     const gameDetails = gameDetailsList[0];
                      const newGameData = {
                         name: gameDetails.name!,
-                        bggId: play.bggGameId.toString(),
+                        bggId: play.bggGameId,
                         description: gameDetails.description,
                         yearPublished: gameDetails.yearPublished,
                         minPlayers: gameDetails.minPlayers || 1,
@@ -408,6 +408,9 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
             }
         } catch (error) {
              console.error(`Error importing game with BGG ID ${item.bggId}:`, error);
+             if (error instanceof Error) {
+                 throw new Error(`Failed on game ${item.bggId}: ${error.message}`);
+             }
              throw error;
         }
     }
@@ -432,33 +435,32 @@ export async function importBggRatingsAction(username: string, playerId: string)
 
     try {
         const bggCollection = await getBggCollection(username);
-        if (bggCollection.length === 0) {
-            return { updatedCount: 0 };
-        }
-
         const { games } = await getInitialData();
         let updatedCount = 0;
 
-        for (const game of games) {
-            const bggId = game.bggId || game.id; // Check both fields
-            if (bggId) {
-                const bggItem = bggCollection.find(item => item.bggId === bggId);
-                if (bggItem && bggItem.userRating !== undefined) {
-                    const localRating = game.userRatings?.[playerId];
-                    if (localRating === undefined || localRating !== bggItem.userRating) {
-                        const newRatings = {
-                            ...(game.userRatings || {}),
-                            [playerId]: bggItem.userRating,
-                        };
-                        await updateGameInDB(game.id, { userRatings: newRatings });
-                        updatedCount++;
-                    }
+        for (const bggItem of bggCollection) {
+            // Find local game that matches the bggId
+            const localGame = games.find(g => g.bggId === bggItem.bggId);
+
+            if (localGame && bggItem.userRating !== undefined) {
+                const localRating = localGame.userRatings?.[playerId];
+
+                // Update if the rating doesn't exist or is different
+                if (localRating === undefined || localRating !== bggItem.userRating) {
+                    const newRatings = {
+                        ...(localGame.userRatings || {}),
+                        [playerId]: bggItem.userRating,
+                    };
+                    await updateGameInDB(localGame.id, { userRatings: newRatings });
+                    updatedCount++;
                 }
             }
         }
         
-        revalidatePath('/games');
-        revalidatePath('/players');
+        if (updatedCount > 0) {
+            revalidatePath('/games');
+            revalidatePath('/players');
+        }
 
         return { updatedCount };
 
