@@ -21,18 +21,6 @@ import pdf from 'pdf-parse';
 import fs from 'fs/promises';
 import path from 'path';
 
-const logFilePath = path.join(process.cwd(), 'bgg-import-log.txt');
-
-async function logToFile(message: string) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] [BGG Import] ${message}\n`;
-    try {
-        await fs.appendFile(logFilePath, logMessage);
-    } catch (error) {
-        console.error('Failed to write to log file:', error);
-    }
-}
-
 // Server Actions for data mutation
 
 const sessionFormSchema = z.object({
@@ -110,8 +98,6 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     const validatedFields = gameFormSchema.safeParse(gameData);
 
     if (!validatedFields.success) {
-        await logToFile(`-> ERROR adding game: Invalid game data.`);
-        await logToFile(`-> Failing data: ${JSON.stringify(gameData, null, 2)}`);
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
         throw new Error('Invalid game data.');
     }
@@ -263,9 +249,6 @@ export interface BggPlay {
 }
 
 export async function importBggPlayHistory(username: string): Promise<{ importedCount: number }> {
-    await fs.writeFile(logFilePath, ''); // Clear log file
-    await logToFile(`Starting play history import for user: ${username}`);
-    
     if (!username) {
         throw new Error('BGG username is required.');
     }
@@ -275,29 +258,23 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
     const currentSessions = initialData.sessions;
 
     const bggPlays = await getBggPlayHistory(username);
-    await logToFile(`Fetched ${bggPlays.length} plays from BGG.`);
     const existingSessionIds = new Set(currentSessions.map(s => s.id));
-    await logToFile(`Found ${currentSessions.length} existing sessions in the database.`);
 
     let importedCount = 0;
 
     for (const play of bggPlays) {
-        await logToFile(`Processing BGG Play ID: ${play.bggPlayId} for BGG Game ID: ${play.bggGameId}`);
         const bggSessionId = `s-bgg-${play.bggPlayId}`;
         if (existingSessionIds.has(bggSessionId)) {
-            await logToFile(`-> Session already exists. Skipping.`);
             continue;
         }
 
         let game = games.find(g => g.bggId === play.bggGameId || g.id === play.bggGameId);
         
         if (!game) {
-            await logToFile(`-> Local game not found. Fetching from BGG.`);
             try {
                 const gameDetailsList = await getBggDetails([play.bggGameId], true);
                 if (gameDetailsList.length > 0) {
                     const gameDetails = gameDetailsList[0];
-                    await logToFile(`-> Fetched details for: ${gameDetails.name}`);
                      const newGameData = {
                         name: gameDetails.name!,
                         bggId: play.bggGameId.toString(),
@@ -320,16 +297,12 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                     game = await addGame(newGameData);
                     games.push(game);
                 } else {
-                    await logToFile(`-> Could not find details for BGG ID ${play.bggGameId}. Skipping play record.`);
                     continue;
                 }
             } catch (error) {
-                await logToFile(`-> CRITICAL FAILURE: ${error instanceof Error ? error.message : 'Unknown error during game add'}`);
                 console.error(`Error adding game with BGG ID ${play.bggGameId}:`, error);
                 throw error;
             }
-        } else {
-             await logToFile(`-> Found matching local game: ${game.name} (ID: ${game.id})`);
         }
 
         const playerIds: string[] = [];
@@ -354,7 +327,6 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         }
         
         if (playerIds.length === 0) {
-            await logToFile(`-> No matching local players found for this play. Skipping.`);
             continue;
         }
 
@@ -381,10 +353,8 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
 
         await addSessionToDB(newSession);
         importedCount++;
-        await logToFile(`-> SUCCESS: Imported session for ${game.name}.`);
     }
     
-    await logToFile(`Finished. Total imported: ${importedCount}`);
     revalidatePath('/sessions');
     revalidatePath('/');
 

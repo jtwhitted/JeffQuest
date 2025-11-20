@@ -96,5 +96,23 @@
     ],
     "notes": "Jeffrey played a game of the King's Dilemma on November 10th. The game was 47 minutes long and he won with a score of 77.",
     "duration": 47
+  },
+  {
+    "id": "s-bgg-106164445",
+    "gameId": "g1763675060864",
+    "date": "2025-11-18",
+    "playerIds": [
+      "p1762879138303"
+    ],
+    "winnerId": "p1762879138303",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 47
+      }
+    ],
+    "notes": "Jeffrey won",
+    "duration": 150,
+    "isCooperative": false
   }
 ]
