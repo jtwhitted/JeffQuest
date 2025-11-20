@@ -57,20 +57,18 @@ export async function getInitialData() {
 export async function addGameToDB(game: Game): Promise<Game> {
     const games = await readData<Game>(GAMES_PATH);
     
-    // Check for existing game by bggId if it exists
-    const gameIndex = game.bggId 
-        ? games.findIndex(g => g.bggId === game.bggId || g.id === game.bggId)
-        : -1;
-        
+    const gameIndex = games.findIndex(g => g.bggId === game.bggId || g.id === game.bggId);
+
     if (gameIndex !== -1) {
-        // Game exists, update it with the new data to fix any structural issues
+        // Game exists, update it with the new data.
+        // This ensures the local ID is correct and data is fresh.
         const updatedGame = { ...games[gameIndex], ...game };
         games[gameIndex] = updatedGame;
         await writeData(GAMES_PATH, games);
         return updatedGame;
     }
 
-    // If game does not exist, add it
+    // If game does not exist, add it.
     games.push(game);
     await writeData(GAMES_PATH, games);
     return game;

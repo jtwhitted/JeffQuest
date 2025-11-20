@@ -100,30 +100,13 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         throw new Error('Invalid game data.');
     }
 
-    const { name, bggId } = validatedFields.data;
-
-    let finalGameData: Game;
-
-    if (bggId && !validatedFields.data.description) {
-        const bggDetails = await getBggDetails([bggId], true);
-        if (bggDetails.length === 0) {
-            throw new Error('Could not fetch details from BGG.');
-        }
-        const details = bggDetails[0];
-        finalGameData = {
-            id: `g${Date.now()}`,
-            bggId,
-            name: details.name || name,
-            ...details
-        } as Game;
-    } else {
-        finalGameData = {
-            id: `g${Date.now()}`,
-            ...validatedFields.data,
-        } as Game;
-    }
+    // Always generate a new local ID
+    const newGame: Game = {
+        id: `g${Date.now()}`,
+        ...validatedFields.data,
+    } as Game;
     
-    const addedOrUpdatedGame = await addGameToDB(finalGameData);
+    const addedOrUpdatedGame = await addGameToDB(newGame);
     revalidatePath('/games');
     revalidatePath('/sessions/new');
     return addedOrUpdatedGame;
@@ -268,133 +251,87 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
     if (!username) {
         throw new Error('BGG username is required.');
     }
+    const initialData = await getInitialData();
+    let games = initialData.games;
+    const players = initialData.players;
+    const currentSessions = initialData.sessions;
 
-    const logLines: string[] = [];
-    const log = (message: string) => {
-        console.log(message);
-        logLines.push(message);
-    };
+    const bggPlays = await getBggPlayHistory(username);
+    const existingSessionIds = new Set(currentSessions.map(s => s.id));
 
-    log(`[BGG Import] Starting play history import for user: ${username}`);
-    const logFilePath = path.join(process.cwd(), 'bgg-import-log.txt');
+    let importedCount = 0;
 
-    try {
-        const initialData = await getInitialData();
-        let games = initialData.games;
-        const players = initialData.players;
-        const currentSessions = initialData.sessions;
+    for (const play of bggPlays) {
+        const bggSessionId = `s-bgg-${play.bggPlayId}`;
+        if (existingSessionIds.has(bggSessionId)) {
+            continue;
+        }
 
-        const bggPlays = await getBggPlayHistory(username);
-        const existingSessionIds = new Set(currentSessions.map(s => s.id));
+        let game = games.find(g => g.bggId === play.bggGameId || g.id === play.bggGameId);
 
-        log(`[BGG Import] Fetched ${bggPlays.length} plays from BGG.`);
-        log(`[BGG Import] Found ${currentSessions.length} existing sessions in the database.`);
-
-        let importedCount = 0;
-
-        for (const play of bggPlays) {
-            log(`\n[BGG Import] Processing BGG Play ID: ${play.bggPlayId} for BGG Game ID: ${play.bggGameId}`);
-
-            const bggSessionId = `s-bgg-${play.bggPlayId}`;
-            if (existingSessionIds.has(bggSessionId)) {
-                log(`[BGG Import] -> Skipping: Session ID ${bggSessionId} already exists.`);
+        if (!game) {
+            const gameDetails = await getBggDetails([play.bggGameId], true);
+            if (gameDetails.length > 0) {
+                const newGameData = { name: gameDetails[0].name!, bggId: play.bggGameId };
+                game = await addGame(newGameData);
+                games.push(game); // Update local cache
+            } else {
                 continue;
             }
+        }
 
-            // More robust check for existing games
-            let game = games.find(g => g.bggId === play.bggGameId || g.id === play.bggGameId);
+        const playerIds: string[] = [];
+        const scores: { playerId: string; score?: number }[] = [];
+        let winnerId: string | undefined;
 
-
-            if (!game) {
-                 log(`[BGG Import] -> Game with BGG ID ${play.bggGameId} not found in local collection. Attempting to fetch from BGG.`);
-                const gameDetails = await getBggDetails([play.bggGameId], true);
-                if (gameDetails.length > 0) {
-                    const newGameData = {
-                        name: gameDetails[0].name!,
-                        bggId: play.bggGameId,
-                    };
-                    game = await addGame(newGameData);
-                    // After adding a new game, we need to refresh our local copy
-                    games.push(game);
-                    log(`[BGG Import] -> Successfully fetched and added new game: ${game.name}`);
-                } else {
-                    log(`[BGG Import] -> Skipping: Could not fetch details for BGG Game ID ${play.bggGameId}.`);
-                    continue;
-                }
-            } else {
-                 log(`[BGG Import] -> Found matching local game: ${game.name} (ID: ${game.id})`);
-            }
-
-            const playerIds: string[] = [];
-            const scores: { playerId: string; score?: number }[] = [];
-            let winnerId: string | undefined;
-
-            for (const playPlayer of play.players) {
-                let player = players.find(p => p.bggUsername && p.bggUsername.toLowerCase() === playPlayer.bggUsername?.toLowerCase());
-                if (!player) {
-                    player = players.find(p => p.name.toLowerCase() === playPlayer.name.toLowerCase());
-                }
-                
-                if (player) {
-                    playerIds.push(player.id);
-                    if (playPlayer.score) {
-                        scores.push({ playerId: player.id, score: playPlayer.score });
-                    }
-                    if (playPlayer.win) {
-                        winnerId = player.id;
-                    }
-                }
+        for (const playPlayer of play.players) {
+            let player = players.find(p => p.bggUsername && p.bggUsername.toLowerCase() === playPlayer.bggUsername?.toLowerCase());
+            if (!player) {
+                player = players.find(p => p.name.toLowerCase() === playPlayer.name.toLowerCase());
             }
             
-            if (playerIds.length === 0) {
-                log(`[BGG Import] -> Skipping: Could not match any players for this play.`);
-                continue;
-            }
-
-            const isCooperative = game.mechanics?.includes('Cooperative Game') || false;
-            let cooperativeResult: 'win' | 'loss' | undefined = undefined;
-
-            if (isCooperative) {
-                if (play.players.some(p => p.win)) {
-                    cooperativeResult = 'win';
-                } else {
-                    cooperativeResult = 'loss';
+            if (player) {
+                playerIds.push(player.id);
+                if (playPlayer.score) {
+                    scores.push({ playerId: player.id, score: playPlayer.score });
                 }
-                winnerId = undefined;
+                if (playPlayer.win) {
+                    winnerId = player.id;
+                }
             }
-
-            const newSession: Session = {
-                id: bggSessionId,
-                gameId: game.id,
-                date: play.date,
-                playerIds,
-                winnerId,
-                cooperativeResult,
-                scores,
-                notes: play.notes,
-                duration: play.duration,
-                isCooperative,
-            };
-
-            await addSessionToDB(newSession);
-            importedCount++;
-            log(`[BGG Import] -> SUCCESS: Imported session for ${game.name}.`);
         }
         
-        log(`\n[BGG Import] Finished. Total imported: ${importedCount}`);
-        await fs.writeFile(logFilePath, logLines.join('\n'), 'utf-8');
-        log(`[BGG Import] Log file written to: ${logFilePath}`);
-        
-        revalidatePath('/sessions');
-        revalidatePath('/');
+        if (playerIds.length === 0) continue;
 
-        return { importedCount };
-    } catch (error: any) {
-        log(`[BGG Import] CRITICAL ERROR: ${error.message}`);
-        await fs.writeFile(logFilePath, logLines.join('\n'), 'utf-8');
-        log(`[BGG Import] Log file written to: ${logFilePath}`);
-        throw new Error(error.message || 'Failed to import play history from BGG.');
+        const isCooperative = game.mechanics?.includes('Cooperative Game') || false;
+        let cooperativeResult: 'win' | 'loss' | undefined = undefined;
+
+        if (isCooperative) {
+            cooperativeResult = play.players.some(p => p.win) ? 'win' : 'loss';
+            winnerId = undefined;
+        }
+
+        const newSession: Session = {
+            id: bggSessionId,
+            gameId: game.id,
+            date: play.date,
+            playerIds,
+            winnerId,
+            cooperativeResult,
+            scores,
+            notes: play.notes,
+            duration: play.duration,
+            isCooperative,
+        };
+
+        await addSessionToDB(newSession);
+        importedCount++;
     }
+    
+    revalidatePath('/sessions');
+    revalidatePath('/');
+
+    return { importedCount };
 }
 
 export async function importBggCollectionAction(username: string): Promise<{ importedCount: number }> {
@@ -678,4 +615,3 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
 
     
-
