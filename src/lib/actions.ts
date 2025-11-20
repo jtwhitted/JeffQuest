@@ -202,7 +202,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
     return [];
   }
   try {
-    const searchResults = await searchBgg(query);
+    const searchResults = await searchBgg(query, false);
     if (!searchResults || searchResults.length === 0) {
       return [];
     }
@@ -359,8 +359,8 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                     bggId: item.bggId,
                     description: gameDetails.description,
                     yearPublished: gameDetails.yearPublished,
-                    minPlayers: gameDetails.minPlayers,
-                    maxPlayers: gameDetails.maxPlayers,
+                    minPlayers: gameDetails.minPlayers || 1,
+                    maxPlayers: gameDetails.maxPlayers || 1,
                     minPlaytime: gameDetails.minPlaytime,
                     maxPlaytime: gameDetails.maxPlaytime,
                     difficulty: gameDetails.difficulty,
@@ -614,4 +614,5 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
 
     
+
 

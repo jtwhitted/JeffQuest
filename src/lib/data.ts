@@ -57,7 +57,7 @@ export async function getInitialData() {
 export async function addGameToDB(game: Game): Promise<Game> {
     const games = await readData<Game>(GAMES_PATH);
     
-    const gameIndex = games.findIndex(g => g.bggId === game.bggId || g.id === game.id);
+    const gameIndex = game.bggId ? games.findIndex(g => g.bggId === game.bggId) : -1;
 
     if (gameIndex !== -1) {
         // Game exists, update it with the new data.

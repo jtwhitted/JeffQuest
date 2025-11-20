@@ -61,8 +61,11 @@ const parser = new XMLParser({
 });
 
 
-export async function searchBgg(query: string): Promise<{ id: string, name: string }[]> {
+export async function searchBgg(query: string, exact = false): Promise<{ id: string, name: string }[]> {
     const params: Record<string, string> = { query, type: 'boardgame' };
+    if (exact) {
+        params.exact = '1';
+    }
 
     const xmlData = await bggFetch('search', params);
     const parsed = parser.parse(xmlData);
