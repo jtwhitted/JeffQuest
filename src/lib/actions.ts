@@ -99,44 +99,11 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         console.error('Validation failed:', validatedFields.error.flatten().fieldErrors);
         throw new Error('Invalid game data.');
     }
-
-    let newGameData: Partial<Game>;
-
-    if (validatedFields.data.bggId) {
-        const bggDetails = await getBggDetails([validatedFields.data.bggId], true);
-        if (bggDetails.length === 0) {
-            throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
-        }
-        const gameDetail = bggDetails[0];
-        newGameData = {
-            ...gameDetail, // Spread all details fetched from BGG
-            name: gameDetail.name || validatedFields.data.name,
-            bggId: validatedFields.data.bggId, // Ensure the bggId is correctly set from the input
-        };
-    } else {
-        // Manual entry
-        const manualData = validatedFields.data;
-        newGameData = {
-            name: manualData.name,
-            category: manualData.category || [],
-            mechanics: manualData.mechanics || [],
-            minPlayers: manualData.minPlayers || 1,
-            maxPlayers: manualData.maxPlayers || 1,
-            difficulty: manualData.difficulty || 'Intermediate',
-            yearPublished: manualData.yearPublished,
-            description: manualData.description || 'No description available.',
-            minPlaytime: manualData.minPlaytime,
-            maxPlaytime: manualData.maxPlaytime,
-            imageUrl: manualData.imageUrl || '',
-            designers: manualData.designers || [],
-            publishers: manualData.publishers || [],
-        };
-    }
     
     // Always generate a new local ID
     const newGame: Game = {
         id: `g${Date.now()}`,
-        ...newGameData,
+        ...validatedFields.data,
     } as Game;
 
     const addedOrUpdatedGame = await addGameToDB(newGame);
@@ -433,7 +400,8 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
         for (const bggId of newGameIds) {
             const gameDetails = await getBggDetails([bggId], true);
             if (gameDetails.length > 0 && gameDetails[0].name) {
-                await addGame({ name: gameDetails[0].name, bggId: bggId });
+                // Pass the full details object to addGame
+                await addGame({ ...gameDetails[0], bggId: bggId });
             }
         }
         
@@ -446,6 +414,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
         throw new Error(error.message || 'Failed to import collection from BGG.');
     }
 }
+
 
 
 export async function importBggRatingsAction(username: string, playerId: string): Promise<{ updatedCount: number }> {
@@ -666,3 +635,4 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     
 
     
+
