@@ -107,11 +107,12 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         if (bggDetails.length === 0) {
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
+        const gameDetail = bggDetails[0];
         newGame = {
             id: `g${Date.now()}`, // Generate a unique local ID
-            name: validatedFields.data.name,
-            ...bggDetails[0],
-            bggId: validatedFields.data.bggId, // Ensure bggId is correctly set
+            name: gameDetail.name || validatedFields.data.name,
+            ...gameDetail, // Spread all details fetched from BGG
+            bggId: validatedFields.data.bggId, // Ensure the bggId is correctly set from the input
         };
     } else {
         // Manual entry
@@ -314,6 +315,12 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
 
             // More robust check for existing games
             let game = games.find(g => String(g.bggId) === String(play.bggGameId)) || newGamesAddedThisSession.find(g => String(g.bggId) === String(play.bggGameId));
+            
+            // Also check if the bggId was mistakenly used as the local ID
+            if (!game) {
+                game = games.find(g => g.id === play.bggGameId);
+            }
+
 
             if (!game) {
                  log(`[BGG Import] -> Game with BGG ID ${play.bggGameId} not found in local collection. Attempting to fetch from BGG.`);
@@ -464,9 +471,9 @@ export async function importBggRatingsAction(username: string, playerId: string)
         let updatedCount = 0;
 
         for (const game of currentGames) {
-            if (game.bggId) {
-                const bggItem = bggCollection.find(item => item.bggId === game.bggId);
-                // Check if a rating exists on BGG and if it's different from the local one, or if there's no local rating yet.
+            const bggId = game.bggId || game.id; // Check both fields
+            if (bggId) {
+                const bggItem = bggCollection.find(item => item.bggId === bggId);
                 if (bggItem && bggItem.userRating !== undefined) {
                     const localRating = game.userRatings?.[playerId];
                     if (localRating === undefined || localRating !== bggItem.userRating) {
