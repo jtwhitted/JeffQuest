@@ -12,7 +12,7 @@ const apiKey = process.env.BGG_API_KEY;
 
 // Helper function to decode common HTML entities that fast-xml-parser might miss.
 function decodeBggText(text: string | undefined): string {
-    if (!text) return '';
+    if (typeof text !== 'string') return '';
     return text
         .replace(/&#039;/g, "'")
         .replace(/&amp;/g, '&')
