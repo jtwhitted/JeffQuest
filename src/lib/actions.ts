@@ -333,49 +333,30 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
     return { importedCount };
 }
 
-// Log utility
-const logToFile = async (message: string) => {
-    const logPath = path.join(process.cwd(), 'bgg-import-log.txt');
-    const timestamp = new Date().toISOString();
-    await fs.appendFile(logPath, `[${timestamp}] ${message}\n`, 'utf-8');
-};
-
 export async function importBggCollectionAction(username: string): Promise<{ importedCount: number }> {
-    const logPath = path.join(process.cwd(), 'bgg-import-log.txt');
-    await fs.writeFile(logPath, '', 'utf-8'); // Clear the log file at the start
-    await logToFile(`[BGG Import] Starting collection import for user: ${username}`);
-
     if (!username) {
         throw new Error('BGG username is required.');
     }
 
     try {
         const bggCollection = await getBggCollection(username);
-        await logToFile(`[BGG Import] Fetched ${bggCollection.length} games from BGG collection.`);
-
         const { games: currentGames } = await getInitialData();
         const currentBggIds = new Set(currentGames.map(g => g.bggId).filter(Boolean));
-        await logToFile(`[BGG Import] Found ${currentGames.length} existing local games.`);
-
         const newGamesFromBgg = bggCollection.filter(item => !currentBggIds.has(item.bggId));
-        await logToFile(`[BGG Import] Found ${newGamesFromBgg.length} new games to import.`);
         
         if (newGamesFromBgg.length === 0) {
             return { importedCount: 0 };
         }
 
         for (const item of newGamesFromBgg) {
-            await logToFile(`[BGG Import] Processing new game BGG ID: ${item.bggId}`);
             const gameDetailsList = await getBggDetails([item.bggId], true);
             
             if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
                 const gameDetails = gameDetailsList[0];
-                await logToFile(`[BGG Import] -> Fetched details for: ${gameDetails.name}`);
-                await logToFile(`[BGG Import] -> Raw details object: ${JSON.stringify(gameDetails, null, 2)}`);
 
                 const newGameData = {
                     name: gameDetails.name!,
-                    bggId: item.bggId,
+                    bggId: item.bggId.toString(), // Ensure bggId is a string
                     description: gameDetails.description,
                     yearPublished: gameDetails.yearPublished,
                     minPlayers: gameDetails.minPlayers || 1,
@@ -391,28 +372,20 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                 };
                 
                 try {
-                    await logToFile(`[BGG Import] -> Attempting to add game with data: ${JSON.stringify(newGameData, null, 2)}`);
                     await addGame(newGameData);
-                    await logToFile(`[BGG Import] -> SUCCESS: Added ${newGameData.name}`);
                 } catch (addError: any) {
-                    await logToFile(`[BGG Import] -> ERROR adding game ${item.bggId}: ${addError.message}`);
-                    await logToFile(`[BGG Import] -> Failing data: ${JSON.stringify(newGameData, null, 2)}`);
+                    console.error(`[BGG Import] -> ERROR adding game ${item.bggId}: ${addError.message}`);
                     throw addError;
                 }
-
-            } else {
-                 await logToFile(`[BGG Import] -> No details found for BGG ID: ${item.bggId}, skipping.`);
             }
         }
         
         revalidatePath('/games');
         revalidatePath('/sessions/new');
         
-        await logToFile(`[BGG Import] Finished. Total imported: ${newGamesFromBgg.length}`);
         return { importedCount: newGamesFromBgg.length };
     } catch (error: any) {
-        await logToFile(`[BGG Import] CRITICAL FAILURE: ${error.message}`);
-        console.error('BGG Collection import failed:', error);
+        console.error(`[BGG Import] CRITICAL FAILURE: ${error.message}`);
         throw new Error(error.message || 'Failed to import collection from BGG.');
     }
 }
@@ -627,20 +600,3 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     
     return { importedCount, friendsFound, friendsUsernames };
 }
-
-    
-
-
-
-    
-
-    
-
-
-
-    
-
-
-
-
-    

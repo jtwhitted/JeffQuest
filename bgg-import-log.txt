@@ -1,2 +1,113 @@
-
-    
+[2025-11-20T20:48:19.382Z] [BGG Import] Starting collection import for user: jeff_whitted
+[2025-11-20T20:48:19.994Z] [BGG Import] Fetched 1 games from BGG collection.
+[2025-11-20T20:48:20.012Z] [BGG Import] Found 10 existing local games.
+[2025-11-20T20:48:20.025Z] [BGG Import] Found 1 new games to import.
+[2025-11-20T20:48:20.027Z] [BGG Import] Processing new game BGG ID: 171835
+[2025-11-20T20:48:20.107Z] [BGG Import] -> Fetched details for: Posthuman
+[2025-11-20T20:48:20.109Z] [BGG Import] -> Raw details object: {
+  "id": "171835",
+  "name": "Posthuman",
+  "imageUrl": "https://cf.geekdo-images.com/Qsj9cmhP2PeQ-f3Fs9gNRA__original/img/OjedRiVpw5MpGDY9EuLjxTTY1go=/0x0/filters:format(jpeg)/pic2718965.jpg",
+  "description": "Our aspiration to omnipotence has led to the enhancement of our capacities so far beyond our species' limits that we created our genetic successors. Inevitably, the evolved reached their first realization as a unified entity: the extinction of humanity as we know it.\n\nPosthuman pits you as one of the last human survivors in a world where nature is reclaiming the planet and our evolved offspring are working to eradicate us. Will you resist mutation and survive, or give in to the inevitable and join the evolved?\n\nIn the game, players are humans on a solitary journey to a promised safe house. This journey takes them through ten zones, with the zones being tile-based and randomly generated. As they travel, they encounter each other, other humans, and posthuman mutants. Encounters with mutants may inflict scars, and the more scars players have, the less human they are and the more posthuman they become. Will they strive to cling to their humanity and make a run for the safe house, winning the game? Or will they give in to the ever more tempting mutation, join the posthuman, and deny the win from the rest of the humans?",
+  "yearPublished": 2015,
+  "minPlayers": 1,
+  "maxPlayers": 4,
+  "difficulty": "Advanced",
+  "category": [
+    "Adventure",
+    "Dice",
+    "Exploration",
+    "Fighting",
+    "Science Fiction"
+  ],
+  "mechanics": [
+    "Dice Rolling",
+    "Modular Board",
+    "Role Playing",
+    "Team-Based Game",
+    "Variable Player Powers"
+  ],
+  "designers": [
+    "Gordon Calleja"
+  ],
+  "publishers": [
+    "Mighty Box (Mighty Box Games)",
+    "Mighty Boards",
+    "Mr. B Games"
+  ],
+  "minPlaytime": 30,
+  "maxPlaytime": 120,
+  "rating": 6.46,
+  "ratingCount": 1328,
+  "complexity": 3.193
+}
+[2025-11-20T20:48:20.113Z] [BGG Import] -> Attempting to add game with data: {
+  "name": "Posthuman",
+  "bggId": 171835,
+  "description": "Our aspiration to omnipotence has led to the enhancement of our capacities so far beyond our species' limits that we created our genetic successors. Inevitably, the evolved reached their first realization as a unified entity: the extinction of humanity as we know it.\n\nPosthuman pits you as one of the last human survivors in a world where nature is reclaiming the planet and our evolved offspring are working to eradicate us. Will you resist mutation and survive, or give in to the inevitable and join the evolved?\n\nIn the game, players are humans on a solitary journey to a promised safe house. This journey takes them through ten zones, with the zones being tile-based and randomly generated. As they travel, they encounter each other, other humans, and posthuman mutants. Encounters with mutants may inflict scars, and the more scars players have, the less human they are and the more posthuman they become. Will they strive to cling to their humanity and make a run for the safe house, winning the game? Or will they give in to the ever more tempting mutation, join the posthuman, and deny the win from the rest of the humans?",
+  "yearPublished": 2015,
+  "minPlayers": 1,
+  "maxPlayers": 4,
+  "minPlaytime": 30,
+  "maxPlaytime": 120,
+  "difficulty": "Advanced",
+  "category": [
+    "Adventure",
+    "Dice",
+    "Exploration",
+    "Fighting",
+    "Science Fiction"
+  ],
+  "mechanics": [
+    "Dice Rolling",
+    "Modular Board",
+    "Role Playing",
+    "Team-Based Game",
+    "Variable Player Powers"
+  ],
+  "designers": [
+    "Gordon Calleja"
+  ],
+  "publishers": [
+    "Mighty Box (Mighty Box Games)",
+    "Mighty Boards",
+    "Mr. B Games"
+  ],
+  "imageUrl": "https://cf.geekdo-images.com/Qsj9cmhP2PeQ-f3Fs9gNRA__original/img/OjedRiVpw5MpGDY9EuLjxTTY1go=/0x0/filters:format(jpeg)/pic2718965.jpg"
+}
+[2025-11-20T20:48:20.131Z] [BGG Import] -> ERROR adding game 171835: Invalid game data.
+[2025-11-20T20:48:20.136Z] [BGG Import] -> Failing data: {
+  "name": "Posthuman",
+  "bggId": 171835,
+  "description": "Our aspiration to omnipotence has led to the enhancement of our capacities so far beyond our species' limits that we created our genetic successors. Inevitably, the evolved reached their first realization as a unified entity: the extinction of humanity as we know it.\n\nPosthuman pits you as one of the last human survivors in a world where nature is reclaiming the planet and our evolved offspring are working to eradicate us. Will you resist mutation and survive, or give in to the inevitable and join the evolved?\n\nIn the game, players are humans on a solitary journey to a promised safe house. This journey takes them through ten zones, with the zones being tile-based and randomly generated. As they travel, they encounter each other, other humans, and posthuman mutants. Encounters with mutants may inflict scars, and the more scars players have, the less human they are and the more posthuman they become. Will they strive to cling to their humanity and make a run for the safe house, winning the game? Or will they give in to the ever more tempting mutation, join the posthuman, and deny the win from the rest of the humans?",
+  "yearPublished": 2015,
+  "minPlayers": 1,
+  "maxPlayers": 4,
+  "minPlaytime": 30,
+  "maxPlaytime": 120,
+  "difficulty": "Advanced",
+  "category": [
+    "Adventure",
+    "Dice",
+    "Exploration",
+    "Fighting",
+    "Science Fiction"
+  ],
+  "mechanics": [
+    "Dice Rolling",
+    "Modular Board",
+    "Role Playing",
+    "Team-Based Game",
+    "Variable Player Powers"
+  ],
+  "designers": [
+    "Gordon Calleja"
+  ],
+  "publishers": [
+    "Mighty Box (Mighty Box Games)",
+    "Mighty Boards",
+    "Mr. B Games"
+  ],
+  "imageUrl": "https://cf.geekdo-images.com/Qsj9cmhP2PeQ-f3Fs9gNRA__original/img/OjedRiVpw5MpGDY9EuLjxTTY1go=/0x0/filters:format(jpeg)/pic2718965.jpg"
+}
+[2025-11-20T20:48:20.139Z] [BGG Import] CRITICAL FAILURE: Invalid game data.
