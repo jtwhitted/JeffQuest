@@ -423,18 +423,6 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
     return { importedCount: successfulImports };
 }
 
-
-const logFilePath = path.join(process.cwd(), 'bgg-import-log.txt');
-
-async function log(message: string) {
-    const timestamp = new Date().toISOString();
-    try {
-        await fs.appendFile(logFilePath, `[${timestamp}] ${message}\n`);
-    } catch (err) {
-        console.error('Failed to write to log file:', err);
-    }
-}
-
 export async function importBggRatingsAction(username: string, playerId: string): Promise<{ updatedCount: number }> {
     if (!username) {
         throw new Error('BGG username is required.');
@@ -444,50 +432,30 @@ export async function importBggRatingsAction(username: string, playerId: string)
     }
 
     try {
-        // Clear log file at start
-        await fs.writeFile(logFilePath, '');
-        await log(`[BGG Ratings Import] Starting import for user: ${username}, player ID: ${playerId}`);
-
         const bggCollection = await getBggCollection(username);
-        await log(`[BGG Ratings Import] Fetched ${bggCollection.length} games from BGG collection.`);
-        await log(`[BGG Ratings Import] Raw BGG collection data: ${JSON.stringify(bggCollection, null, 2)}`);
-
         const { games } = await getInitialData();
-        await log(`[BGG Ratings Import] Found ${games.length} local games.`);
         
         let updatedCount = 0;
 
         for (const bggItem of bggCollection) {
             if (bggItem.userRating === undefined) {
-                await log(`[BGG Ratings Import] -> Skipping BGG ID ${bggItem.bggId} (no rating).`);
                 continue;
             }
 
-            await log(`[BGG Ratings Import] -> Processing BGG ID ${bggItem.bggId} with rating ${bggItem.userRating}.`);
             const localGame = games.find(g => g.bggId === bggItem.bggId);
 
             if (localGame) {
-                await log(`[BGG Ratings Import] -> Found matching local game: ${localGame.name} (ID: ${localGame.id}).`);
                 const localRating = localGame.userRatings?.[playerId];
-                await log(`[BGG Ratings Import] -> Local rating is ${localRating}, BGG rating is ${bggItem.userRating}.`);
-
                 if (localRating === undefined || localRating !== bggItem.userRating) {
-                    await log(`[BGG Ratings Import] -> Rating is different. UPDATING.`);
                     const newRatings = {
                         ...(localGame.userRatings || {}),
                         [playerId]: bggItem.userRating,
                     };
                     await updateGameInDB(localGame.id, { userRatings: newRatings });
                     updatedCount++;
-                } else {
-                     await log(`[BGG Ratings Import] -> Rating is the same. SKIPPING.`);
                 }
-            } else {
-                 await log(`[BGG Ratings Import] -> No matching local game found. SKIPPING.`);
             }
         }
-        
-        await log(`[BGG Ratings Import] Finished. Total updated: ${updatedCount}`);
         
         if (updatedCount > 0) {
             revalidatePath('/games');
@@ -497,7 +465,6 @@ export async function importBggRatingsAction(username: string, playerId: string)
         return { updatedCount };
 
     } catch (error: any) {
-        await log(`[BGG Ratings Import] CRITICAL FAILURE: ${error.message}`);
         console.error('BGG ratings import failed:', error);
         throw new Error(error.message || 'Failed to import ratings from BGG.');
     }

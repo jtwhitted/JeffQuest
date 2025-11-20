@@ -191,7 +191,7 @@ export async function getBggCollection(username: string): Promise<{ bggId: strin
     return items.map((item: any) => {
         const rating = item.stats?.rating?.['@_value'];
         return {
-            bggId: item['@_objectid'],
+            bggId: item['@_objectid'].toString(),
             userRating: rating && rating !== 'N/A' ? parseFloat(rating) : undefined,
         };
     });
