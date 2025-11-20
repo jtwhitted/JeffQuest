@@ -100,7 +100,7 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         throw new Error('Invalid game data.');
     }
 
-    let newGame: Game;
+    let newGameData: Partial<Game>;
 
     if (validatedFields.data.bggId) {
         const bggDetails = await getBggDetails([validatedFields.data.bggId], true);
@@ -108,17 +108,15 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
             throw new Error(`Could not find details for BGG ID ${validatedFields.data.bggId}`);
         }
         const gameDetail = bggDetails[0];
-        newGame = {
-            id: `g${Date.now()}`, // Generate a unique local ID
-            name: gameDetail.name || validatedFields.data.name,
+        newGameData = {
             ...gameDetail, // Spread all details fetched from BGG
+            name: gameDetail.name || validatedFields.data.name,
             bggId: validatedFields.data.bggId, // Ensure the bggId is correctly set from the input
         };
     } else {
         // Manual entry
         const manualData = validatedFields.data;
-        newGame = {
-            id: `g${Date.now()}`,
+        newGameData = {
             name: manualData.name,
             category: manualData.category || [],
             mechanics: manualData.mechanics || [],
@@ -135,10 +133,16 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
         };
     }
     
-    const addedGame = await addGameToDB(newGame);
+    // Always generate a new local ID
+    const newGame: Game = {
+        id: `g${Date.now()}`,
+        ...newGameData,
+    } as Game;
+
+    const addedOrUpdatedGame = await addGameToDB(newGame);
     revalidatePath('/games');
     revalidatePath('/sessions/new');
-    return addedGame;
+    return addedOrUpdatedGame;
 }
 
 
@@ -297,7 +301,6 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
 
         const bggPlays = await getBggPlayHistory(username);
         const existingSessionIds = new Set(currentSessions.map(s => s.id));
-        const newGamesAddedThisSession: Game[] = [];
 
         log(`[BGG Import] Fetched ${bggPlays.length} plays from BGG.`);
         log(`[BGG Import] Found ${currentSessions.length} existing sessions in the database.`);
@@ -314,7 +317,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
             }
 
             // More robust check for existing games
-            let game = games.find(g => String(g.bggId) === String(play.bggGameId)) || newGamesAddedThisSession.find(g => String(g.bggId) === String(play.bggGameId));
+            let game = games.find(g => String(g.bggId) === String(play.bggGameId));
             
             // Also check if the bggId was mistakenly used as the local ID
             if (!game) {
@@ -326,15 +329,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
                  log(`[BGG Import] -> Game with BGG ID ${play.bggGameId} not found in local collection. Attempting to fetch from BGG.`);
                 const gameDetails = await getBggDetails([play.bggGameId], true);
                 if (gameDetails.length > 0) {
-                    const newGameData = gameDetails[0];
-                    const newGame: Game = {
-                        id: `g-${Date.now()}`, // Ensure unique ID
-                        ...newGameData,
-                        name: newGameData.name || 'Unknown Name',
-                        bggId: play.bggGameId,
-                    };
-                    game = await addGameToDB(newGame);
-                    newGamesAddedThisSession.push(game);
+                    game = await addGame({ name: gameDetails[0].name!, bggId: play.bggGameId });
                     log(`[BGG Import] -> Successfully fetched and added new game: ${game.name}`);
                 } else {
                     log(`[BGG Import] -> Skipping: Could not fetch details for BGG Game ID ${play.bggGameId}.`);
@@ -434,18 +429,18 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
         }
 
         const newGameIds = newGamesFromBgg.map(item => item.bggId);
-        const newGameDetails = await getBggDetails(newGameIds, true);
-
-        for (const gameDetail of newGameDetails) {
-            if (gameDetail.name && gameDetail.id) {
-                await addGame({ name: gameDetail.name, bggId: gameDetail.id });
+        
+        for (const bggId of newGameIds) {
+            const gameDetails = await getBggDetails([bggId], true);
+            if (gameDetails.length > 0 && gameDetails[0].name) {
+                await addGame({ name: gameDetails[0].name, bggId: bggId });
             }
         }
         
         revalidatePath('/games');
         revalidatePath('/sessions/new');
 
-        return { importedCount: newGameDetails.length };
+        return { importedCount: newGameIds.length };
     } catch (error: any) {
         console.error('BGG Collection import failed:', error);
         throw new Error(error.message || 'Failed to import collection from BGG.');
