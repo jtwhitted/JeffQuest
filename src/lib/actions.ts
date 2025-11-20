@@ -77,7 +77,6 @@ export async function addSession(values: z.infer<typeof sessionFormSchema>) {
 const gameFormSchema = z.object({
     name: z.string().min(1, 'Game name is required.'),
     bggId: z.string().optional(),
-    // Manual fields
     description: z.string().optional(),
     yearPublished: z.number().optional(),
     minPlayers: z.number().min(1, 'Must have at least 1 player'),
@@ -90,6 +89,9 @@ const gameFormSchema = z.object({
     designers: z.array(z.string()).optional(),
     publishers: z.array(z.string()).optional(),
     imageUrl: z.string().optional(),
+    rating: z.number().optional(),
+    ratingCount: z.number().optional(),
+    complexity: z.number().optional(),
 });
 
 export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -269,11 +271,30 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         let game = games.find(g => g.bggId === play.bggGameId || g.id === play.bggGameId);
         
         if (!game) {
-            const gameDetails = await getBggDetails([play.bggGameId], true);
-            if (gameDetails.length > 0) {
-                const newGameData = { name: gameDetails[0].name!, bggId: play.bggGameId };
+            const gameDetailsList = await getBggDetails([play.bggGameId], true);
+            if (gameDetailsList.length > 0) {
+                const gameDetails = gameDetailsList[0];
+                const newGameData = { 
+                    name: gameDetails.name!, 
+                    bggId: play.bggGameId,
+                    description: gameDetails.description,
+                    yearPublished: gameDetails.yearPublished,
+                    minPlayers: gameDetails.minPlayers || 1,
+                    maxPlayers: gameDetails.maxPlayers || 1,
+                    minPlaytime: gameDetails.minPlaytime,
+                    maxPlaytime: gameDetails.maxPlaytime,
+                    difficulty: gameDetails.difficulty,
+                    category: Array.isArray(gameDetails.category) ? gameDetails.category : (gameDetails.category ? [gameDetails.category] : []),
+                    mechanics: Array.isArray(gameDetails.mechanics) ? gameDetails.mechanics : (gameDetails.mechanics ? [gameDetails.mechanics] : []),
+                    designers: Array.isArray(gameDetails.designers) ? gameDetails.designers : (gameDetails.designers ? [gameDetails.designers] : []),
+                    publishers: Array.isArray(gameDetails.publishers) ? gameDetails.publishers : (gameDetails.publishers ? [gameDetails.publishers] : []),
+                    imageUrl: gameDetails.imageUrl,
+                    rating: gameDetails.rating,
+                    ratingCount: gameDetails.ratingCount,
+                    complexity: gameDetails.complexity
+                };
                 game = await addGame(newGameData);
-                games.push(game); // Update local cache
+                games.push(game);
             } else {
                 continue;
             }
@@ -337,18 +358,19 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
     if (!username) {
         throw new Error('BGG username is required.');
     }
+    const bggCollection = await getBggCollection(username);
+    const { games: currentGames } = await getInitialData();
+    const currentBggIds = new Set(currentGames.map(g => g.bggId).filter(Boolean));
 
-    try {
-        const bggCollection = await getBggCollection(username);
-        const { games: currentGames } = await getInitialData();
-        const currentBggIds = new Set(currentGames.map(g => g.bggId).filter(Boolean));
-        const newGamesFromBgg = bggCollection.filter(item => !currentBggIds.has(item.bggId));
-        
-        if (newGamesFromBgg.length === 0) {
-            return { importedCount: 0 };
-        }
+    const newGamesFromBgg = bggCollection.filter(item => !currentBggIds.has(item.bggId));
+    
+    if (newGamesFromBgg.length === 0) {
+        return { importedCount: 0 };
+    }
 
-        for (const item of newGamesFromBgg) {
+    let successfulImports = 0;
+    for (const item of newGamesFromBgg) {
+        try {
             const gameDetailsList = await getBggDetails([item.bggId], true);
             
             if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
@@ -356,7 +378,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
 
                 const newGameData = {
                     name: gameDetails.name!,
-                    bggId: item.bggId.toString(), // Ensure bggId is a string
+                    bggId: item.bggId.toString(),
                     description: gameDetails.description,
                     yearPublished: gameDetails.yearPublished,
                     minPlayers: gameDetails.minPlayers || 1,
@@ -369,25 +391,26 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                     designers: Array.isArray(gameDetails.designers) ? gameDetails.designers : (gameDetails.designers ? [gameDetails.designers] : []),
                     publishers: Array.isArray(gameDetails.publishers) ? gameDetails.publishers : (gameDetails.publishers ? [gameDetails.publishers] : []),
                     imageUrl: gameDetails.imageUrl,
+                    rating: gameDetails.rating,
+                    ratingCount: gameDetails.ratingCount,
+                    complexity: gameDetails.complexity,
                 };
                 
-                try {
-                    await addGame(newGameData);
-                } catch (addError: any) {
-                    console.error(`[BGG Import] -> ERROR adding game ${item.bggId}: ${addError.message}`);
-                    throw addError;
-                }
+                await addGame(newGameData);
+                successfulImports++;
             }
+        } catch (error) {
+            console.error(`Error importing game with BGG ID ${item.bggId}:`, error);
+            // Optionally decide to continue or re-throw
         }
-        
+    }
+    
+    if (successfulImports > 0) {
         revalidatePath('/games');
         revalidatePath('/sessions/new');
-        
-        return { importedCount: newGamesFromBgg.length };
-    } catch (error: any) {
-        console.error(`[BGG Import] CRITICAL FAILURE: ${error.message}`);
-        throw new Error(error.message || 'Failed to import collection from BGG.');
     }
+    
+    return { importedCount: successfulImports };
 }
 
 
@@ -406,10 +429,10 @@ export async function importBggRatingsAction(username: string, playerId: string)
             return { updatedCount: 0 };
         }
 
-        const { games: currentGames } = await getInitialData();
+        const { games } = await getInitialData();
         let updatedCount = 0;
 
-        for (const game of currentGames) {
+        for (const game of games) {
             const bggId = game.bggId || game.id; // Check both fields
             if (bggId) {
                 const bggItem = bggCollection.find(item => item.bggId === bggId);
