@@ -411,15 +411,13 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
             return { importedCount: 0 };
         }
 
-        const newGameIds = newGamesFromBgg.map(item => item.bggId);
-        
-        for (const bggId of newGameIds) {
-            const gameDetailsList = await getBggDetails([bggId], true);
+        for (const item of newGamesFromBgg) {
+            const gameDetailsList = await getBggDetails([item.bggId], true);
             if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
                 const gameDetails = gameDetailsList[0];
                 const newGameData = {
                     name: gameDetails.name!,
-                    bggId: bggId,
+                    bggId: item.bggId,
                     description: gameDetails.description,
                     yearPublished: gameDetails.yearPublished,
                     minPlayers: gameDetails.minPlayers,
@@ -440,7 +438,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
         revalidatePath('/games');
         revalidatePath('/sessions/new');
 
-        return { importedCount: newGameIds.length };
+        return { importedCount: newGamesFromBgg.length };
     } catch (error: any) {
         console.error('BGG Collection import failed:', error);
         throw new Error(error.message || 'Failed to import collection from BGG.');
@@ -661,8 +659,6 @@ export async function importBggFriendsAction(username: string): Promise<{ import
     
 
 
-
-    
 
     
 
