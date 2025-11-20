@@ -279,6 +279,7 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
     };
 
     log(`[BGG Import] Starting play history import for user: ${username}`);
+    const logFilePath = path.join(process.cwd(), 'bgg-import-log.txt');
 
     try {
         const initialData = await getInitialData();
@@ -382,7 +383,6 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         }
         
         log(`\n[BGG Import] Finished. Total imported: ${importedCount}`);
-        const logFilePath = path.join(process.cwd(), 'bgg-import-log.txt');
         await fs.writeFile(logFilePath, logLines.join('\n'), 'utf-8');
         log(`[BGG Import] Log file written to: ${logFilePath}`);
         
@@ -392,7 +392,6 @@ export async function importBggPlayHistory(username: string): Promise<{ imported
         return { importedCount };
     } catch (error: any) {
         log(`[BGG Import] CRITICAL ERROR: ${error.message}`);
-        const logFilePath = path.join(process.cwd(), 'bgg-import-log.txt');
         await fs.writeFile(logFilePath, logLines.join('\n'), 'utf-8');
         log(`[BGG Import] Log file written to: ${logFilePath}`);
         throw new Error(error.message || 'Failed to import play history from BGG.');
@@ -406,26 +405,20 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
 
     try {
         const bggCollection = await getBggCollection(username);
-        console.log(`[BGG Import] Found ${bggCollection.length} games in BGG collection.`);
-
         const { games: currentGames } = await getInitialData();
         const currentBggIds = new Set(currentGames.map(g => g.bggId).filter(Boolean));
 
         const newGamesFromBgg = bggCollection.filter(item => !currentBggIds.has(item.bggId));
-        console.log(`[BGG Import] Found ${newGamesFromBgg.length} new games to import.`);
         
         if (newGamesFromBgg.length === 0) {
             return { importedCount: 0 };
         }
 
         for (const item of newGamesFromBgg) {
-            console.log(`[BGG Import] Fetching details for BGG ID: ${item.bggId}`);
             const gameDetailsList = await getBggDetails([item.bggId], true);
             
             if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
                 const gameDetails = gameDetailsList[0];
-                console.log(`[BGG Import] Details found for: ${gameDetails.name}`);
-
                 const newGameData = {
                     name: gameDetails.name!,
                     bggId: item.bggId,
@@ -446,8 +439,6 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                 try {
                     await addGame(newGameData);
                 } catch (addError: any) {
-                    console.error(`[BGG Import] FAILED to add game ${gameDetails.name} (BGG ID: ${item.bggId}). Reason: ${addError.message}`);
-                    console.error('[BGG Import] Data that failed validation:', JSON.stringify(newGameData, null, 2));
                     throw addError;
                 }
 
@@ -688,4 +679,3 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
 
     
-
