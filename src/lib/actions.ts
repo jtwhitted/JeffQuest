@@ -436,19 +436,18 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                     minPlaytime: gameDetails.minPlaytime,
                     maxPlaytime: gameDetails.maxPlaytime,
                     difficulty: gameDetails.difficulty,
-                    category: gameDetails.category,
-                    mechanics: gameDetails.mechanics,
-                    designers: gameDetails.designers,
-                    publishers: gameDetails.publishers,
+                    category: Array.isArray(gameDetails.category) ? gameDetails.category : (gameDetails.category ? [gameDetails.category] : []),
+                    mechanics: Array.isArray(gameDetails.mechanics) ? gameDetails.mechanics : (gameDetails.mechanics ? [gameDetails.mechanics] : []),
+                    designers: Array.isArray(gameDetails.designers) ? gameDetails.designers : (gameDetails.designers ? [gameDetails.designers] : []),
+                    publishers: Array.isArray(gameDetails.publishers) ? gameDetails.publishers : (gameDetails.publishers ? [gameDetails.publishers] : []),
                     imageUrl: gameDetails.imageUrl,
                 };
                 
                 try {
-                    console.log('[BGG Import] Attempting to add game with data:', JSON.stringify(newGameData, null, 2));
                     await addGame(newGameData);
                 } catch (addError: any) {
                     console.error(`[BGG Import] FAILED to add game ${gameDetails.name} (BGG ID: ${item.bggId}). Reason: ${addError.message}`);
-                    // We'll re-throw the validation error to see it in the UI
+                    console.error('[BGG Import] Data that failed validation:', JSON.stringify(newGameData, null, 2));
                     throw addError;
                 }
 
@@ -689,3 +688,4 @@ export async function importBggFriendsAction(username: string): Promise<{ import
 
 
     
+
