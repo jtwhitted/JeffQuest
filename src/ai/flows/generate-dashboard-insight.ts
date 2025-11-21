@@ -49,7 +49,7 @@ Analyze the user's query and the provided 'games', 'players', and 'sessions' dat
 - For simple factual questions (e.g., 'what is my most played game?', 'how many sessions have I logged?'), provide a 'text' response.
 - Your response MUST be in the specified JSON output format.
 - When generating chart data, the 'name' field should be the label (like a player's name or a game category) and the 'value' field should be the number.
-- Make the title descriptive of the query.
+- The 'title' field is optional, but if provided, it should be descriptive of the query.
 
 User Query: "{{{query}}}"
 
