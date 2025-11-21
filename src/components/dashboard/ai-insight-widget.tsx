@@ -2,20 +2,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, WandSparkles, Info } from "lucide-react";
+import { Loader2, WandSparkles, Info, X, Save } from "lucide-react";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
-import { generateDashboardInsight } from '@/ai/flows/generate-dashboard-insight';
+import { generateDashboardInsight, type GenerateInsightOutput } from '@/ai/flows/generate-dashboard-insight';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { Separator } from '@/components/ui/separator';
+
+const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 export function AiInsightWidget() {
     const { games, players, sessions } = useGames();
     const { toast } = useToast();
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [insight, setInsight] = useState<GenerateInsightOutput | null>(null);
 
     const handleGenerate = async () => {
         if (!query.trim()) {
@@ -23,6 +29,7 @@ export function AiInsightWidget() {
             return;
         }
         setIsLoading(true);
+        setInsight(null);
         try {
             const result = await generateDashboardInsight({
                 query,
@@ -30,11 +37,7 @@ export function AiInsightWidget() {
                 players,
                 sessions
             });
-            console.log('AI Insight Result:', result);
-            toast({
-                title: 'Insight Generated!',
-                description: 'Check the browser console for the raw output.',
-            });
+            setInsight(result);
         } catch (error: any) {
             console.error('Failed to generate insight:', error);
             toast({
@@ -46,6 +49,60 @@ export function AiInsightWidget() {
             setIsLoading(false);
         }
     };
+
+    const renderInsight = () => {
+        if (!insight) return null;
+
+        return (
+            <div className="mt-6 rounded-lg border bg-secondary/30">
+                <CardHeader>
+                    {insight.title && <CardTitle>{insight.title}</CardTitle>}
+                </CardHeader>
+                <CardContent>
+                    {insight.type === 'text' && (
+                         <p className="text-lg">{insight.text}</p>
+                    )}
+                    {insight.type === 'barChart' && insight.data && (
+                        <ChartContainer config={{}} className="h-64 w-full">
+                            <ResponsiveContainer>
+                                <BarChart data={insight.data}>
+                                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                                    <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} content={<ChartTooltipContent />} />
+                                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    )}
+                    {insight.type === 'pieChart' && insight.data && (
+                        <ChartContainer config={{}} className="h-64 w-full">
+                            <ResponsiveContainer>
+                                <PieChart>
+                                    <Tooltip content={<ChartTooltipContent />} />
+                                    <Legend />
+                                    <Pie data={insight.data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
+                                        {insight.data.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    )}
+                </CardContent>
+                <CardFooter className="justify-end gap-2">
+                    <Button variant="ghost" onClick={() => setInsight(null)}>
+                        <X className="mr-2" />
+                        Clear
+                    </Button>
+                     <Button variant="outline" disabled>
+                        <Save className="mr-2" />
+                        Save Insight
+                    </Button>
+                </CardFooter>
+            </div>
+        );
+    }
 
 
     return (
@@ -111,6 +168,9 @@ export function AiInsightWidget() {
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
                     {isLoading ? 'Analyzing...' : 'Generate Insight'}
                 </Button>
+                
+                {renderInsight()}
+
             </CardContent>
         </Card>
     )

@@ -17,6 +17,7 @@ export interface RulebookDocument {
 export interface Game {
   id: string;
   name: string;
+  bggId?: string;
   category: string[];
   imageUrl: string;
   minPlayers: number;
@@ -33,7 +34,6 @@ export interface Game {
   documents?: RulebookDocument[];
   userRatings?: { [playerId: string]: number };
   bggComments?: { username: string; comment: string }[];
-  bggId?: string;
   favoriteVideoId?: string;
 }
 
