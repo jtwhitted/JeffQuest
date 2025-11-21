@@ -22,9 +22,6 @@ const ChartDataItemSchema = z.object({
     value: z.number().describe("The numerical value for this data point (e.g., number of wins, count of plays)."),
 });
 
-// Defines a schema that must have a 'name' property, and can have any other properties
-// where the key is a string and the value is a string or number.
-// This is used for stacked bar charts. e.g., { name: 'Player A', wins: 5, losses: 3 }
 const StackedChartDataItemSchema = z.object({ name: z.string() }).catchall(z.union([z.string(), z.number()]));
 
 
@@ -107,4 +104,3 @@ const generateInsightFlow = ai.defineFlow(
     return output;
   }
 );
-
