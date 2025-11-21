@@ -8,12 +8,14 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import type { AiInsightGame, AiInsightPlayer, AiInsightSession } from '@/lib/types';
+
 
 const GenerateInsightInputSchema = z.object({
   query: z.string().describe("The user's natural language question about their game data."),
-  games: z.array(z.any()).describe("An array of all games in the user's collection."),
-  players: z.array(z.any()).describe("An array of all players."),
-  sessions: z.array(z.any()).describe("An array of all logged game sessions."),
+  games: z.array(z.custom<AiInsightGame>()).describe("A slimmed-down array of all games in the user's collection."),
+  players: z.array(z.custom<AiInsightPlayer>()).describe("A slimmed-down array of all players."),
+  sessions: z.array(z.custom<AiInsightSession>()).describe("A slimmed-down array of all logged game sessions."),
 });
 export type GenerateInsightInput = z.infer<typeof GenerateInsightInputSchema>;
 
@@ -62,8 +64,8 @@ const generateInsightPrompt = ai.definePrompt({
     -   Use 'lineChart' for time-series data (e.g., "plays per month").
     -   Use 'horizontalBarChart' for comparing many items or items with long labels.
     -   Use 'stackedBarChart' for part-to-whole comparisons across categories (e.g., "wins and losses per player").
-    -   Use 'list' for ranked lists or simple lists (e.g., "top 5...", "list all...").
-    -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
+    -   Use 'list' for ranked lists or simple lists (e.g., "top 5...", "list all..."). If the user asks for multiple items but doesn't specify a format, default to a 'list'.
+    -   Use 'text' for simple, single-value answers only (e.g., "how many sessions?", "what is my single most played game?").
 3.  **FORMAT 'data' PROPERTY:** Structure the 'data' array to perfectly match the chosen output type.
     -   For 'barChart', 'pieChart', 'lineChart', and 'horizontalBarChart', each item in 'data' MUST be an object with 'name' (string) and 'value' (number) properties.
     -   For 'stackedBarChart', each item MUST have a 'name' (string) and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array containing the names of those stack value keys.
@@ -87,11 +89,11 @@ const generateInsightFlow = ai.defineFlow(
   },
   async (input) => {
 
-    if (input.sessions.length === 0) {
+    if (input.sessions.length === 0 && input.games.length === 0) {
         return {
             type: 'text',
             title: 'No Data Yet',
-            text: "You haven't logged any sessions yet. Play some games and log them to start generating insights!",
+            text: "You haven't logged any sessions or added any games yet. Get started to begin generating insights!",
         };
     }
 

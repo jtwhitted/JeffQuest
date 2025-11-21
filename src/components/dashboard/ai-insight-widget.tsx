@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { ChartDataItem, ListItem, StackedChartDataItem } from '@/lib/types';
+import type { ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from '@/lib/types';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -35,11 +35,43 @@ export function AiInsightWidget() {
         setIsLoading(true);
         setInsight(null);
         try {
+            // Create slimmed down versions of the data to send to the AI
+            const insightGames: AiInsightGame[] = games.map(g => ({
+                id: g.id,
+                name: g.name,
+                yearPublished: g.yearPublished,
+                minPlayers: g.minPlayers,
+                maxPlayers: g.maxPlayers,
+                minPlaytime: g.minPlaytime,
+                maxPlaytime: g.maxPlaytime,
+                difficulty: g.difficulty,
+                category: g.category,
+                mechanics: g.mechanics,
+                rating: g.rating,
+                userRatings: g.userRatings,
+                imageUrl: g.imageUrl,
+            }));
+
+            const insightPlayers: AiInsightPlayer[] = players.map(p => ({
+                id: p.id,
+                name: p.name,
+            }));
+
+            const insightSessions: AiInsightSession[] = sessions.map(s => ({
+                gameId: s.gameId,
+                date: s.date,
+                playerIds: s.playerIds,
+                winnerId: s.winnerId,
+                cooperativeResult: s.cooperativeResult,
+                scores: s.scores,
+                duration: s.duration,
+            }));
+
             const result = await generateDashboardInsight({
                 query,
-                games,
-                players,
-                sessions
+                games: insightGames,
+                players: insightPlayers,
+                sessions: insightSessions
             });
             setInsight(result);
         } catch (error: any) {
@@ -218,14 +250,14 @@ export function AiInsightWidget() {
                                 <div className="grid gap-2 text-sm">
                                     <h5 className="font-semibold">Games Data</h5>
                                     <ul className="list-disc list-inside text-muted-foreground">
-                                        <li>Name, Year Published, Description</li>
+                                        <li>Name, Year Published</li>
                                         <li>Player Count, Playtime, Difficulty</li>
-                                        <li>Categories, Mechanics, Designers</li>
+                                        <li>Categories, Mechanics</li>
                                         <li>Your personal ratings</li>
                                     </ul>
                                     <h5 className="font-semibold mt-2">Players Data</h5>
                                     <ul className="list-disc list-inside text-muted-foreground">
-                                        <li>Name, BGG Username</li>
+                                        <li>Name</li>
                                     </ul>
                                     <h5 className="font-semibold mt-2">Sessions Data</h5>
                                     <ul className="list-disc list-inside text-muted-foreground">
