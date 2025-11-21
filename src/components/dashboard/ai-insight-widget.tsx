@@ -197,7 +197,7 @@ export function AiInsightWidget() {
                                     </Link>
                                 </li>
                                 ) : (
-                                <li key={index} className="flex items-center justify-between text-sm p-2 rounded-lg border">
+                                <li key={item.name + index} className="flex items-center justify-between text-sm p-2 rounded-lg border">
                                     <div className="flex flex-col">
                                         <span className="font-semibold">{item.name}</span>
                                         {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}

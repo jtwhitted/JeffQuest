@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, X } from "lucide-react";
-import type { DashboardInsight, ChartDataItem, ListItem, StackedChartDataItem } from "@/lib/types";
+import type { DashboardInsight, ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from "@/lib/types";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
 import { generateDashboardInsight, type GenerateInsightOutput } from '@/ai/flows/generate-dashboard-insight';
@@ -34,11 +34,43 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
             setIsLoading(true);
             setError(null);
             try {
+                // Create slimmed down versions of the data to send to the AI
+                const insightGames: AiInsightGame[] = games.map(g => ({
+                    id: g.id,
+                    name: g.name,
+                    yearPublished: g.yearPublished,
+                    minPlayers: g.minPlayers,
+                    maxPlayers: g.maxPlayers,
+                    minPlaytime: g.minPlaytime,
+                    maxPlaytime: g.maxPlaytime,
+                    difficulty: g.difficulty,
+                    category: g.category,
+                    mechanics: g.mechanics,
+                    rating: g.rating,
+                    userRatings: g.userRatings,
+                    imageUrl: g.imageUrl,
+                }));
+
+                const insightPlayers: AiInsightPlayer[] = players.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                }));
+
+                const insightSessions: AiInsightSession[] = sessions.map(s => ({
+                    gameId: s.gameId,
+                    date: s.date,
+                    playerIds: s.playerIds,
+                    winnerId: s.winnerId,
+                    cooperativeResult: s.cooperativeResult,
+                    scores: s.scores,
+                    duration: s.duration,
+                }));
+                
                 const result = await generateDashboardInsight({
                     query: insight.query,
-                    games,
-                    players,
-                    sessions
+                    games: insightGames,
+                    players: insightPlayers,
+                    sessions: insightSessions
                 });
                 setGeneratedInsight(result);
             } catch (err: any) {
@@ -202,7 +234,7 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
                                 </Link>
                             </li>
                             ) : (
-                            <li key={index} className="flex items-center justify-between text-sm p-2 rounded-lg border">
+                            <li key={item.name + index} className="flex items-center justify-between text-sm p-2 rounded-lg border">
                                 <div className="flex flex-col">
                                     <span className="font-semibold">{item.name}</span>
                                     {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
