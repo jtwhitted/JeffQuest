@@ -28,7 +28,7 @@ const StackedChartDataItemSchema = z.object({ name: z.string() }).catchall(z.uni
 
 
 const ListItemSchema = z.object({
-    id: z.string().optional().describe("The unique ID of the main item, if applicable (e.g., the game ID)."),
+    id: z.string().describe("The unique ID of the main item (e.g., the game ID or player ID)."),
     name: z.string().describe("The main name or title of the list item (e.g., game name)."),
     value: z.union([z.string(), z.number()]).optional().describe("The primary value associated with the item (e.g., BGG Rating, number of plays)."),
     detail: z.string().optional().describe("An optional secondary piece of information (e.g., game category, player name)."),
@@ -64,12 +64,12 @@ const generateInsightPrompt = ai.definePrompt({
     -   Use 'lineChart' for time-series data (e.g., "plays per month").
     -   Use 'horizontalBarChart' for comparing many items or items with long labels.
     -   Use 'stackedBarChart' for part-to-whole comparisons across categories (e.g., "wins and losses per player").
-    -   Use 'list' for ranked lists or simple lists (e.g., "top 5...", "list all..."). If the user asks for multiple items but doesn't specify a format, default to a 'list'.
-    -   Use 'text' for simple, single-value answers only (e.g., "how many sessions?", "what is my single most played game?").
+    -   Use 'list' for ranked lists or simple lists (e.g., "top 5...", "list all..."). **ALWAYS prefer 'list' over 'text' if the answer involves one or more games or players.**
+    -   Use 'text' only for simple, single-value answers that do not refer to a specific game or player (e.g., "how many total sessions?", "what is my overall win rate?").
 3.  **FORMAT 'data' PROPERTY:** Structure the 'data' array to perfectly match the chosen output type.
     -   For 'barChart', 'pieChart', 'lineChart', and 'horizontalBarChart', each item in 'data' MUST be an object with 'name' (string) and 'value' (number) properties.
     -   For 'stackedBarChart', each item MUST have a 'name' (string) and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array containing the names of those stack value keys.
-    -   For 'list', each item can have 'id', 'name', 'value', 'detail', and 'imageUrl'. When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
+    -   For 'list', each item MUST have an 'id'. When creating a list of games, you MUST include the 'imageUrl'. When creating a list of players, use their name as the 'detail'.
 4.  **TITLE:** Provide a concise and descriptive title for the generated insight.
 
 User Query: "{{{query}}}"

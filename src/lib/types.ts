@@ -70,7 +70,7 @@ export interface StackedChartDataItem {
 }
 
 export interface ListItem {
-    id?: string;
+    id: string;
     name: string;
     value?: string | number;
     detail?: string;
@@ -85,4 +85,36 @@ export interface DashboardInsight {
     text?: string;
     data?: (ChartDataItem | ListItem | StackedChartDataItem)[];
     dataKeys?: string[];
+}
+
+// Slimmed down types for sending to AI
+export interface AiInsightGame {
+    id: string;
+    name: string;
+    yearPublished?: number;
+    minPlayers: number;
+    maxPlayers: number;
+    minPlaytime?: number;
+    maxPlaytime?: number;
+    difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+    category?: string[];
+    mechanics?: string[];
+    rating?: number;
+    userRatings?: { [playerId: string]: number };
+    imageUrl: string;
+}
+
+export interface AiInsightPlayer {
+    id: string;
+    name: string;
+}
+
+export interface AiInsightSession {
+    gameId: string;
+    date: string;
+    playerIds: string[];
+    winnerId?: string;
+    cooperativeResult?: 'win' | 'loss';
+    scores?: { playerId: string, score?: number }[];
+    duration?: number;
 }

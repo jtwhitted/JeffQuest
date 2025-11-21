@@ -17,6 +17,7 @@ import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from '@/lib/types';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -185,34 +186,56 @@ export function AiInsightWidget() {
                     )}
                      {insight.type === 'list' && insight.data && (
                         <ul className="space-y-4">
-                            {(insight.data as ListItem[]).map((item, index) => (
-                                item.imageUrl && item.id ? (
-                                <li key={item.id}>
-                                    <Link href={`/games/${item.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
-                                        <div className="flex items-start gap-4">
-                                            <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" />
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
+                            {(insight.data as ListItem[]).map((item) => {
+                                const player = item.imageUrl?.includes('dicebear.com') ? players.find(p => p.id === item.id) : null;
+                                if (player) {
+                                    return (
+                                        <li key={item.id}>
+                                            <Link href={`/players`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                                                <div className="flex items-start gap-4">
+                                                    <Avatar className="h-16 w-16">
+                                                        <AvatarImage src={player.avatarUrl} alt={player.name} />
+                                                        <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
                                                         <h4 className="font-semibold">{item.name}</h4>
-                                                        {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
+                                                        {item.value && <Badge variant="outline">{item.value}</Badge>}
                                                     </div>
-                                                    {item.value && <Badge variant="outline">{item.value}</Badge>}
                                                 </div>
-                                            </div>
+                                            </Link>
+                                        </li>
+                                    )
+                                }
+                                if (item.imageUrl) {
+                                    return (
+                                        <li key={item.id}>
+                                            <Link href={`/games/${item.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                                                <div className="flex items-start gap-4">
+                                                    <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <h4 className="font-semibold">{item.name}</h4>
+                                                                {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
+                                                            </div>
+                                                            {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    )
+                                }
+                                return (
+                                    <li key={item.id} className="flex items-center justify-between text-sm p-2 rounded-lg border">
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold">{item.name}</span>
+                                            {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
                                         </div>
-                                    </Link>
-                                </li>
-                                ) : (
-                                <li key={item.name + index} className="flex items-center justify-between text-sm p-2 rounded-lg border">
-                                    <div className="flex flex-col">
-                                        <span className="font-semibold">{item.name}</span>
-                                        {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
-                                    </div>
-                                    {item.value && <Badge variant="outline">{item.value}</Badge>}
-                                </li>
+                                        {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                    </li>
                                 )
-                            ))}
+                            })}
                         </ul>
                     )}
                 </CardContent>
