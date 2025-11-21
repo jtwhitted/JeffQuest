@@ -63,7 +63,7 @@ export function AiInsightWidget() {
                     {insight.type === 'text' && (
                          <p className="text-lg">{insight.text}</p>
                     )}
-                    {(insight.type === 'barChart' || (insight.type === 'list' && typeof insight.data?.[0]?.value === 'number')) && insight.data && (
+                    {insight.type === 'barChart' && insight.data && (
                         <ChartContainer config={{}} className="h-80 w-full">
                             <ResponsiveContainer>
                                 <BarChart data={insight.data} layout="vertical" margin={{ left: 20, right: 20 }}>
@@ -97,7 +97,7 @@ export function AiInsightWidget() {
                             </ResponsiveContainer>
                         </ChartContainer>
                     )}
-                     {insight.type === 'list' && typeof insight.data?.[0]?.value !== 'number' && insight.data && (
+                     {insight.type === 'list' && insight.data && (
                         <ul className="space-y-3">
                             {insight.data.map((item, index) => (
                                 <li key={index} className="flex items-center justify-between text-sm">
