@@ -5,17 +5,18 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, WandSparkles, Info, X, Save } from "lucide-react";
+import { Loader2, WandSparkles, Info, X } from "lucide-react";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
 import { generateDashboardInsight, type GenerateInsightOutput } from '@/ai/flows/generate-dashboard-insight';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { ChartDataItem, ListItem, StackedChartDataItem } from '@/lib/types';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -62,13 +63,27 @@ export function AiInsightWidget() {
                     {insight.title && <CardTitle>{insight.title}</CardTitle>}
                 </CardHeader>
                 <CardContent>
-                    {insight.type === 'text' && (
+                    {insight.type === 'text' && insight.text && (
                          <p className="text-lg">{insight.text}</p>
                     )}
                     {insight.type === 'barChart' && insight.data && (
                         <ChartContainer config={{}} className="h-80 w-full">
                             <ResponsiveContainer>
-                                <BarChart data={insight.data} layout="vertical" margin={{ left: 20, right: 20 }}>
+                                <BarChart data={insight.data as ChartDataItem[]} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                     <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis />
+                                    <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} content={<ChartTooltipContent />} />
+                                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    )}
+                    {insight.type === 'horizontalBarChart' && insight.data && (
+                        <ChartContainer config={{}} className="h-80 w-full">
+                            <ResponsiveContainer>
+                                <BarChart data={insight.data as ChartDataItem[]} layout="vertical" margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <CartesianGrid horizontal={false} />
                                     <XAxis type="number" hide />
                                     <YAxis 
                                         dataKey="name" 
@@ -77,6 +92,7 @@ export function AiInsightWidget() {
                                         tickLine={false} 
                                         axisLine={false} 
                                         tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                                        interval={0}
                                     />
                                     <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} content={<ChartTooltipContent />} />
                                     <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
@@ -90,7 +106,7 @@ export function AiInsightWidget() {
                                 <PieChart>
                                     <Tooltip content={<ChartTooltipContent />} />
                                     <Legend />
-                                    <Pie data={insight.data} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
+                                    <Pie data={insight.data as ChartDataItem[]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}>
                                         {insight.data.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
@@ -99,14 +115,43 @@ export function AiInsightWidget() {
                             </ResponsiveContainer>
                         </ChartContainer>
                     )}
+                    {insight.type === 'lineChart' && insight.data && (
+                         <ChartContainer config={{}} className="h-80 w-full">
+                            <ResponsiveContainer>
+                                <LineChart data={insight.data as ChartDataItem[]} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis />
+                                    <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<ChartTooltipContent />} />
+                                    <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    )}
+                    {insight.type === 'stackedBarChart' && insight.data && insight.dataKeys && (
+                        <ChartContainer config={{}} className="h-80 w-full">
+                            <ResponsiveContainer>
+                                <BarChart data={insight.data as StackedChartDataItem[]} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={8} />
+                                    <YAxis />
+                                    <Tooltip content={<ChartTooltipContent />} />
+                                    <Legend />
+                                    {insight.dataKeys.map((key, index) => (
+                                        <Bar key={key} dataKey={key} stackId="a" fill={COLORS[index % COLORS.length]} radius={[4, 4, 0, 0]} />
+                                    ))}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    )}
                      {insight.type === 'list' && insight.data && (
                         <ul className="space-y-4">
-                            {insight.data.map((item, index) => (
-                                'imageUrl' in item && 'id' in item && item.id ? (
+                            {(insight.data as ListItem[]).map((item, index) => (
+                                item.imageUrl && item.id ? (
                                 <li key={item.id}>
                                     <Link href={`/games/${item.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
                                         <div className="flex items-start gap-4">
-                                            <Image src={item.imageUrl || ''} alt={item.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" />
+                                            <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" />
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
                                                     <div>
@@ -136,10 +181,6 @@ export function AiInsightWidget() {
                     <Button variant="ghost" onClick={() => setInsight(null)}>
                         <X className="mr-2" />
                         Clear
-                    </Button>
-                     <Button variant="outline" disabled>
-                        <Save className="mr-2" />
-                        Save Insight
                     </Button>
                 </CardFooter>
             </div>
@@ -200,7 +241,7 @@ export function AiInsightWidget() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <Textarea
-                    placeholder="Example Questions: 'Chart my wins per player.' or 'What is my most played game category?'"
+                    placeholder="Example: 'Chart my wins vs losses per player' or 'List my most played game category'"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     disabled={isLoading}

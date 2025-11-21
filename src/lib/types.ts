@@ -57,11 +57,32 @@ export interface YoutubeVideo {
     channel: string;
 }
 
+
+// Types for AI Insight Generator
+export interface ChartDataItem {
+    name: string;
+    value: number;
+}
+
+export interface StackedChartDataItem {
+    name: string;
+    [key: string]: string | number; // e.g., { name: 'Player A', wins: 5, losses: 3 }
+}
+
+export interface ListItem {
+    id?: string;
+    name: string;
+    value?: string | number;
+    detail?: string;
+    imageUrl?: string;
+}
+
 export interface DashboardInsight {
     id: string;
     query: string;
-    type: 'text' | 'barChart' | 'pieChart' | 'list';
+    type: 'text' | 'barChart' | 'pieChart' | 'lineChart' | 'horizontalBarChart' | 'stackedBarChart' | 'list';
     title?: string;
     text?: string;
-    data?: { name: string; value: number | string; detail?: string }[];
+    data?: (ChartDataItem | ListItem | StackedChartDataItem)[];
+    dataKeys?: string[];
 }

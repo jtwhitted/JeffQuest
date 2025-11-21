@@ -18,9 +18,14 @@ const GenerateInsightInputSchema = z.object({
 export type GenerateInsightInput = z.infer<typeof GenerateInsightInputSchema>;
 
 const ChartDataItemSchema = z.object({
-    name: z.string().describe("The label for this data point (e.g., a player's name, a game category)."),
+    name: z.string().describe("The label for this data point (e.g., a player's name, a game category, a month)."),
     value: z.number().describe("The numerical value for this data point (e.g., number of wins, count of plays)."),
 });
+
+const StackedChartDataItemSchema = z.object({
+    name: z.string().describe("The label for the category (e.g., a player's name)."),
+}).passthrough(); // Allows any other properties, which will be the stacked bar keys (e.g., { name: 'Player A', wins: 5, losses: 3 })
+
 
 const ListItemSchema = z.object({
     id: z.string().optional().describe("The unique ID of the main item, if applicable (e.g., the game ID)."),
@@ -30,12 +35,12 @@ const ListItemSchema = z.object({
     imageUrl: z.string().optional().describe("A URL for an image of the item, if available."),
 });
 
-
 const GenerateInsightOutputSchema = z.object({
-    type: z.enum(['text', 'barChart', 'pieChart', 'list']).describe("The type of insight to display. Use 'text' for simple answers. Use 'barChart' or 'pieChart' for visualizations. Use 'list' for ranked or simple lists."),
+    type: z.enum(['text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list']).describe("The type of insight to display."),
     title: z.string().optional().describe("A concise, descriptive title for the generated insight, chart, or list."),
     text: z.string().optional().describe("The text of the answer, if the type is 'text'."),
-    data: z.array(z.union([ChartDataItemSchema, ListItemSchema])).optional().describe("An array of data points for the chart or list."),
+    data: z.array(z.union([ChartDataItemSchema, ListItemSchema, StackedChartDataItemSchema])).optional().describe("An array of data points for the chart or list."),
+    dataKeys: z.array(z.string()).optional().describe("For stackedBarChart, an array of the keys used for the stacks (e.g., ['wins', 'losses'])."),
 });
 export type GenerateInsightOutput = z.infer<typeof GenerateInsightOutputSchema>;
 
@@ -57,13 +62,17 @@ Analyze the user's query and the provided 'games', 'players', and 'sessions' dat
 **CRITICAL INSTRUCTIONS:**
 1.  **FILTER FIRST:** Before any other operation, filter the data according to the user's request. For example, if they ask for "cooperative games", you MUST filter the 'games' array to only include games where the 'mechanics' array contains 'Cooperative Game'. If they ask about a specific player, filter the 'sessions' for that player.
 2.  **SORT SECOND:** After filtering, sort the data as requested. For example, "sorted by rating" means ordering by the 'rating' field. "Most played" means counting sessions and sorting by that count.
-3.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format.
-    -   Use 'barChart' or 'pieChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
-    -   Use 'list' for rankings or lists (e.g., "top 5...", "list all..."). When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
+3.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
+    -   Use 'barChart' or 'pieChart' or 'lineChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
+    -   Use 'horizontalBarChart' when comparing many items or items with long labels.
+    -   Use 'stackedBarChart' for part-to-whole comparisons across categories (e.g., "wins and losses per player").
+    -   Use 'lineChart' for time-series data (e.g., "plays per month").
+    -   Use 'list' for rankings or simple lists (e.g., "top 5...", "list all..."). When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
     -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
-4.  **FORMAT DATA:** Structure the data property to match the chosen output type.
-    -   For charts ('barChart', 'pieChart'), the items in 'data' should have a 'name' (the label) and a 'value' (the number).
-    -   For lists, 'name' is the main item, 'value' is the metric it's sorted by (like a rating), and 'detail' can be extra info.
+4.  **FORMAT DATA:** Structure the 'data' property to match the chosen output type.
+    -   For 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', items in 'data' must have 'name' and 'value'.
+    -   For 'stackedBarChart', items must have a 'name' and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array.
+    -   For 'list', items can have 'id', 'name', 'value', 'detail', and 'imageUrl'.
 5.  **TITLE:** The 'title' field is optional, but if provided, it should be descriptive of the query.
 
 User Query: "{{{query}}}"
