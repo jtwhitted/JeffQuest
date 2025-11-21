@@ -186,9 +186,6 @@ export async function getBggCollection(username: string): Promise<{ bggId: strin
     const xmlData = await bggFetch('collection', params);
     const parsed = parser.parse(xmlData);
 
-    const logPath = path.join(process.cwd(), 'bgg-import-log.txt');
-    await fs.appendFile(logPath, `[${new Date().toISOString()}] [BGG Raw Parse] Parsed collection data: ${JSON.stringify(parsed, null, 2)}\n`);
-
     if (parsed.errors?.error) {
         throw new Error(`BGG Error: ${parsed.errors.error.message}`);
     }
@@ -201,12 +198,20 @@ export async function getBggCollection(username: string): Promise<{ bggId: strin
 
     return items.map((item: any) => {
         const rating = item.stats?.rating?.['@_value'];
-        // Correctly extract text content from the comment tag, if it exists
-        const comment = item.comment?._value || undefined;
+        
+        let commentText: string | undefined;
+        if (item.comment && Array.isArray(item.comment) && item.comment.length > 0) {
+            // The parser returns a simple array of strings if the XML tag has no attributes
+            commentText = item.comment[0];
+        } else if (item.comment && item.comment._value) {
+            // The parser returns an object with _value if the tag has attributes
+            commentText = item.comment._value;
+        }
+
         return {
             bggId: item['@_objectid'].toString(),
             userRating: rating && rating !== 'N/A' ? parseFloat(rating) : undefined,
-            userComment: decodeBggText(comment),
+            userComment: decodeBggText(commentText),
         };
     });
 }
