@@ -22,14 +22,10 @@ const ChartDataItemSchema = z.object({
     value: z.number().describe("The numerical value for this data point (e.g., number of wins, count of plays)."),
 });
 
-const StackedChartDataItemSchema = z.object({
-    name: z.string().describe("The label for the category (e.g., a player's name)."),
-}).extend({
-    // Allows any other properties, which will be the stacked bar keys
-    // e.g., { name: 'Player A', wins: 5, losses: 3 }
-    // The keys must be strings, and the values can be strings or numbers.
-    stackedValues: z.record(z.string(), z.union([z.string(), z.number()]))
-});
+// Defines a schema that must have a 'name' property, and can have any other properties
+// where the key is a string and the value is a string or number.
+// This is used for stacked bar charts. e.g., { name: 'Player A', wins: 5, losses: 3 }
+const StackedChartDataItemSchema = z.object({ name: z.string() }).catchall(z.union([z.string(), z.number()]));
 
 
 const ListItemSchema = z.object({
@@ -62,14 +58,12 @@ const generateInsightPrompt = ai.definePrompt({
     output: { schema: GenerateInsightOutputSchema },
     prompt: `You are a data analyst for a board game tracking app. Your task is to answer a user's question based *only* on the provided JSON data.
 
-First, analyze the user's query to understand the required filtering, sorting, and aggregation. Then, process the provided 'games', 'players', and 'sessions' data accordingly. Finally, determine the best format for the answer and structure your output to match the required schema perfectly.
-
 **CRITICAL INSTRUCTIONS:**
-1.  **PROCESS DATA:** First, filter, sort, and aggregate the data as requested by the query. Pay close attention to keywords like "cooperative", "most", "top 5", "by BGG rating", etc.
+1.  **PROCESS DATA:** First, analyze the user's query to understand the required filtering, sorting, and aggregation. Then, process the provided 'games', 'players', and 'sessions' data accordingly.
 2.  **CHOOSE OUTPUT TYPE:** Based on the processed data and the query, decide on the single best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
     -   Use charts for visual breakdowns (e.g., "chart...", "show me a breakdown...").
     -   Use 'lineChart' for time-series data (e.g., "plays per month").
-    -   Use 'horizontalBarChart' when comparing many items or items with long labels (e.g., "list all my cooperative games sorted by rating").
+    -   Use 'horizontalBarChart' for comparing many items or items with long labels.
     -   Use 'stackedBarChart' for part-to-whole comparisons across categories (e.g., "wins and losses per player").
     -   Use 'list' for ranked lists or simple lists (e.g., "top 5...", "list all...").
     -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
@@ -113,3 +107,4 @@ const generateInsightFlow = ai.defineFlow(
     return output;
   }
 );
+
