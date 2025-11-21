@@ -84,7 +84,7 @@ export function AiInsightWidget() {
                             <ResponsiveContainer>
                                 <BarChart data={insight.data as ChartDataItem[]} layout="vertical" margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                                     <CartesianGrid horizontal={false} />
-                                    <XAxis type="number" hide />
+                                    <XAxis type="number" />
                                     <YAxis 
                                         dataKey="name" 
                                         type="category" 
