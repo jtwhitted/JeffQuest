@@ -89,6 +89,19 @@ export function AiInsightWidget() {
                             </ResponsiveContainer>
                         </ChartContainer>
                     )}
+                     {insight.type === 'list' && insight.data && (
+                        <ul className="space-y-3">
+                            {insight.data.map((item, index) => (
+                                <li key={index} className="flex items-center justify-between text-sm">
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold">{item.name}</span>
+                                        {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
+                                    </div>
+                                    {item.value && <span className="font-medium text-muted-foreground">{item.value}</span>}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </CardContent>
                 <CardFooter className="justify-end gap-2">
                     <Button variant="ghost" onClick={() => setInsight(null)}>

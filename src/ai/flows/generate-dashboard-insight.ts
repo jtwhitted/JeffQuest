@@ -22,11 +22,17 @@ const ChartDataItemSchema = z.object({
     value: z.number().describe("The numerical value for this data point (e.g., number of wins, count of plays)."),
 });
 
+const ListItemSchema = z.object({
+    name: z.string().describe("The main name or title of the list item (e.g., game name)."),
+    value: z.union([z.string(), z.number()]).optional().describe("The primary value associated with the item (e.g., BGG Rating, number of plays)."),
+    detail: z.string().optional().describe("An optional secondary piece of information (e.g., game category, player name)."),
+});
+
 const GenerateInsightOutputSchema = z.object({
-    type: z.enum(['text', 'barChart', 'pieChart']).describe("The type of insight to display. Use 'text' for simple answers. Use 'barChart' or 'pieChart' for visualizations."),
-    title: z.string().optional().describe("A concise title for the generated insight or chart."),
+    type: z.enum(['text', 'barChart', 'pieChart', 'list']).describe("The type of insight to display. Use 'text' for simple answers. Use 'barChart' or 'pieChart' for visualizations. Use 'list' for ranked or simple lists."),
+    title: z.string().optional().describe("A concise title for the generated insight, chart, or list."),
     text: z.string().optional().describe("The text of the answer, if the type is 'text'."),
-    data: z.array(ChartDataItemSchema).optional().describe("An array of data points for the chart, if the type is 'barChart' or 'pieChart'."),
+    data: z.array(z.union([ChartDataItemSchema, ListItemSchema])).optional().describe("An array of data points for the chart or list."),
 });
 export type GenerateInsightOutput = z.infer<typeof GenerateInsightOutputSchema>;
 
@@ -46,9 +52,11 @@ const generateInsightPrompt = ai.definePrompt({
 Analyze the user's query and the provided 'games', 'players', and 'sessions' data to formulate an answer.
 
 - If the user asks for a chart or a visual breakdown (e.g., 'chart...', 'show me a breakdown...', '... by player'), generate data suitable for a 'barChart' or 'pieChart'.
+- If the user asks for a "list", "ranking", or "top/bottom" items, generate a 'list' response.
 - For simple factual questions (e.g., 'what is my most played game?', 'how many sessions have I logged?'), provide a 'text' response.
 - Your response MUST be in the specified JSON output format.
-- When generating chart data, the 'name' field should be the label (like a player's name or a game category) and the 'value' field should be the number.
+- When generating chart data, the 'name' field should be the label (like a player's name or game category) and the 'value' field should be the number.
+- When generating list data, 'name' is the primary identifier, 'value' is the metric it's sorted by (like a rating), and 'detail' can be extra info.
 - The 'title' field is optional, but if provided, it should be descriptive of the query.
 
 User Query: "{{{query}}}"
