@@ -297,7 +297,7 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <AiInsightWidget />
              {dashboardInsights.map((insight) => (
                 <SavedInsightWidget key={insight.id} insight={insight} />
