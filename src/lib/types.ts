@@ -60,4 +60,8 @@ export interface YoutubeVideo {
 export interface DashboardInsight {
     id: string;
     query: string;
+    type: 'text' | 'barChart' | 'pieChart';
+    title?: string;
+    text?: string;
+    data?: { name: string; value: number }[];
 }
