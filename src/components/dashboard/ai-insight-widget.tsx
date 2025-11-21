@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '../ui/badge';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -62,14 +63,21 @@ export function AiInsightWidget() {
                     {insight.type === 'text' && (
                          <p className="text-lg">{insight.text}</p>
                     )}
-                    {insight.type === 'barChart' && insight.data && (
-                        <ChartContainer config={{}} className="h-64 w-full">
+                    {(insight.type === 'barChart' || (insight.type === 'list' && typeof insight.data?.[0]?.value === 'number')) && insight.data && (
+                        <ChartContainer config={{}} className="h-80 w-full">
                             <ResponsiveContainer>
-                                <BarChart data={insight.data}>
-                                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                                <BarChart data={insight.data} layout="vertical" margin={{ left: 20, right: 20 }}>
+                                    <XAxis type="number" hide />
+                                    <YAxis 
+                                        dataKey="name" 
+                                        type="category" 
+                                        width={120} 
+                                        tickLine={false} 
+                                        axisLine={false} 
+                                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                                    />
                                     <Tooltip cursor={{ fill: 'hsl(var(--secondary))' }} content={<ChartTooltipContent />} />
-                                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </ChartContainer>
@@ -89,7 +97,7 @@ export function AiInsightWidget() {
                             </ResponsiveContainer>
                         </ChartContainer>
                     )}
-                     {insight.type === 'list' && insight.data && (
+                     {insight.type === 'list' && typeof insight.data?.[0]?.value !== 'number' && insight.data && (
                         <ul className="space-y-3">
                             {insight.data.map((item, index) => (
                                 <li key={index} className="flex items-center justify-between text-sm">
@@ -97,7 +105,7 @@ export function AiInsightWidget() {
                                         <span className="font-semibold">{item.name}</span>
                                         {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
                                     </div>
-                                    {item.value && <span className="font-medium text-muted-foreground">{item.value}</span>}
+                                    {item.value && <Badge variant="outline">{item.value}</Badge>}
                                 </li>
                             ))}
                         </ul>

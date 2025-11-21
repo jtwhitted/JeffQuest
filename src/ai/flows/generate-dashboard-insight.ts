@@ -51,13 +51,17 @@ const generateInsightPrompt = ai.definePrompt({
 
 Analyze the user's query and the provided 'games', 'players', and 'sessions' data to formulate an answer.
 
-- If the user asks for a chart or a visual breakdown (e.g., 'chart...', 'show me a breakdown...', '... by player'), generate data suitable for a 'barChart' or 'pieChart'.
-- If the user asks for a "list", "ranking", or "top/bottom" items, generate a 'list' response.
-- For simple factual questions (e.g., 'what is my most played game?', 'how many sessions have I logged?'), provide a 'text' response.
-- Your response MUST be in the specified JSON output format.
-- When generating chart data, the 'name' field should be the label (like a player's name or game category) and the 'value' field should be the number.
-- When generating list data, 'name' is the primary identifier, 'value' is the metric it's sorted by (like a rating), and 'detail' can be extra info.
-- The 'title' field is optional, but if provided, it should be descriptive of the query.
+**CRITICAL INSTRUCTIONS:**
+1.  **FILTER FIRST:** Before any other operation, filter the data according to the user's request. For example, if they ask for "cooperative games", you MUST filter the 'games' array to only include games where the 'mechanics' array contains 'Cooperative Game'. If they ask about a specific player, filter the 'sessions' for that player.
+2.  **SORT SECOND:** After filtering, sort the data as requested. For example, "sorted by rating" means ordering by the 'rating' field. "Most played" means counting sessions and sorting by that count.
+3.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format.
+    -   Use 'barChart' or 'pieChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
+    -   Use 'list' for rankings or lists (e.g., "top 5...", "list all...").
+    -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
+4.  **FORMAT DATA:** Structure the data property to match the chosen output type.
+    -   For charts ('barChart', 'pieChart'), the items in 'data' should have a 'name' (the label) and a 'value' (the number).
+    -   For lists, 'name' is the main item, 'value' is the metric it's sorted by (like a rating), and 'detail' can be extra info.
+5.  **TITLE:** The 'title' field is optional, but if provided, it should be descriptive of the query.
 
 User Query: "{{{query}}}"
 
