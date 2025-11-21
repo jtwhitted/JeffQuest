@@ -6,6 +6,7 @@ export interface Player {
   bggUsername?: string;
   legendaryTitle?: string;
   legendaryBio?: string;
+  legendaryImageDataUri?: string;
 }
 
 export interface RulebookDocument {
