@@ -24,7 +24,12 @@ const ChartDataItemSchema = z.object({
 
 const StackedChartDataItemSchema = z.object({
     name: z.string().describe("The label for the category (e.g., a player's name)."),
-}).passthrough(); // Allows any other properties, which will be the stacked bar keys (e.g., { name: 'Player A', wins: 5, losses: 3 })
+}).extend({
+    // Allows any other properties, which will be the stacked bar keys
+    // e.g., { name: 'Player A', wins: 5, losses: 3 }
+    // The keys must be strings, and the values can be strings or numbers.
+    stackedValues: z.record(z.string(), z.union([z.string(), z.number()]))
+});
 
 
 const ListItemSchema = z.object({
@@ -57,21 +62,22 @@ const generateInsightPrompt = ai.definePrompt({
     output: { schema: GenerateInsightOutputSchema },
     prompt: `You are a data analyst for a board game tracking app. Your task is to answer a user's question based *only* on the provided JSON data.
 
-First, analyze the user's query and the provided 'games', 'players', and 'sessions' data. Filter and aggregate the data as requested. Then, determine the best format for the answer.
+First, analyze the user's query to understand the required filtering, sorting, and aggregation. Then, process the provided 'games', 'players', and 'sessions' data accordingly. Finally, determine the best format for the answer and structure your output to match the required schema perfectly.
 
 **CRITICAL INSTRUCTIONS:**
-1.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
-    -   Use 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', or 'stackedBarChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
+1.  **PROCESS DATA:** First, filter, sort, and aggregate the data as requested by the query. Pay close attention to keywords like "cooperative", "most", "top 5", "by BGG rating", etc.
+2.  **CHOOSE OUTPUT TYPE:** Based on the processed data and the query, decide on the single best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
+    -   Use charts for visual breakdowns (e.g., "chart...", "show me a breakdown...").
     -   Use 'lineChart' for time-series data (e.g., "plays per month").
-    -   Use 'horizontalBarChart' when comparing many items or items with long labels.
+    -   Use 'horizontalBarChart' when comparing many items or items with long labels (e.g., "list all my cooperative games sorted by rating").
     -   Use 'stackedBarChart' for part-to-whole comparisons across categories (e.g., "wins and losses per player").
-    -   Use 'list' for rankings or simple lists (e.g., "top 5...", "list all...").
+    -   Use 'list' for ranked lists or simple lists (e.g., "top 5...", "list all...").
     -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
-2.  **FORMAT DATA:** Structure the 'data' property to match the chosen output type.
-    -   For 'barChart', 'pieChart', 'lineChart', and 'horizontalBarChart', items in 'data' must be objects with 'name' (string) and 'value' (number) properties.
-    -   For 'stackedBarChart', items must have a 'name' (string) and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array with the names of the stack value keys.
-    -   For 'list', items can have 'id', 'name', 'value', 'detail', and 'imageUrl'. When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
-3.  **TITLE:** The 'title' field is optional, but if provided, it should be a concise and descriptive title for the generated insight.
+3.  **FORMAT 'data' PROPERTY:** Structure the 'data' array to perfectly match the chosen output type.
+    -   For 'barChart', 'pieChart', 'lineChart', and 'horizontalBarChart', each item in 'data' MUST be an object with 'name' (string) and 'value' (number) properties.
+    -   For 'stackedBarChart', each item MUST have a 'name' (string) and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array containing the names of those stack value keys.
+    -   For 'list', each item can have 'id', 'name', 'value', 'detail', and 'imageUrl'. When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
+4.  **TITLE:** Provide a concise and descriptive title for the generated insight.
 
 User Query: "{{{query}}}"
 
