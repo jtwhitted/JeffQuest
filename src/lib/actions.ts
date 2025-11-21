@@ -14,6 +14,7 @@ import {
     updatePlayerInDB,
     getInitialData,
     updateGameInDB,
+    addInsightToDB,
     deleteInsightFromDB
 } from './data';
 import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends, getBggUserDetails } from './bgg';
@@ -193,6 +194,25 @@ export async function deleteSessionAction(sessionId: string) {
     revalidatePath('/games');
     revalidatePath('/players');
 }
+
+const insightFormSchema = z.object({
+  query: z.string().min(1, 'Query is required.'),
+});
+
+export async function addInsightAction(values: z.infer<typeof insightFormSchema>) {
+    const validatedFields = insightFormSchema.safeParse(values);
+    if (!validatedFields.success) {
+        throw new Error('Invalid insight data.');
+    }
+    const newInsight: DashboardInsight = {
+        id: `in-${Date.now()}`,
+        query: validatedFields.data.query,
+    };
+    await addInsightToDB(newInsight);
+    revalidatePath('/');
+    return newInsight;
+}
+
 
 export async function deleteInsightAction(insightId: string) {
     await deleteInsightFromDB(insightId);

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, WandSparkles, Info, X } from "lucide-react";
+import { Loader2, WandSparkles, Info, X, Save } from "lucide-react";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
 import { generateDashboardInsight, type GenerateInsightOutput } from '@/ai/flows/generate-dashboard-insight';
@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { AiInsightGame, AiInsightPlayer, AiInsightSession, ChartDataItem, ListItem, StackedChartDataItem } from '@/lib/types';
+import type { ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
@@ -30,7 +30,7 @@ const loadingSteps = [
 ];
 
 export function AiInsightWidget() {
-    const { games, players, sessions } = useGames();
+    const { games, players, sessions, addInsight } = useGames();
     const { toast } = useToast();
     const [query, setQuery] = useState('');
     const [loadingMessage, setLoadingMessage] = useState('');
@@ -120,6 +120,25 @@ export function AiInsightWidget() {
         setInsight(null);
         setQuery('');
     };
+    
+    const handleSave = async () => {
+        if (!query || !insight) return;
+        try {
+            await addInsight(query);
+            toast({
+                title: 'Insight Saved!',
+                description: 'The widget has been added to your dashboard.',
+            });
+            handleClear(); // Clear after saving
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Error Saving',
+                description: 'Could not save the insight.',
+            });
+        }
+    };
+
 
     const renderInsight = () => {
         if (!insight) return null;
@@ -268,6 +287,10 @@ export function AiInsightWidget() {
                     )}
                 </CardContent>
                 <CardFooter className="justify-end gap-2">
+                     <Button variant="outline" onClick={handleSave}>
+                        <Save className="mr-2" />
+                        Save to Dashboard
+                    </Button>
                     <Button variant="ghost" onClick={handleClear}>
                         <X className="mr-2" />
                         Clear
@@ -349,5 +372,3 @@ export function AiInsightWidget() {
         </Card>
     )
 }
-
-    

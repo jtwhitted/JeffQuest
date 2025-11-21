@@ -303,24 +303,6 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                 {dashboardInsights.map((insight) => (
                     <SavedInsightWidget key={insight.id} insight={insight} />
                 ))}
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Sessions Overview</CardTitle>
-                        <CardDescription>Number of games played per month.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <GamesOverTimeChart sessions={sessions} />
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Player Performance</CardTitle>
-                        <CardDescription>Win/loss ratio for each player.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <WinLossChart sessions={sessions} players={players} />
-                    </CardContent>
-                </Card>
             </div>
           <div className="space-y-8">
             <Card>
@@ -385,6 +367,24 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                     <p className="text-center text-muted-foreground py-8">No sessions logged yet.</p>
                 )}
               </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Sessions Overview</CardTitle>
+                    <CardDescription>Number of games played per month.</CardDescription>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <GamesOverTimeChart sessions={sessions} />
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Player Performance</CardTitle>
+                    <CardDescription>Win/loss ratio for each player.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <WinLossChart sessions={sessions} players={players} />
+                </CardContent>
             </Card>
           </div>
         </div>

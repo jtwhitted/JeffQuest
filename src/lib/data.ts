@@ -154,6 +154,13 @@ export async function deleteSessionFromDB(sessionId: string): Promise<void> {
     await writeData(SESSIONS_PATH, sessions);
 }
 
+export async function addInsightToDB(insight: DashboardInsight): Promise<DashboardInsight> {
+    const insights = await readData<DashboardInsight>(DASHBOARD_PATH);
+    insights.push(insight);
+    await writeData(DASHBOARD_PATH, insights);
+    return insight;
+}
+
 export async function deleteInsightFromDB(insightId: string): Promise<void> {
     let insights = await readData<DashboardInsight>(DASHBOARD_PATH);
     insights = insights.filter(i => i.id !== insightId);

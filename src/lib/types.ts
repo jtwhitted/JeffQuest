@@ -80,11 +80,6 @@ export interface ListItem {
 export interface DashboardInsight {
     id: string;
     query: string;
-    type: 'text' | 'barChart' | 'pieChart' | 'lineChart' | 'horizontalBarChart' | 'stackedBarChart' | 'list';
-    title?: string;
-    text?: string;
-    data?: (ChartDataItem | ListItem | StackedChartDataItem)[];
-    dataKeys?: string[];
 }
 
 // Slimmed down types for sending to AI

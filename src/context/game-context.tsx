@@ -13,6 +13,7 @@ import {
     updatePlayerAction,
     setFavoriteVideoAction,
     importBggPlayHistory,
+    addInsightAction,
     deleteInsightAction,
 } from '@/lib/actions';
 import { getInitialData } from '@/lib/data';
@@ -52,6 +53,7 @@ interface GameContextType {
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
+  addInsight: (query: string) => Promise<DashboardInsight>;
   deleteInsight: (insightId: string) => Promise<void>;
   isLoading: boolean;
   refreshData: () => Promise<void>;
@@ -182,6 +184,17 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
+  const addInsight = useCallback(async (query: string): Promise<DashboardInsight> => {
+    setIsLoading(true);
+    try {
+      const newInsight = await addInsightAction({ query });
+      setDashboardInsights(prev => [...prev, newInsight]);
+      return newInsight;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const deleteInsight = useCallback(async (insightId: string) => {
     setIsLoading(true);
     try {
@@ -210,7 +223,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, dashboardInsights, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, deleteInsight, isLoading, refreshData, setFavoriteVideo }}>
+    <GameContext.Provider value={{ games, players, sessions, dashboardInsights, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, addInsight, deleteInsight, isLoading, refreshData, setFavoriteVideo }}>
       {children}
     </GameContext.Provider>
   );
