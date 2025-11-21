@@ -23,14 +23,17 @@ const ChartDataItemSchema = z.object({
 });
 
 const ListItemSchema = z.object({
+    id: z.string().optional().describe("The unique ID of the main item, if applicable (e.g., the game ID)."),
     name: z.string().describe("The main name or title of the list item (e.g., game name)."),
     value: z.union([z.string(), z.number()]).optional().describe("The primary value associated with the item (e.g., BGG Rating, number of plays)."),
     detail: z.string().optional().describe("An optional secondary piece of information (e.g., game category, player name)."),
+    imageUrl: z.string().optional().describe("A URL for an image of the item, if available."),
 });
+
 
 const GenerateInsightOutputSchema = z.object({
     type: z.enum(['text', 'barChart', 'pieChart', 'list']).describe("The type of insight to display. Use 'text' for simple answers. Use 'barChart' or 'pieChart' for visualizations. Use 'list' for ranked or simple lists."),
-    title: z.string().optional().describe("A concise title for the generated insight, chart, or list."),
+    title: z.string().optional().describe("A concise, descriptive title for the generated insight, chart, or list."),
     text: z.string().optional().describe("The text of the answer, if the type is 'text'."),
     data: z.array(z.union([ChartDataItemSchema, ListItemSchema])).optional().describe("An array of data points for the chart or list."),
 });
@@ -56,7 +59,7 @@ Analyze the user's query and the provided 'games', 'players', and 'sessions' dat
 2.  **SORT SECOND:** After filtering, sort the data as requested. For example, "sorted by rating" means ordering by the 'rating' field. "Most played" means counting sessions and sorting by that count.
 3.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format.
     -   Use 'barChart' or 'pieChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
-    -   Use 'list' for rankings or lists (e.g., "top 5...", "list all...").
+    -   Use 'list' for rankings or lists (e.g., "top 5...", "list all..."). When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
     -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
 4.  **FORMAT DATA:** Structure the data property to match the chosen output type.
     -   For charts ('barChart', 'pieChart'), the items in 'data' should have a 'name' (the label) and a 'value' (the number).

@@ -14,6 +14,8 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pi
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '../ui/badge';
+import Link from 'next/link';
+import Image from 'next/image';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -98,15 +100,34 @@ export function AiInsightWidget() {
                         </ChartContainer>
                     )}
                      {insight.type === 'list' && insight.data && (
-                        <ul className="space-y-3">
+                        <ul className="space-y-4">
                             {insight.data.map((item, index) => (
-                                <li key={index} className="flex items-center justify-between text-sm">
+                                'imageUrl' in item && 'id' in item && item.id ? (
+                                <li key={item.id}>
+                                    <Link href={`/games/${item.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                                        <div className="flex items-start gap-4">
+                                            <Image src={item.imageUrl || ''} alt={item.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" />
+                                            <div className="flex-1">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{item.name}</h4>
+                                                        {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
+                                                    </div>
+                                                    {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </li>
+                                ) : (
+                                <li key={index} className="flex items-center justify-between text-sm p-2 rounded-lg border">
                                     <div className="flex flex-col">
                                         <span className="font-semibold">{item.name}</span>
                                         {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
                                     </div>
                                     {item.value && <Badge variant="outline">{item.value}</Badge>}
                                 </li>
+                                )
                             ))}
                         </ul>
                     )}
