@@ -3,6 +3,8 @@
 
 import { XMLParser } from 'fast-xml-parser';
 import { Game } from './types';
+import fs from 'fs/promises';
+import path from 'path';
 
 const BGG_API_URL = 'https://boardgamegeek.com/xmlapi2';
 
@@ -180,9 +182,12 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
 
 
 export async function getBggCollection(username: string): Promise<{ bggId: string, userRating?: number, userComment?: string }[]> {
-    const params: Record<string, string> = { username, subtype: 'boardgame', stats: '1', commented: '1' };
+    const params: Record<string, string> = { username, subtype: 'boardgame', stats: '1' };
     const xmlData = await bggFetch('collection', params);
     const parsed = parser.parse(xmlData);
+
+    const logPath = path.join(process.cwd(), 'bgg-import-log.txt');
+    await fs.appendFile(logPath, `[${new Date().toISOString()}] [BGG Raw Parse] Parsed collection data: ${JSON.stringify(parsed, null, 2)}\n`);
 
     if (parsed.errors?.error) {
         throw new Error(`BGG Error: ${parsed.errors.error.message}`);
@@ -196,7 +201,8 @@ export async function getBggCollection(username: string): Promise<{ bggId: strin
 
     return items.map((item: any) => {
         const rating = item.stats?.rating?.['@_value'];
-        const comment = item.comment?._value || undefined; // Correctly extract text from comment object.
+        // Correctly extract text content from the comment tag, if it exists
+        const comment = item.comment?._value || undefined;
         return {
             bggId: item['@_objectid'].toString(),
             userRating: rating && rating !== 'N/A' ? parseFloat(rating) : undefined,
