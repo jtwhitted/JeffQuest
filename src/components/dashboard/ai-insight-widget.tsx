@@ -28,8 +28,8 @@ export function AiInsightWidget() {
     const [insight, setInsight] = useState<GenerateInsightOutput | null>(null);
 
     const handleGenerate = async () => {
-        if (!query.trim()) {
-            toast({ variant: 'destructive', title: 'Please enter a question.' });
+        if (!query.trim() || isLoading) {
+            if (!query.trim()) toast({ variant: 'destructive', title: 'Please enter a question.' });
             return;
         }
         setIsLoading(true);
@@ -83,6 +83,13 @@ export function AiInsightWidget() {
             });
         } finally {
             setIsLoading(false);
+        }
+    };
+    
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // Prevents adding a new line
+            handleGenerate();
         }
     };
 
@@ -276,6 +283,7 @@ export function AiInsightWidget() {
                     placeholder="Example: 'Chart my wins vs losses per player' or 'List my most played game category'"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     disabled={isLoading}
                     rows={3}
                 />
