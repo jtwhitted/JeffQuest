@@ -116,6 +116,11 @@ export function AiInsightWidget() {
         }
     };
 
+    const handleClear = () => {
+        setInsight(null);
+        setQuery('');
+    };
+
     const renderInsight = () => {
         if (!insight) return null;
 
@@ -263,7 +268,7 @@ export function AiInsightWidget() {
                     )}
                 </CardContent>
                 <CardFooter className="justify-end gap-2">
-                    <Button variant="ghost" onClick={() => setInsight(null)}>
+                    <Button variant="ghost" onClick={handleClear}>
                         <X className="mr-2" />
                         Clear
                     </Button>
