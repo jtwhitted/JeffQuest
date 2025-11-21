@@ -60,20 +60,18 @@ const generateInsightPrompt = ai.definePrompt({
 Analyze the user's query and the provided 'games', 'players', and 'sessions' data to formulate an answer.
 
 **CRITICAL INSTRUCTIONS:**
-1.  **FILTER FIRST:** Before any other operation, filter the data according to the user's request. For example, if they ask for "cooperative games", you MUST filter the 'games' array to only include games where the 'mechanics' array contains 'Cooperative Game'. If they ask about a specific player, filter the 'sessions' for that player.
-2.  **SORT SECOND:** After filtering, sort the data as requested. For example, "sorted by rating" means ordering by the 'rating' field. "Most played" means counting sessions and sorting by that count.
-3.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
-    -   Use 'barChart' or 'pieChart' or 'lineChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
+1.  **CHOOSE OUTPUT TYPE:** Based on the query, decide on the best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
+    -   Use 'barChart', 'pieChart', or 'lineChart' for visual breakdowns (e.g., "chart...", "show me a breakdown...").
     -   Use 'horizontalBarChart' when comparing many items or items with long labels.
     -   Use 'stackedBarChart' for part-to-whole comparisons across categories (e.g., "wins and losses per player").
     -   Use 'lineChart' for time-series data (e.g., "plays per month").
-    -   Use 'list' for rankings or simple lists (e.g., "top 5...", "list all..."). When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
+    -   Use 'list' for rankings or simple lists (e.g., "top 5...", "list all...").
     -   Use 'text' for simple, single-value answers (e.g., "how many sessions?", "what is my most played game?").
-4.  **FORMAT DATA:** Structure the 'data' property to match the chosen output type.
+2.  **FORMAT DATA:** Structure the 'data' property to match the chosen output type.
     -   For 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', items in 'data' must have 'name' and 'value'.
     -   For 'stackedBarChart', items must have a 'name' and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array.
-    -   For 'list', items can have 'id', 'name', 'value', 'detail', and 'imageUrl'.
-5.  **TITLE:** The 'title' field is optional, but if provided, it should be descriptive of the query.
+    -   For 'list', items can have 'id', 'name', 'value', 'detail', and 'imageUrl'. When creating a list of games, you MUST include the 'id' and 'imageUrl' for each game in the data response.
+3.  **TITLE:** The 'title' field is optional, but if provided, it should be descriptive of the query.
 
 User Query: "{{{query}}}"
 
