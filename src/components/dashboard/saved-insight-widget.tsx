@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Star } from "lucide-react";
 import type { DashboardInsight, ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from "@/lib/types";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
@@ -99,6 +99,20 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
                 description: 'Could not remove the insight.',
             });
         }
+    }
+
+    const renderValueBadge = (value: string | number | undefined) => {
+        if (value === undefined) return null;
+
+        if (typeof value === 'number') {
+            return (
+                <Badge variant="outline" className="flex items-center gap-1">
+                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                    {value.toFixed(1)} / 10
+                </Badge>
+            );
+        }
+        return <Badge variant="outline">{value}</Badge>;
     }
     
      const renderContent = () => {
@@ -229,7 +243,7 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
                                                             <h4 className="font-semibold">{item.name}</h4>
                                                             {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
                                                         </div>
-                                                        {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                                        {renderValueBadge(item.value)}
                                                     </div>
                                                 </div>
                                             </div>
@@ -249,7 +263,7 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
                                                 <div className="flex-1">
                                                     <h4 className="font-semibold">{item.name}</h4>
                                                     {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
-                                                    {item.value && <Badge variant="outline" className="mt-1">{item.value}</Badge>}
+                                                    {renderValueBadge(item.value)}
                                                 </div>
                                             </div>
                                         </Link>
@@ -263,7 +277,7 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
                                         <span className="font-semibold">{item.name}</span>
                                         {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
                                     </div>
-                                    {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                    {renderValueBadge(item.value)}
                                 </li>
                             )
                         })}
@@ -297,3 +311,5 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
         </Card>
     );
 }
+
+    

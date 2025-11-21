@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, WandSparkles, Info, X, Save } from "lucide-react";
+import { Loader2, WandSparkles, Info, X, Save, Star } from "lucide-react";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
 import { generateDashboardInsight, type GenerateInsightOutput } from '@/ai/flows/generate-dashboard-insight';
@@ -138,6 +138,20 @@ export function AiInsightWidget() {
             });
         }
     };
+    
+    const renderValueBadge = (value: string | number | undefined) => {
+        if (value === undefined) return null;
+
+        if (typeof value === 'number') {
+            return (
+                <Badge variant="outline" className="flex items-center gap-1">
+                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                    {value.toFixed(1)} / 10
+                </Badge>
+            );
+        }
+        return <Badge variant="outline">{value}</Badge>;
+    }
 
 
     const renderInsight = () => {
@@ -245,7 +259,7 @@ export function AiInsightWidget() {
                                                                 <h4 className="font-semibold">{item.name}</h4>
                                                                 {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
                                                             </div>
-                                                            {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                                            {renderValueBadge(item.value)}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -265,7 +279,7 @@ export function AiInsightWidget() {
                                                     <div className="flex-1">
                                                         <h4 className="font-semibold">{item.name}</h4>
                                                         {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
-                                                        {item.value && <Badge variant="outline" className="mt-1">{item.value}</Badge>}
+                                                        {renderValueBadge(item.value)}
                                                     </div>
                                                 </div>
                                             </Link>
@@ -279,7 +293,7 @@ export function AiInsightWidget() {
                                             <span className="font-semibold">{item.name}</span>
                                             {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
                                         </div>
-                                        {item.value && <Badge variant="outline">{item.value}</Badge>}
+                                        {renderValueBadge(item.value)}
                                     </li>
                                 )
                             })}
@@ -372,3 +386,5 @@ export function AiInsightWidget() {
         </Card>
     )
 }
+
+    
