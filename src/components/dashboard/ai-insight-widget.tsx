@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -16,24 +16,46 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from '@/lib/types';
+import type { AiInsightGame, AiInsightPlayer, AiInsightSession, ChartDataItem, ListItem, StackedChartDataItem } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+
+const loadingSteps = [
+    "Parsing your question...",
+    "Querying your game data...",
+    "Analyzing the numbers...",
+    "Generating visualization...",
+    "Finalizing the chart...",
+];
 
 export function AiInsightWidget() {
     const { games, players, sessions } = useGames();
     const { toast } = useToast();
     const [query, setQuery] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('');
     const [insight, setInsight] = useState<GenerateInsightOutput | null>(null);
 
+     useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (loadingMessage && loadingMessage !== 'Error') {
+            let step = 0;
+            const updateStep = () => {
+                setLoadingMessage(loadingSteps[step % loadingSteps.length]);
+                step++;
+            };
+            timer = setInterval(updateStep, 2000);
+        }
+        return () => clearInterval(timer);
+    }, [loadingMessage]);
+
+
     const handleGenerate = async () => {
-        if (!query.trim() || isLoading) {
+        if (!query.trim() || loadingMessage) {
             if (!query.trim()) toast({ variant: 'destructive', title: 'Please enter a question.' });
             return;
         }
-        setIsLoading(true);
+        setLoadingMessage(loadingSteps[0]);
         setInsight(null);
         try {
             // Create slimmed down versions of the data to send to the AI
@@ -83,7 +105,7 @@ export function AiInsightWidget() {
                 description: error.message || 'The AI could not generate an insight for this query.',
             });
         } finally {
-            setIsLoading(false);
+            setLoadingMessage('');
         }
     };
     
@@ -187,26 +209,7 @@ export function AiInsightWidget() {
                      {insight.type === 'list' && insight.data && (
                         <ul className="space-y-4">
                             {(insight.data as ListItem[]).map((item) => {
-                                const player = item.imageUrl?.includes('dicebear.com') ? players.find(p => p.id === item.id) : null;
-                                if (player) {
-                                    return (
-                                        <li key={item.id}>
-                                            <Link href={`/players`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
-                                                <div className="flex items-start gap-4">
-                                                    <Avatar className="h-16 w-16">
-                                                        <AvatarImage src={player.avatarUrl} alt={player.name} />
-                                                        <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1">
-                                                        <h4 className="font-semibold">{item.name}</h4>
-                                                        {item.value && <Badge variant="outline">{item.value}</Badge>}
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </li>
-                                    )
-                                }
-                                if (item.imageUrl) {
+                                 if (item.imageUrl && item.id) { // This is a game
                                     return (
                                         <li key={item.id}>
                                             <Link href={`/games/${item.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
@@ -226,8 +229,28 @@ export function AiInsightWidget() {
                                         </li>
                                     )
                                 }
+                                if (item.id) { // This is likely a player
+                                    return (
+                                         <li key={item.id}>
+                                            <Link href={`/players`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                                                <div className="flex items-start gap-4">
+                                                     <Avatar className="h-16 w-16">
+                                                        <AvatarImage src={`https://api.dicebear.com/8.x/bottts/svg?seed=${encodeURIComponent(item.name)}`} alt={item.name} />
+                                                        <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-semibold">{item.name}</h4>
+                                                        {item.detail && <p className="text-sm text-muted-foreground">{item.detail}</p>}
+                                                        {item.value && <Badge variant="outline" className="mt-1">{item.value}</Badge>}
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    )
+                                }
+                                // Default simple list item
                                 return (
-                                    <li key={item.id} className="flex items-center justify-between text-sm p-2 rounded-lg border">
+                                    <li key={item.name} className="flex items-center justify-between text-sm p-2 rounded-lg border">
                                         <div className="flex flex-col">
                                             <span className="font-semibold">{item.name}</span>
                                             {item.detail && <span className="text-xs text-muted-foreground">{item.detail}</span>}
@@ -307,12 +330,12 @@ export function AiInsightWidget() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    disabled={isLoading}
+                    disabled={!!loadingMessage}
                     rows={3}
                 />
-                <Button className="w-full" onClick={handleGenerate} disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
-                    {isLoading ? 'Analyzing...' : 'Generate Insight'}
+                <Button className="w-full" onClick={handleGenerate} disabled={!!loadingMessage}>
+                    {loadingMessage ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+                    {loadingMessage || 'Generate Insight'}
                 </Button>
                 
                 {renderInsight()}
@@ -321,3 +344,5 @@ export function AiInsightWidget() {
         </Card>
     )
 }
+
+    
