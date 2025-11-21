@@ -80,7 +80,18 @@ export interface ListItem {
 export interface DashboardInsight {
     id: string;
     query: string;
+    generatedInsight: GenerateInsightOutput;
 }
+
+// Duplicating this from the AI flow to avoid import issues in client components
+export interface GenerateInsightOutput {
+    type: 'text' | 'barChart' | 'pieChart' | 'lineChart' | 'horizontalBarChart' | 'stackedBarChart' | 'list';
+    title?: string;
+    text?: string;
+    data?: (ChartDataItem | ListItem | StackedChartDataItem)[];
+    dataKeys?: string[];
+}
+
 
 // Slimmed down types for sending to AI
 export interface AiInsightGame {
@@ -113,5 +124,3 @@ export interface AiInsightSession {
     scores?: { playerId: string, score?: number }[];
     duration?: number;
 }
-
-    

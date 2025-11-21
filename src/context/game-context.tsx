@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import type { Game, Player, Session, DashboardInsight } from '@/lib/types';
+import type { Game, Player, Session, DashboardInsight, GenerateInsightOutput } from '@/lib/types';
 import { 
     addGame as addGameAction,
     addPlayer as addPlayerAction, 
@@ -15,6 +15,7 @@ import {
     importBggPlayHistory,
     addInsightAction,
     deleteInsightAction,
+    updateInsightAction,
 } from '@/lib/actions';
 import { getInitialData } from '@/lib/data';
 
@@ -53,7 +54,8 @@ interface GameContextType {
   deleteGame: (gameId: string) => Promise<void>;
   deletePlayer: (playerId: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
-  addInsight: (query: string) => Promise<DashboardInsight>;
+  addInsight: (query: string, generatedInsight: GenerateInsightOutput) => Promise<DashboardInsight>;
+  updateInsight: (insightId: string, generatedInsight: GenerateInsightOutput) => Promise<void>;
   deleteInsight: (insightId: string) => Promise<void>;
   isLoading: boolean;
   refreshData: () => Promise<void>;
@@ -184,16 +186,27 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     }
   }, []);
 
-  const addInsight = useCallback(async (query: string): Promise<DashboardInsight> => {
+  const addInsight = useCallback(async (query: string, generatedInsight: GenerateInsightOutput): Promise<DashboardInsight> => {
     setIsLoading(true);
     try {
-      const newInsight = await addInsightAction({ query });
+      const newInsight = await addInsightAction({ query, generatedInsight });
       setDashboardInsights(prev => [...prev, newInsight]);
       return newInsight;
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const updateInsight = useCallback(async (insightId: string, generatedInsight: GenerateInsightOutput): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const updatedInsight = await updateInsightAction(insightId, { generatedInsight });
+      setDashboardInsights(prev => prev.map(i => i.id === insightId ? updatedInsight : i));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
 
   const deleteInsight = useCallback(async (insightId: string) => {
     setIsLoading(true);
@@ -223,7 +236,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
 
 
   return (
-    <GameContext.Provider value={{ games, players, sessions, dashboardInsights, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, addInsight, deleteInsight, isLoading, refreshData, setFavoriteVideo }}>
+    <GameContext.Provider value={{ games, players, sessions, dashboardInsights, addGame, updateGame, addPlayer, updatePlayer, addSession, deleteGame, deletePlayer, deleteSession, addInsight, updateInsight, deleteInsight, isLoading, refreshData, setFavoriteVideo }}>
       {children}
     </GameContext.Provider>
   );

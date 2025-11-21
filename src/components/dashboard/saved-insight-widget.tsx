@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, Star } from "lucide-react";
-import type { DashboardInsight, ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession } from "@/lib/types";
+import { Loader2, X, Star, RefreshCw } from "lucide-react";
+import type { DashboardInsight, ChartDataItem, ListItem, StackedChartDataItem, AiInsightGame, AiInsightPlayer, AiInsightSession, GenerateInsightOutput } from "@/lib/types";
 import { useGames } from "@/context/game-context";
 import { useToast } from "@/hooks/use-toast";
-import { generateDashboardInsight, type GenerateInsightOutput } from '@/ai/flows/generate-dashboard-insight';
+import { generateDashboardInsight } from '@/ai/flows/generate-dashboard-insight';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import Link from 'next/link';
@@ -23,66 +23,37 @@ interface SavedInsightWidgetProps {
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 
-export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
-    const { deleteInsight, games, players, sessions } = useGames();
+export function SavedInsightWidget({ insight: initialInsight }: SavedInsightWidgetProps) {
+    const { deleteInsight, updateInsight, games, players, sessions } = useGames();
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(true);
-    const [generatedInsight, setGeneratedInsight] = useState<GenerateInsightOutput | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [insight, setInsight] = useState<DashboardInsight>(initialInsight);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const generate = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                // Create slimmed down versions of the data to send to the AI
-                const insightGames: AiInsightGame[] = games.map(g => ({
-                    id: g.id,
-                    name: g.name,
-                    yearPublished: g.yearPublished,
-                    minPlayers: g.minPlayers,
-                    maxPlayers: g.maxPlayers,
-                    minPlaytime: g.minPlaytime,
-                    maxPlaytime: g.maxPlaytime,
-                    difficulty: g.difficulty,
-                    category: g.category,
-                    mechanics: g.mechanics,
-                    rating: g.rating,
-                    userRatings: g.userRatings,
-                    imageUrl: g.imageUrl,
-                }));
+    const handleRefresh = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const insightGames: AiInsightGame[] = games.map(g => ({
+                id: g.id, name: g.name, yearPublished: g.yearPublished, minPlayers: g.minPlayers, maxPlayers: g.maxPlayers, minPlaytime: g.minPlaytime, maxPlaytime: g.maxPlaytime, difficulty: g.difficulty, category: g.category, mechanics: g.mechanics, rating: g.rating, userRatings: g.userRatings, imageUrl: g.imageUrl,
+            }));
+            const insightPlayers: AiInsightPlayer[] = players.map(p => ({ id: p.id, name: p.name }));
+            const insightSessions: AiInsightSession[] = sessions.map(s => ({ gameId: s.gameId, date: s.date, playerIds: s.playerIds, winnerId: s.winnerId, cooperativeResult: s.cooperativeResult, scores: s.scores, duration: s.duration }));
+            
+            const result = await generateDashboardInsight({ query: insight.query, games: insightGames, players: insightPlayers, sessions: insightSessions });
+            
+            await updateInsight(insight.id, result);
+            setInsight(prev => ({ ...prev, generatedInsight: result }));
+            toast({ title: 'Insight Refreshed', description: 'The latest data has been loaded.' });
 
-                const insightPlayers: AiInsightPlayer[] = players.map(p => ({
-                    id: p.id,
-                    name: p.name,
-                }));
-
-                const insightSessions: AiInsightSession[] = sessions.map(s => ({
-                    gameId: s.gameId,
-                    date: s.date,
-                    playerIds: s.playerIds,
-                    winnerId: s.winnerId,
-                    cooperativeResult: s.cooperativeResult,
-                    scores: s.scores,
-                    duration: s.duration,
-                }));
-                
-                const result = await generateDashboardInsight({
-                    query: insight.query,
-                    games: insightGames,
-                    players: insightPlayers,
-                    sessions: insightSessions
-                });
-                setGeneratedInsight(result);
-            } catch (err: any) {
-                console.error(`Failed to generate saved insight for query "${insight.query}":`, err);
-                setError(err.message || 'The AI failed to generate this insight.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        generate();
-    }, [insight, games, players, sessions]);
+        } catch (err: any) {
+            console.error(`Failed to refresh saved insight for query "${insight.query}":`, err);
+            setError(err.message || 'The AI failed to refresh this insight.');
+            toast({ variant: 'destructive', title: 'Refresh Failed', description: err.message });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
 
     const handleDelete = async () => {
@@ -116,15 +87,6 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
     }
     
      const renderContent = () => {
-        if (isLoading) {
-            return (
-                <div className="flex items-center justify-center h-48 text-muted-foreground">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <p className="ml-2">Generating visualization...</p>
-                </div>
-            );
-        }
-
         if (error) {
             return (
                 <div className="flex items-center justify-center h-48 text-destructive text-center p-4">
@@ -133,13 +95,14 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
             );
         }
 
-        if (!generatedInsight) {
+        if (!insight.generatedInsight) {
              return (
                 <div className="flex items-center justify-center h-48 text-muted-foreground">
-                    <p>No insight could be generated.</p>
+                    <p>No visualization data found. Try refreshing.</p>
                 </div>
             );
         }
+        const { generatedInsight } = insight;
 
         switch (generatedInsight.type) {
             case 'text':
@@ -294,15 +257,21 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
             <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <CardTitle>{generatedInsight?.title || 'Saved Insight'}</CardTitle>
+                        <CardTitle>{insight.generatedInsight?.title || 'Saved Insight'}</CardTitle>
                         <CardDescription className="mt-1">
                            {insight.query}
                         </CardDescription>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleDelete}>
-                        <X className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Delete Insight</span>
-                    </Button>
+                     <div className='flex items-center'>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleRefresh} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4 text-muted-foreground" />}
+                            <span className="sr-only">Refresh Insight</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={handleDelete} disabled={isLoading}>
+                            <X className="h-4 w-4 text-muted-foreground" />
+                            <span className="sr-only">Delete Insight</span>
+                        </Button>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent>
@@ -311,5 +280,3 @@ export function SavedInsightWidget({ insight }: SavedInsightWidgetProps) {
         </Card>
     );
 }
-
-    

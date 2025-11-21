@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game, Player, Session, RulebookDocument, YoutubeVideo, DashboardInsight } from './types';
+import type { Game, Player, Session, RulebookDocument, YoutubeVideo, DashboardInsight, GenerateInsightOutput } from './types';
 import { 
     addGameToDB,
     addSessionToDB,
@@ -15,7 +15,8 @@ import {
     getInitialData,
     updateGameInDB,
     addInsightToDB,
-    deleteInsightFromDB
+    deleteInsightFromDB,
+    updateInsightInDB
 } from './data';
 import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends, getBggUserDetails } from './bgg';
 import pdf from 'pdf-parse';
@@ -197,6 +198,7 @@ export async function deleteSessionAction(sessionId: string) {
 
 const insightFormSchema = z.object({
   query: z.string().min(1, 'Query is required.'),
+  generatedInsight: z.any(),
 });
 
 export async function addInsightAction(values: z.infer<typeof insightFormSchema>) {
@@ -207,12 +209,18 @@ export async function addInsightAction(values: z.infer<typeof insightFormSchema>
     const newInsight: DashboardInsight = {
         id: `in-${Date.now()}`,
         query: validatedFields.data.query,
+        generatedInsight: validatedFields.data.generatedInsight,
     };
     await addInsightToDB(newInsight);
     revalidatePath('/');
     return newInsight;
 }
 
+export async function updateInsightAction(insightId: string, updatedData: Partial<DashboardInsight>) {
+  const updatedInsight = await updateInsightInDB(insightId, updatedData);
+  revalidatePath('/');
+  return updatedInsight;
+}
 
 export async function deleteInsightAction(insightId: string) {
     await deleteInsightFromDB(insightId);

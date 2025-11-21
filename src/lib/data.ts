@@ -161,6 +161,20 @@ export async function addInsightToDB(insight: DashboardInsight): Promise<Dashboa
     return insight;
 }
 
+export async function updateInsightInDB(insightId: string, updatedData: Partial<DashboardInsight>): Promise<DashboardInsight> {
+    const insights = await readData<DashboardInsight>(DASHBOARD_PATH);
+    const insightIndex = insights.findIndex(i => i.id === insightId);
+
+    if (insightIndex === -1) {
+        throw new Error('Insight not found.');
+    }
+
+    const updatedInsight = { ...insights[insightIndex], ...updatedData };
+    insights[insightIndex] = updatedInsight;
+    await writeData(DASHBOARD_PATH, insights);
+    return updatedInsight;
+}
+
 export async function deleteInsightFromDB(insightId: string): Promise<void> {
     let insights = await readData<DashboardInsight>(DASHBOARD_PATH);
     insights = insights.filter(i => i.id !== insightId);

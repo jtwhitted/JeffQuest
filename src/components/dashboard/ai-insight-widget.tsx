@@ -124,7 +124,7 @@ export function AiInsightWidget() {
     const handleSave = async () => {
         if (!query || !insight) return;
         try {
-            await addInsight(query);
+            await addInsight(query, insight);
             toast({
                 title: 'Insight Saved!',
                 description: 'The widget has been added to your dashboard.',
@@ -386,5 +386,3 @@ export function AiInsightWidget() {
         </Card>
     )
 }
-
-    
