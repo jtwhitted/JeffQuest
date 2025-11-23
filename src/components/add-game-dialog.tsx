@@ -28,9 +28,10 @@ import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
-import { searchBggAction } from '@/lib/actions';
+import { searchBggAction, getBggDetailsAction } from '@/lib/actions';
 import { GameSearchResultsDialog } from './game-search-results-dialog';
 import type { Game } from '@/lib/types';
+import { useGames } from '@/context/game-context';
 
 
 interface AddGameDialogProps {
@@ -51,13 +52,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
   const [manualAddDefaultName, setManualAddDefaultName] = useState('');
   const [searchResults, setSearchResults] = useState<Partial<Game>[]>([]);
   const [isSearchResultsOpen, setSearchResultsOpen] = useState(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-    },
-  });
+  const { addGame } = useGames();
 
   const handleGameAdded = () => {
     handleClose();
@@ -65,12 +60,58 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
     setManualAddDialogOpen(false);
     setSearchResultsOpen(false);
   };
+
+  const handleAddGameById = async (bggId: string, name: string) => {
+    setIsSubmitting(true);
+    try {
+      const fullDetailsList = await getBggDetailsAction(bggId);
+      if (fullDetailsList.length === 0 || !fullDetailsList[0].name) {
+          throw new Error(`Could not fetch details for ${name} from BGG.`);
+      }
+      const gameDetails = fullDetailsList[0];
+
+      await addGame({
+          name: gameDetails.name!,
+          bggId: gameDetails.id,
+          description: gameDetails.description,
+          yearPublished: gameDetails.yearPublished,
+          minPlayers: gameDetails.minPlayers,
+          maxPlayers: gameDetails.maxPlayers,
+          minPlaytime: gameDetails.minPlaytime,
+          maxPlaytime: gameDetails.maxPlaytime,
+          difficulty: gameDetails.difficulty,
+          category: gameDetails.category,
+          mechanics: gameDetails.mechanics,
+          designers: gameDetails.designers,
+          publishers: gameDetails.publishers,
+          imageUrl: gameDetails.imageUrl,
+          rating: gameDetails.rating,
+          ratingCount: gameDetails.ratingCount,
+          complexity: gameDetails.complexity,
+          bggComments: gameDetails.bggComments,
+      });
+
+      toast({
+        title: 'Game Added!',
+        description: `${name} has been added to your collection.`,
+      });
+      handleGameAdded();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error adding game",
+        description: error.message || "Could not save the new game.",
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
   
   const handleScanComplete = (results: Partial<Game>[], query: string) => {
     setScanDialogOpen(false);
-     if (query === 'SUCCESS') {
-      handleGameAdded();
-      return;
+     if (results.length === 1 && results[0].id) {
+        handleAddGameById(results[0].id, results[0].name || query);
+        return;
     }
     if (results && results.length > 0) {
       const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));

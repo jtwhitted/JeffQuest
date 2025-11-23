@@ -68,6 +68,10 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
           designers: gameDetails.designers,
           publishers: gameDetails.publishers,
           imageUrl: gameDetails.imageUrl,
+          rating: gameDetails.rating,
+          ratingCount: gameDetails.ratingCount,
+          complexity: gameDetails.complexity,
+          bggComments: gameDetails.bggComments,
       });
 
       toast({

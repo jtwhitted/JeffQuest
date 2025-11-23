@@ -15,8 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera, AlertTriangle } from 'lucide-react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getGameTitleFromImage } from '@/ai/flows/get-game-title-from-image';
-import { getBggDetailsAction, searchBggAction } from '@/lib/actions';
-import { useGames } from '@/context/game-context';
+import { searchBggAction } from '@/lib/actions';
 import type { Game } from '@/lib/types';
 import { selectGameFromImages } from '@/ai/flows/select-game-from-images';
 
@@ -33,7 +32,6 @@ export function GameScanDialog({
   onGameAdded,
 }: GameScanDialogProps) {
   const { toast } = useToast();
-  const { addGame } = useGames();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<
@@ -90,9 +88,11 @@ export function GameScanDialog({
     const originalPhotoDataUri = canvas.toDataURL('image/jpeg');
     
     setIsLoading(true);
+    let identifiedTitle = '';
     try {
       setLoadingMessage('Identifying game from image...');
       const { title } = await getGameTitleFromImage({ photoDataUri: originalPhotoDataUri });
+      identifiedTitle = title;
 
       setLoadingMessage(`Searching BGG for "${title}"...`);
       const searchResults = await searchBggAction(title);
@@ -102,10 +102,10 @@ export function GameScanDialog({
         return;
       }
       
-      const candidatesWithImages = searchResults.filter(r => r.imageUrl);
+      const candidatesWithImages = searchResults.filter(r => r.imageUrl && r.id && r.name);
 
-      if (candidatesWithImages.length === 0) {
-        onGameAdded(searchResults, title);
+      if (candidatesWithImages.length <= 1) {
+        onGameAdded(searchResults, title); // If only one or zero with image, show text results
         return;
       }
 
@@ -122,45 +122,13 @@ export function GameScanDialog({
       const bestMatch = searchResults.find(r => r.id === bestMatchBggId);
 
       if (!bestMatch || !bestMatch.id) {
+         // Fallback to showing all text-based results if visual match fails
          onGameAdded(searchResults, title);
          return;
       }
 
-      // We have a confident visual match, fetch full details and add it.
-      setLoadingMessage(`Adding "${bestMatch.name}"...`);
-      const fullDetailsList = await getBggDetailsAction(bestMatch.id);
-      if (fullDetailsList.length === 0 || !fullDetailsList[0].name) {
-          throw new Error(`Could not fetch details for ${bestMatch.name} from BGG.`);
-      }
-      const gameDetails = fullDetailsList[0];
-
-      await addGame({
-          name: gameDetails.name!,
-          bggId: gameDetails.id,
-          description: gameDetails.description,
-          yearPublished: gameDetails.yearPublished,
-          minPlayers: gameDetails.minPlayers,
-          maxPlayers: gameDetails.maxPlayers,
-          minPlaytime: gameDetails.minPlaytime,
-          maxPlaytime: gameDetails.maxPlaytime,
-          difficulty: gameDetails.difficulty,
-          category: gameDetails.category,
-          mechanics: gameDetails.mechanics,
-          designers: gameDetails.designers,
-          publishers: gameDetails.publishers,
-          imageUrl: gameDetails.imageUrl,
-          rating: gameDetails.rating,
-          ratingCount: gameDetails.ratingCount,
-          complexity: gameDetails.complexity,
-          bggComments: gameDetails.bggComments,
-      });
-
-      toast({
-          title: 'Game Added!',
-          description: `${bestMatch.name} has been added to your collection.`,
-      });
-      onOpenChange(false);
-      onGameAdded([], 'SUCCESS');
+      // We have a confident visual match, pass it as a single-item array
+      onGameAdded([bestMatch], bestMatch.name || title);
 
     } catch (error: any) {
       console.error('Error during scan and search process:', error);
@@ -169,11 +137,12 @@ export function GameScanDialog({
         title: 'Error Scanning Game',
         description: error.message || 'Could not identify or find the game.',
       });
-      onGameAdded([], ''); // Fallback to allow manual add
+      // Fallback to allowing manual add, using the title if it was identified
+      onGameAdded([], identifiedTitle);
     } finally {
       setIsLoading(false);
     }
-  }, [onOpenChange, toast, onGameAdded, addGame]);
+  }, [onOpenChange, toast, onGameAdded]);
   
   const handleClose = () => {
     onOpenChange(false);
