@@ -24,7 +24,7 @@ interface GameSearchResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   results: Partial<Game>[];
-  onGameSelected: () => void;
+  onGameSelected: (bggId: string, name: string) => void;
 }
 
 export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSelected }: GameSearchResultsDialogProps) {
@@ -45,39 +45,12 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
     
     setIsSubmitting(true);
     try {
-      // First, get the full details for the selected game
-      const fullDetailsList = await getBggDetailsAction(selectedValue);
-      if (fullDetailsList.length === 0 || !fullDetailsList[0].name) {
-          throw new Error(`Could not fetch details for the selected game from BGG.`);
+      const selectedGameResult = results.find(r => r.id === selectedValue);
+      if (!selectedGameResult) {
+        throw new Error('Selected game not found in results.');
       }
-      const gameDetails = fullDetailsList[0];
-
-      // Now call addGame with the full object
-      await addGame({
-          name: gameDetails.name!,
-          bggId: gameDetails.id,
-          description: gameDetails.description,
-          yearPublished: gameDetails.yearPublished,
-          minPlayers: gameDetails.minPlayers,
-          maxPlayers: gameDetails.maxPlayers,
-          minPlaytime: gameDetails.minPlaytime,
-          maxPlaytime: gameDetails.maxPlaytime,
-          difficulty: gameDetails.difficulty,
-          category: gameDetails.category,
-          mechanics: gameDetails.mechanics,
-          designers: gameDetails.designers,
-          publishers: gameDetails.publishers,
-          imageUrl: gameDetails.imageUrl,
-          rating: gameDetails.rating,
-          ratingCount: gameDetails.ratingCount,
-          complexity: gameDetails.complexity,
-      });
-
-      toast({
-        title: 'Game Added!',
-        description: `${gameDetails.name} has been added to your collection.`,
-      });
-      onGameSelected();
+      onGameSelected(selectedGameResult.id!, selectedGameResult.name!);
+      handleClose();
     } catch (error: any) {
       console.error('Error adding selected game:', error);
       toast({

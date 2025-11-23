@@ -28,6 +28,7 @@ import { useForm } from 'react-hook-form';
 import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
+import { GameSearchResultsDialog } from './game-search-results-dialog';
 import { searchBggAction, getBggDetailsAction } from '@/lib/actions';
 import type { Game } from '@/lib/types';
 import { useGames } from '@/context/game-context';
@@ -183,7 +184,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         open={isSearchResultsOpen}
         onOpenChange={setSearchResultsOpen}
         results={searchResults}
-        onGameSelected={handleGameAdded}
+        onGameSelected={() => handleAddGameById(searchResults.find(r => r.id === form.getValues('bggId'))!.id!, searchResults.find(r => r.id === form.getValues('bggId'))!.name!)}
       />
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">

@@ -418,7 +418,7 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
     let successfulImports = 0;
     for (const item of newGamesFromBgg) {
         try {
-            const gameDetailsList = await getBggDetails([item.bggId], true);
+            const gameDetailsList = await getBggDetails([item.bggId], true, false);
             
             if (gameDetailsList.length > 0 && gameDetailsList[0].name) {
                 const gameDetails = gameDetailsList[0];
