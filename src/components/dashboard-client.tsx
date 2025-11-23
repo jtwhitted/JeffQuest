@@ -128,7 +128,7 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
         bestGame = gameWinRates[0]?.game;
         worstGame = gameWinRates[gameWinRates.length - 1]?.game;
     } else {
-        bestGame = favoriteGame;
+        bestGame = undefined;
         worstGame = undefined;
     }
 

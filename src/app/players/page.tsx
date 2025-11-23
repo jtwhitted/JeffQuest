@@ -132,7 +132,7 @@ export default function PlayersPage() {
         worstGame = gameWinRates[gameWinRates.length - 1]?.game;
     } else {
         // Fallback for players with no competitive games
-        bestGame = favoriteGame;
+        bestGame = undefined;
         worstGame = undefined;
     }
 

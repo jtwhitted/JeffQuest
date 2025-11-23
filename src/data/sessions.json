@@ -1,103 +1,5 @@
 [
   {
-    "id": "s1763057783592",
-    "gameId": "g1762835357259",
-    "date": "2025-11-13T18:13:22.428Z",
-    "playerIds": [
-      "p1762879138303"
-    ],
-    "isCooperative": true,
-    "winnerId": "p1762879138303",
-    "cooperativeResult": "win",
-    "scores": [
-      {
-        "playerId": "p1762879138303",
-        "score": 109
-      }
-    ],
-    "notes": "Jeffrey won Vantage with 109 points."
-  },
-  {
-    "id": "s1763058653075",
-    "gameId": "g1762881557498",
-    "date": "2025-11-13T18:25:49.343Z",
-    "playerIds": [
-      "p1762879138303",
-      "p1762879138303",
-      "p1762879138303"
-    ],
-    "isCooperative": true,
-    "cooperativeResult": "win",
-    "scores": [
-      {
-        "playerId": "p1762879138303",
-        "score": 11
-      },
-      {
-        "playerId": "p1762879138303",
-        "score": 11
-      },
-      {
-        "playerId": "p1762879138303",
-        "score": 11
-      }
-    ],
-    "notes": "Jeffrey, a new player named Brian, and a new player named Frank, played Just One on November 12th and did a cooperative win with 11 points each."
-  },
-  {
-    "id": "s1763060372536",
-    "gameId": "g1763014225374",
-    "date": "2025-11-13T18:59:00.611Z",
-    "playerIds": [
-      "p1762879138303"
-    ],
-    "isCooperative": false,
-    "winnerId": "p1762879138303",
-    "scores": [
-      {
-        "playerId": "p1762879138303",
-        "score": 49
-      }
-    ],
-    "notes": "Jeffrey played Moon Colony Blood Base by himself, and he scored 49 points to win. He was the winner of the game, and it was so amazing that like everyone went nuts, like crazy nuts, nuts."
-  },
-  {
-    "id": "s1763157182526",
-    "gameId": "g1762884180986",
-    "date": "2025-11-12T05:00:00.000Z",
-    "playerIds": [
-      "p1762879138303"
-    ],
-    "isCooperative": false,
-    "winnerId": "p1762879138303",
-    "scores": [
-      {
-        "playerId": "p1762879138303",
-        "score": 49
-      }
-    ],
-    "notes": "Jeffrey played a game of The King's Dilemma on November 12th. Uh, the game lasted about an hour and 17 minutes. He was able to emerge victorious with a score of 49 points this time. Um, and this was the second solo game in which he won. So this game might be too easy for him because he's a master at all things.",
-    "duration": 77
-  },
-  {
-    "id": "s1763158564680",
-    "gameId": "g1762884180986",
-    "date": "2025-11-10T05:00:00.000Z",
-    "playerIds": [
-      "p1762879138303"
-    ],
-    "isCooperative": false,
-    "winnerId": "p1762879138303",
-    "scores": [
-      {
-        "playerId": "p1762879138303",
-        "score": 77
-      }
-    ],
-    "notes": "Jeffrey played a game of the King's Dilemma on November 10th. The game was 47 minutes long and he won with a score of 77.",
-    "duration": 47
-  },
-  {
     "id": "s1763933333353",
     "gameId": "g1762884281021",
     "date": "2025-11-21T05:00:00.000Z",
@@ -187,6 +89,26 @@
     ],
     "isCooperative": true,
     "cooperativeResult": "win",
+    "scores": [
+      {
+        "playerId": "p1762879138303"
+      },
+      {
+        "playerId": "p1763782401084"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "id": "s1763939689670",
+    "gameId": "g1763939648505",
+    "date": "2025-11-23T23:14:39.210Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1763782401084"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "loss",
     "scores": [
       {
         "playerId": "p1762879138303"
