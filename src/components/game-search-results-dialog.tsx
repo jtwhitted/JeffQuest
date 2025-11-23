@@ -71,7 +71,6 @@ export function GameSearchResultsDialog({ open, onOpenChange, results, onGameSel
           rating: gameDetails.rating,
           ratingCount: gameDetails.ratingCount,
           complexity: gameDetails.complexity,
-          bggComments: gameDetails.bggComments,
       });
 
       toast({

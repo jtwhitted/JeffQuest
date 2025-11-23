@@ -94,7 +94,6 @@ const gameFormSchema = z.object({
     rating: z.number().optional(),
     ratingCount: z.number().optional(),
     complexity: z.number().optional(),
-    bggComments: z.array(z.object({ username: z.string(), comment: z.string() })).optional(),
 });
 
 export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise<Game> {
@@ -108,6 +107,7 @@ export async function addGame(gameData: z.infer<typeof gameFormSchema>): Promise
     const newGame: Game = {
         id: `g${Date.now()}`,
         ...validatedFields.data,
+        bggComments: [], // Initialize with empty comments
     } as Game;
     
     const addedOrUpdatedGame = await addGameToDB(newGame);
@@ -241,8 +241,21 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
     const ids = searchResults.map(r => r.id);
     const details = await getBggDetails(ids, true);
     
-    // Filter out unpopular results
-    return details.filter(d => (d.ratingCount || 0) > 50);
+    const sortedResults = [...details].sort((a, b) => {
+        const aName = a.name?.toLowerCase() || '';
+        const bName = b.name?.toLowerCase() || '';
+        const lowerQuery = query.toLowerCase();
+        
+        // Prioritize exact matches
+        if (aName === lowerQuery && bName !== lowerQuery) return -1;
+        if (bName === lowerQuery && aName !== lowerQuery) return 1;
+
+        // Then sort by popularity (rating count)
+        return (b.ratingCount || 0) - (a.ratingCount || 0);
+    });
+
+    return sortedResults;
+    
 
   } catch (error) {
     console.error('BGG search action failed:', error);
@@ -254,7 +267,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
 export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {id: string}>[]> {
   if (!ids || ids.length === 0) return [];
   try {
-    const details = await getBggDetails(ids.split(','), true);
+    const details = await getBggDetails(ids.split(','), true, false); // Fetch stats, but not comments
     return details;
   } catch (error) {
     console.error('BGG details action failed:', error);
@@ -427,7 +440,6 @@ export async function importBggCollectionAction(username: string): Promise<{ imp
                     rating: gameDetails.rating,
                     ratingCount: gameDetails.ratingCount,
                     complexity: gameDetails.complexity,
-                    bggComments: gameDetails.bggComments,
                 };
                 
                 await addGame(newGameData);

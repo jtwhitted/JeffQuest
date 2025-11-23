@@ -29,7 +29,6 @@ import { GameScanDialog } from './game-scan-dialog';
 import { Separator } from './ui/separator';
 import { ManualAddGameDialog } from './manual-add-game-dialog';
 import { searchBggAction, getBggDetailsAction } from '@/lib/actions';
-import { GameSearchResultsDialog } from './game-search-results-dialog';
 import type { Game } from '@/lib/types';
 import { useGames } from '@/context/game-context';
 
@@ -95,7 +94,6 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
           rating: gameDetails.rating,
           ratingCount: gameDetails.ratingCount,
           complexity: gameDetails.complexity,
-          bggComments: gameDetails.bggComments,
       });
 
       toast({
@@ -121,8 +119,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
         return;
     }
     if (results && results.length > 0) {
-      const sortedResults = results.sort((a, b) => (b.ratingCount || 0) - (a.ratingCount || 0));
-      setSearchResults(sortedResults);
+      setSearchResults(results);
       setSearchResultsOpen(true);
     } else {
         toast({
@@ -141,19 +138,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       const results = await searchBggAction(values.name);
       
       if (results && results.length > 0) {
-        const sortedResults = results.sort((a, b) => {
-          const aName = a.name?.toLowerCase() || '';
-          const bName = b.name?.toLowerCase() || '';
-          const query = values.name.toLowerCase();
-          
-          // Prioritize exact matches
-          if (aName === query && bName !== query) return -1;
-          if (bName === query && aName !== query) return 1;
-
-          // Then sort by popularity (rating count)
-          return (b.ratingCount || 0) - (a.ratingCount || 0);
-        });
-        setSearchResults(sortedResults);
+        setSearchResults(results);
         setSearchResultsOpen(true);
       } else {
         toast({

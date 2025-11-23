@@ -90,7 +90,7 @@ export async function searchBgg(query: string, exact = false): Promise<{ id: str
 }
 
 
-export async function getBggDetails(ids: string[], includeStats = true): Promise<Partial<Game & {id: string}>[]> {
+export async function getBggDetails(ids: string[], includeStats = true, includeComments = false): Promise<Partial<Game & {id: string}>[]> {
   if (!ids || ids.length === 0) {
     return [];
   }
@@ -104,9 +104,12 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
     const idString = chunk.join(',');
 
     try {
-        const fetchParams: Record<string, string> = { id: idString, comments: '1' };
+        const fetchParams: Record<string, string> = { id: idString };
         if (includeStats) {
             fetchParams.stats = '1';
+        }
+        if (includeComments) {
+            fetchParams.comments = '1';
         }
         
         const xmlData = await bggFetch('thing', fetchParams);
@@ -144,7 +147,7 @@ export async function getBggDetails(ids: string[], includeStats = true): Promise
                 else difficulty = 'Expert';
             }
 
-             const comments = item.comments?.comment?.map((c: any) => ({
+             const comments = includeComments && item.comments?.comment?.map((c: any) => ({
                 username: c['@_username'],
                 comment: decodeBggText(c['@_value']),
             })).filter((c: any) => c.comment) || [];
