@@ -98,21 +98,103 @@
     "duration": 47
   },
   {
-    "id": "s-bgg-106164445",
-    "gameId": "g1763676215500",
-    "date": "2025-11-18",
+    "id": "s1763933333353",
+    "gameId": "g1762884281021",
+    "date": "2025-11-21T05:00:00.000Z",
     "playerIds": [
-      "p1762879138303"
+      "p1762879138303",
+      "p1763782401084"
     ],
-    "winnerId": "p1762879138303",
+    "isCooperative": true,
+    "cooperativeResult": "loss",
     "scores": [
       {
-        "playerId": "p1762879138303",
-        "score": 47
+        "playerId": "p1762879138303"
+      },
+      {
+        "playerId": "p1763782401084"
       }
     ],
-    "notes": "Jeffrey won",
-    "duration": 150,
-    "isCooperative": false
+    "notes": ""
+  },
+  {
+    "id": "s1763933357575",
+    "gameId": "g1762884281021",
+    "date": "2025-11-21T05:00:00.000Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1763782401084"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "loss",
+    "scores": [
+      {
+        "playerId": "p1762879138303"
+      },
+      {
+        "playerId": "p1763782401084"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "id": "s1763933389987",
+    "gameId": "g1762884281021",
+    "date": "2025-11-23T21:29:34.820Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1763782401084"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "loss",
+    "scores": [
+      {
+        "playerId": "p1762879138303"
+      },
+      {
+        "playerId": "p1763782401084"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "id": "s1763933406374",
+    "gameId": "g1762884281021",
+    "date": "2025-11-23T21:29:57.786Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1763782401084"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "loss",
+    "scores": [
+      {
+        "playerId": "p1762879138303"
+      },
+      {
+        "playerId": "p1763782401084"
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "id": "s1763933432829",
+    "gameId": "g1762884281021",
+    "date": "2025-11-23T21:30:16.851Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1763782401084"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "win",
+    "scores": [
+      {
+        "playerId": "p1762879138303"
+      },
+      {
+        "playerId": "p1763782401084"
+      }
+    ],
+    "notes": ""
   }
 ]
