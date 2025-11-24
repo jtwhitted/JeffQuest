@@ -29,9 +29,20 @@ export default function GamesPage() {
         const playCount = gameSessions.length;
         
         const winsByPlayer = gameSessions.reduce((acc, session) => {
-          const winner = players.find(p => p.id === session.winnerId);
-          if (winner) {
-            acc[winner.name] = (acc[winner.name] || 0) + 1;
+          if (session.winnerId) {
+            // Competitive win
+            const winner = players.find(p => p.id === session.winnerId);
+            if (winner) {
+              acc[winner.name] = (acc[winner.name] || 0) + 1;
+            }
+          } else if (session.cooperativeResult === 'win') {
+            // Cooperative win, credit all players
+            session.playerIds.forEach(playerId => {
+              const player = players.find(p => p.id === playerId);
+              if (player) {
+                acc[player.name] = (acc[player.name] || 0) + 1;
+              }
+            });
           }
           return acc;
         }, {} as Record<string, number>);
