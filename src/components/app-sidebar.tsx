@@ -32,12 +32,12 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader>
-        <div className="relative flex items-center justify-center p-2 h-[60px]">
+        <div className="flex items-center justify-center p-2">
             <Image 
                 src="/images/jeff-quest-logo.png" 
                 alt="Jeff Quest! Logo"
-                fill
-                className="object-contain"
+                width={180}
+                height={50}
             />
         </div>
       </SidebarHeader>
