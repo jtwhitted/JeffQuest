@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -30,9 +31,14 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-            <Swords className="size-8 text-primary" />
-            <span className="text-lg font-semibold">Jeff Quest!</span>
+        <div className="flex items-center justify-center p-2">
+            <div className="flex items-center gap-2 font-bold text-lg text-primary-foreground">
+                <Dices className="h-8 w-8 text-amber-300" />
+                <div className="flex flex-col items-start leading-none">
+                    <span className="font-black text-xl tracking-tighter text-white">JEFF</span>
+                    <span className="text-base font-bold text-amber-300 -mt-1">QUEST!</span>
+                </div>
+            </div>
         </div>
       </SidebarHeader>
       <SidebarMenu className="flex-1">
