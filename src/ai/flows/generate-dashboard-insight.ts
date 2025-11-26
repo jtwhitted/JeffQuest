@@ -31,7 +31,7 @@ const ListItemSchema = z.object({
     id: z.string().describe("The unique ID of the main item (e.g., the game ID or player ID)."),
     name: z.string().describe("The main name or title of the list item (e.g., game name)."),
     value: z.union([z.string(), z.number()]).optional().describe("The primary value associated with the item (e.g., BGG Rating, number of plays)."),
-    detail: z.string().optional().describe("An optional secondary piece of information (e.g., game category, player name)."),
+    detail: z.string().optional().describe("An optional secondary piece of information (e.g., game category, player name, date)."),
     imageUrl: z.string().optional().describe("A URL for an image of the item, if available."),
 });
 
@@ -70,7 +70,8 @@ const generateInsightPrompt = ai.definePrompt({
     -   For 'barChart', 'pieChart', 'lineChart', and 'horizontalBarChart', each item in 'data' MUST be an object with 'name' (string) and 'value' (number) properties.
     -   For 'stackedBarChart', each item MUST have a 'name' (string) and then additional keys for each stack value (e.g., 'wins', 'losses'). You MUST also provide the 'dataKeys' array containing the names of those stack value keys.
     -   For 'list', each item MUST have an 'id'. When creating a list of games, you MUST include the 'imageUrl'. When creating a list of players, use their name as the 'detail'.
-4.  **TITLE:** Provide a concise and descriptive title for the generated insight.
+4.  **FORMAT DATES:** If your answer involves a date (e.g., in a list's 'detail' field or a chart's 'name' field), you MUST format it in a user-friendly way, such as "Month Day, Year" or "Month Year". Do NOT return raw date strings like "2025-11-23T21:30:16.851Z".
+5.  **TITLE:** Provide a concise and descriptive title for the generated insight.
 
 User Query: "{{{query}}}"
 
