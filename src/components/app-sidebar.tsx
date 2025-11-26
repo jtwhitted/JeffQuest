@@ -17,6 +17,7 @@ import {
   PlusCircle,
 } from 'lucide-react';
 import { Button } from './ui/button';
+import Image from 'next/image';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -33,11 +34,7 @@ export default function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center justify-center p-2">
             <div className="flex items-center gap-2 font-bold text-lg text-primary-foreground">
-                <Dices className="h-8 w-8 text-amber-300" />
-                <div className="flex flex-col items-start leading-none">
-                    <span className="font-black text-xl tracking-tighter text-white">JEFF</span>
-                    <span className="text-base font-bold text-amber-300 -mt-1">QUEST!</span>
-                </div>
+                <Image src="/jeff-quest-logo.png" alt="Jeff Quest! Logo" width={180} height={50} />
             </div>
         </div>
       </SidebarHeader>
