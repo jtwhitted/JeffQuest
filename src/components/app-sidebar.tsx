@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -38,13 +37,13 @@ export default function AppSidebar() {
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
-              width={120}
-              height={33}
+              width={180}
+              height={50}
               className="group-data-[collapsible=icon]:hidden"
             />
           </Link>
+          <SidebarTrigger />
         </div>
-        <SidebarTrigger />
       </SidebarHeader>
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
