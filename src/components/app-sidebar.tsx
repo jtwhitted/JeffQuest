@@ -7,7 +7,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
   LayoutGrid,
@@ -31,19 +30,15 @@ export default function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="h-16 justify-between p-2">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
+      <SidebarHeader className="h-16 justify-center p-2 hidden lg:flex">
+         <Link href="/" className="flex items-center gap-2 font-semibold">
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
               width={180}
               height={50}
-              className="group-data-[collapsible=icon]:hidden"
             />
           </Link>
-          <SidebarTrigger />
-        </div>
       </SidebarHeader>
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
