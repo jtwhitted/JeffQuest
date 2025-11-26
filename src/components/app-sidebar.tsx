@@ -36,8 +36,8 @@ export default function AppSidebar() {
             <Image 
                 src="/images/jeff-quest-logo.png" 
                 alt="Jeff Quest! Logo"
-                width={180}
-                height={50}
+                width={150}
+                height={42}
                 className="object-contain"
             />
         </div>
