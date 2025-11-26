@@ -16,7 +16,7 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Tabletop Tracker',
+  title: 'Jeff Quest!',
   description: 'Keep track of your board game records.',
 };
 
