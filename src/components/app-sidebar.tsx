@@ -32,7 +32,7 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader className="p-2 hidden lg:flex">
-         <Link href="/" className="relative flex items-center justify-center w-full h-[80px]">
+         <Link href="/" className="relative flex items-center justify-center w-full h-[100px]">
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
