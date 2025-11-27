@@ -31,13 +31,13 @@ export default function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="h-16 justify-center p-2 hidden lg:flex">
-         <Link href="/" className="flex items-center gap-2 font-semibold">
+      <SidebarHeader className="p-2 hidden lg:flex">
+         <Link href="/" className="relative w-full h-[60px]">
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
-              width={180}
-              height={50}
+              fill
+              className="object-contain"
             />
           </Link>
       </SidebarHeader>
