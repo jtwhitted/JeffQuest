@@ -37,7 +37,7 @@ export default function AppSidebar() {
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
               fill
-              className="object-cover"
+              className="object-contain"
             />
           </Link>
       </SidebarHeader>
