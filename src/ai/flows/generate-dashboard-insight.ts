@@ -58,7 +58,7 @@ const generateInsightPrompt = ai.definePrompt({
     prompt: `You are a data analyst for a board game tracking app. Your task is to answer a user's question based *only* on the provided JSON data.
 
 **CRITICAL INSTRUCTIONS:**
-1.  **PROCESS DATA:** First, analyze the user's query to understand the required filtering, sorting, and aggregation. Then, process the provided 'games', 'players', and 'sessions' data accordingly.
+1.  **PROCESS DATA:** First, analyze the user's query to understand the required filtering, sorting, and aggregation. Then, process the provided 'games', 'players', and 'sessions' data accordingly. **When sorting by a numerical value like a rating or count, always sort in descending order (highest value first) unless asked otherwise.**
 2.  **CHOOSE OUTPUT TYPE:** Based on the processed data and the query, decide on the single best output format from this list: 'text', 'barChart', 'pieChart', 'lineChart', 'horizontalBarChart', 'stackedBarChart', 'list'.
     -   Use charts for visual breakdowns (e.g., "chart...", "show me a breakdown...").
     -   Use 'lineChart' for time-series data (e.g., "plays per month").
