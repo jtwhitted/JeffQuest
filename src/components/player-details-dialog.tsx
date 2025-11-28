@@ -12,13 +12,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, Camera, Dices, Users, Shield, Heart, ShieldOff, Flame, Snowflake, Save, Download, Link as LinkIcon, Pencil } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import type { Game, Player } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
 import { Card, CardContent } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
-import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { useGames } from '@/context/game-context';
 import { LegendaryPlayerCard } from './legendary-player-card';
 import { generateLegendaryCard } from '@/ai/flows/generate-legendary-card';
@@ -33,8 +32,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { BggImportDialog } from './bgg-import-dialog';
-import { EditPlayerDialog } from './edit-player-dialog';
+
+const AvatarCaptureDialog = lazy(() => import('./avatar-capture-dialog').then(module => ({ default: module.AvatarCaptureDialog })));
+const BggImportDialog = lazy(() => import('./bgg-import-dialog').then(module => ({ default: module.BggImportDialog })));
+const EditPlayerDialog = lazy(() => import('./edit-player-dialog').then(module => ({ default: module.EditPlayerDialog })));
+
 
 type GameHistoryItem = {
     game: Game;
@@ -180,24 +182,30 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
 
   return (
     <>
-      <AvatarCaptureDialog 
-        open={isCaptureOpen}
-        onOpenChange={setCaptureOpen}
-        onAvatarCaptured={handleAvatarCaptured}
-      />
-       <EditPlayerDialog
-        open={isEditModalOpen}
-        onOpenChange={setEditModalOpen}
-        player={player}
-      />
-      {player.bggUsername && (
-         <BggImportDialog
-            open={isImportModalOpen}
-            onOpenChange={setImportModalOpen}
-            bggUsername={player.bggUsername}
-            playerId={player.id}
-        />
-      )}
+      <Suspense fallback={null}>
+        {isCaptureOpen && (
+          <AvatarCaptureDialog 
+            open={isCaptureOpen}
+            onOpenChange={setCaptureOpen}
+            onAvatarCaptured={handleAvatarCaptured}
+          />
+        )}
+        {isEditModalOpen && (
+          <EditPlayerDialog
+            open={isEditModalOpen}
+            onOpenChange={setEditModalOpen}
+            player={player}
+          />
+        )}
+        {player.bggUsername && isImportModalOpen && (
+           <BggImportDialog
+              open={isImportModalOpen}
+              onOpenChange={setImportModalOpen}
+              bggUsername={player.bggUsername}
+              playerId={player.id}
+          />
+        )}
+      </Suspense>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader className="items-center text-center">

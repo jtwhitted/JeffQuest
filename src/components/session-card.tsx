@@ -1,4 +1,5 @@
 
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -16,7 +17,7 @@ interface SessionCardProps {
   onDelete: () => void;
 }
 
-export default function SessionCard({ session, game, players, winner, onDelete }: SessionCardProps) {
+const SessionCard = React.memo(function SessionCard({ session, game, players, winner, onDelete }: SessionCardProps) {
   const isCooperative = session.cooperativeResult;
 
   const renderWinner = () => {
@@ -104,4 +105,6 @@ export default function SessionCard({ session, game, players, winner, onDelete }
       </CardFooter>
     </Card>
   );
-}
+});
+
+export default SessionCard;

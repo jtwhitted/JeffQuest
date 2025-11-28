@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import SessionCard from '@/components/session-card';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useGames } from '@/context/game-context';
 import type { Session } from '@/lib/types';
-import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
+
+const DeleteConfirmationDialog = lazy(() => import('@/components/delete-confirmation-dialog').then(module => ({ default: module.DeleteConfirmationDialog })));
 
 export default function SessionsPage() {
   const { sessions, games, players, isLoading, deleteSession } = useGames();
@@ -52,13 +53,17 @@ export default function SessionsPage() {
 
   return (
     <>
-    <DeleteConfirmationDialog
-        open={!!sessionToDelete}
-        onOpenChange={() => setSessionToDelete(null)}
-        onConfirm={handleDelete}
-        title="Delete Session"
-        description={`Are you sure you want to delete this session? This action cannot be undone.`}
-      />
+    <Suspense fallback={null}>
+      {sessionToDelete && (
+        <DeleteConfirmationDialog
+            open={!!sessionToDelete}
+            onOpenChange={() => setSessionToDelete(null)}
+            onConfirm={handleDelete}
+            title="Delete Session"
+            description={`Are you sure you want to delete this session? This action cannot be undone.`}
+          />
+      )}
+    </Suspense>
     <div className="space-y-8">
       <PageHeader
         title="Game Sessions"

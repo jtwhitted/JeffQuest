@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Camera } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import type { Player } from '@/lib/types';
 import {
     Form,
@@ -27,9 +27,10 @@ import {
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { AvatarCaptureDialog } from './avatar-capture-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useGames } from '@/context/game-context';
+
+const AvatarCaptureDialog = lazy(() => import('./avatar-capture-dialog').then(module => ({ default: module.AvatarCaptureDialog })));
 
 interface AddPlayerDialogProps {
   open: boolean;
@@ -105,11 +106,15 @@ export function AddPlayerDialog({ open, onOpenChange, onPlayerAdded }: AddPlayer
 
   return (
     <>
-      <AvatarCaptureDialog
-        open={isCaptureDialogOpen}
-        onOpenChange={setCaptureDialogOpen}
-        onAvatarCaptured={handleAvatarCaptured}
-      />
+      <Suspense fallback={null}>
+        {isCaptureDialogOpen && (
+          <AvatarCaptureDialog
+            open={isCaptureDialogOpen}
+            onOpenChange={setCaptureDialogOpen}
+            onAvatarCaptured={handleAvatarCaptured}
+          />
+        )}
+      </Suspense>
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[425px]">
           <Form {...form}>

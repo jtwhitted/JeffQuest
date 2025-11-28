@@ -36,16 +36,18 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { CalendarIcon, Loader2, Scan, UserPlus, Mic, Square } from 'lucide-react';
 import { format } from 'date-fns';
-import { GameScanDialog } from './game-scan-dialog';
-import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { AddPlayerDialog } from './add-player-dialog';
+import React, { useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react';
 import { Switch } from './ui/switch';
 import { Label } from "./ui/label"
 import { useGames } from '@/context/game-context';
-import { GameSearchResultsDialog } from './game-search-results-dialog';
-import { ManualAddGameDialog } from './manual-add-game-dialog';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 import { extractSessionDetails, type ExtractSessionDetailsOutput } from '@/ai/flows/extract-session-details';
+
+const GameScanDialog = lazy(() => import('./game-scan-dialog').then(module => ({ default: module.GameScanDialog })));
+const ManualAddGameDialog = lazy(() => import('./manual-add-game-dialog').then(module => ({ default: module.ManualAddGameDialog })));
+const GameSearchResultsDialog = lazy(() => import('./game-search-results-dialog').then(module => ({ default: module.GameSearchResultsDialog })));
+const AddPlayerDialog = lazy(() => import('./add-player-dialog').then(module => ({ default: module.AddPlayerDialog })));
+
 
 const formSchema = z.object({
   gameId: z.string().min(1, 'Please select a game.'),
@@ -364,28 +366,38 @@ export default function GameLogForm() {
 
   return (
     <>
-    <GameScanDialog
-        open={isScanDialogOpen}
-        onOpenChange={setScanDialogOpen}
-        onGameAdded={handleScanComplete}
-    />
-     <ManualAddGameDialog
-        open={isManualAddDialogOpen}
-        onOpenChange={setManualAddDialogOpen}
-        onGameAdded={handleManualGameAdded}
-        initialName={manualAddDefaultName}
-      />
-    <GameSearchResultsDialog
-        open={isSearchResultsOpen}
-        onOpenChange={setSearchResultsOpen}
-        results={searchResults}
-        onGameSelected={(id, name) => handleAddGameById(id, name)}
-    />
-    <AddPlayerDialog
-        open={isAddPlayerDialogOpen}
-        onOpenChange={setAddPlayerDialogOpen}
-        onPlayerAdded={handlePlayerAdded}
-    />
+    <Suspense fallback={null}>
+      {isScanDialogOpen && (
+        <GameScanDialog
+            open={isScanDialogOpen}
+            onOpenChange={setScanDialogOpen}
+            onGameAdded={handleScanComplete}
+        />
+      )}
+      {isManualAddDialogOpen && (
+        <ManualAddGameDialog
+            open={isManualAddDialogOpen}
+            onOpenChange={setManualAddDialogOpen}
+            onGameAdded={handleManualGameAdded}
+            initialName={manualAddDefaultName}
+        />
+      )}
+      {isSearchResultsOpen && (
+        <GameSearchResultsDialog
+            open={isSearchResultsOpen}
+            onOpenChange={setSearchResultsOpen}
+            results={searchResults}
+            onGameSelected={(id, name) => handleAddGameById(id, name)}
+        />
+      )}
+      {isAddPlayerDialogOpen && (
+        <AddPlayerDialog
+            open={isAddPlayerDialogOpen}
+            onOpenChange={setAddPlayerDialogOpen}
+            onPlayerAdded={handlePlayerAdded}
+        />
+      )}
+    </Suspense>
     <Form {...form}>
       <div className="mb-6">
         <Button

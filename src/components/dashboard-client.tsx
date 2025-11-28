@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import type { Session, Player, Game, DashboardInsight } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
@@ -9,13 +9,16 @@ import { WinLossChart } from '@/components/charts/win-loss-chart';
 import { DataExporter } from './data-exporter';
 import { Swords, Users, Dices, Crown, Medal, TrendingDown, ShieldCheck, ShieldX } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { PlayerDetailsDialog, type PlayerWithFullStats } from './player-details-dialog';
+import type { PlayerWithFullStats } from './player-details-dialog';
 import { useGames } from '@/context/game-context';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format, parseISO } from 'date-fns';
 import { AiInsightWidget } from './dashboard/ai-insight-widget';
 import { SavedInsightWidget } from './dashboard/saved-insight-widget';
+
+const PlayerDetailsDialog = lazy(() => import('./player-details-dialog').then(module => ({ default: module.PlayerDetailsDialog })));
+
 
 interface DashboardClientProps {
   sessions: Session[];
@@ -172,13 +175,15 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
 
   return (
     <>
-      {selectedPlayer && (
-        <PlayerDetailsDialog
-          open={!!selectedPlayer}
-          onOpenChange={() => setSelectedPlayer(null)}
-          player={selectedPlayer}
-        />
-      )}
+      <Suspense fallback={null}>
+        {selectedPlayer && (
+          <PlayerDetailsDialog
+            open={!!selectedPlayer}
+            onOpenChange={() => setSelectedPlayer(null)}
+            player={selectedPlayer}
+          />
+        )}
+      </Suspense>
       <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>

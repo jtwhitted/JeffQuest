@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
@@ -13,16 +13,18 @@ import { Separator } from '@/components/ui/separator';
 import { GameSessionHistory } from './_components/game-session-history';
 import { useGames } from '@/context/game-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
-import { RulebookManagerDialog } from '@/components/rulebook-manager-dialog';
 import { searchYoutubeAction } from '@/lib/actions';
 import type { YoutubeVideo } from '@/lib/types';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import { VideoPlayerDialog } from '@/components/video-player-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+const RulesWizardDialog = lazy(() => import('@/components/rules-wizard-dialog').then(module => ({ default: module.RulesWizardDialog })));
+const RulebookManagerDialog = lazy(() => import('@/components/rulebook-manager-dialog').then(module => ({ default: module.RulebookManagerDialog })));
+const VideoPlayerDialog = lazy(() => import('@/components/video-player-dialog').then(module => ({ default: module.VideoPlayerDialog })));
+
 
 export default function GameDetailPage() {
   const { id } = useParams();
@@ -119,25 +121,29 @@ export default function GameDetailPage() {
 
   return (
     <>
-    {selectedVideo && (
-      <VideoPlayerDialog 
-        open={!!selectedVideo}
-        onOpenChange={() => setSelectedVideo(null)}
-        video={selectedVideo}
-      />
-    )}
-    {game.documents && game.documents.length > 0 && (
-      <RulesWizardDialog
-        open={isWizardOpen}
-        onOpenChange={setWizardOpen}
-        game={game}
-      />
-    )}
-     <RulebookManagerDialog
-        open={isRulebookManagerOpen}
-        onOpenChange={setRulebookManagerOpen}
-        game={game}
-      />
+    <Suspense fallback={null}>
+      {selectedVideo && (
+        <VideoPlayerDialog 
+          open={!!selectedVideo}
+          onOpenChange={() => setSelectedVideo(null)}
+          video={selectedVideo}
+        />
+      )}
+      {game.documents && game.documents.length > 0 && isWizardOpen && (
+        <RulesWizardDialog
+          open={isWizardOpen}
+          onOpenChange={setWizardOpen}
+          game={game}
+        />
+      )}
+      {isRulebookManagerOpen && (
+        <RulebookManagerDialog
+            open={isRulebookManagerOpen}
+            onOpenChange={setRulebookManagerOpen}
+            game={game}
+        />
+      )}
+    </Suspense>
     <div className="space-y-8">
        <PageHeader
         title={game.name}
