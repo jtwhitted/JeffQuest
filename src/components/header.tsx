@@ -29,14 +29,6 @@ export default function Header() {
             <AppSidebar />
           </SheetContent>
         </Sheet>
-        <Link href="/" className="relative flex items-center justify-center h-10 w-48">
-            <Image
-              src="/images/jeff-quest-logo.png"
-              alt="Jeff Quest! Logo"
-              fill
-              className="object-contain"
-            />
-          </Link>
       </div>
     </header>
   );
