@@ -11,7 +11,15 @@ import Image from 'next/image';
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 sm:px-6 lg:hidden">
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 lg:hidden">
+      <Link href="/" className="relative flex items-center h-full w-32">
+        <Image
+          src="/images/jeff-quest-logo.png"
+          alt="Jeff Quest! Logo"
+          fill
+          className="object-contain"
+        />
+      </Link>
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="lg:hidden">
