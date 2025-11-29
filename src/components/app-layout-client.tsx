@@ -18,7 +18,7 @@ export default function AppLayoutClient({
       <Sidebar
         collapsible="icon"
         variant="sidebar"
-        className="hidden bg-sidebar text-sidebar-foreground lg:flex lg:flex-col"
+        className="bg-sidebar text-sidebar-foreground"
       >
         <AppSidebar />
       </Sidebar>

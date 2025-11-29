@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo } from 'react';
 import type { Session, Player, Game, DashboardInsight } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { GamesOverTimeChart } from '@/components/charts/games-over-time-chart';
@@ -16,8 +16,7 @@ import Image from 'next/image';
 import { format, parseISO } from 'date-fns';
 import { AiInsightWidget } from './dashboard/ai-insight-widget';
 import { SavedInsightWidget } from './dashboard/saved-insight-widget';
-
-const PlayerDetailsDialog = lazy(() => import('./player-details-dialog').then(module => ({ default: module.PlayerDetailsDialog })));
+import { PlayerDetailsDialog } from './player-details-dialog';
 
 
 interface DashboardClientProps {
@@ -175,15 +174,13 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
 
   return (
     <>
-      <Suspense fallback={null}>
-        {selectedPlayer && (
-          <PlayerDetailsDialog
-            open={!!selectedPlayer}
-            onOpenChange={() => setSelectedPlayer(null)}
-            player={selectedPlayer}
-          />
-        )}
-      </Suspense>
+      {selectedPlayer && (
+        <PlayerDetailsDialog
+          open={!!selectedPlayer}
+          onOpenChange={() => setSelectedPlayer(null)}
+          player={selectedPlayer}
+        />
+      )}
       <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>

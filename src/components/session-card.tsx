@@ -17,7 +17,7 @@ interface SessionCardProps {
   onDelete: () => void;
 }
 
-const SessionCard = React.memo(function SessionCard({ session, game, players, winner, onDelete }: SessionCardProps) {
+const SessionCard = ({ session, game, players, winner, onDelete }: SessionCardProps) => {
   const isCooperative = session.cooperativeResult;
 
   const renderWinner = () => {
@@ -105,6 +105,6 @@ const SessionCard = React.memo(function SessionCard({ session, game, players, wi
       </CardFooter>
     </Card>
   );
-});
+};
 
 export default SessionCard;

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Swords, Trophy, PlusCircle, Trash2, Loader2, Sparkles, ChevronDown, Flame, Snowflake } from 'lucide-react';
-import { useState, lazy, Suspense } from 'react';
+import { useState } from 'react';
 import type { Player, Session, Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -14,10 +14,9 @@ import { useGames } from '@/context/game-context';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LegendaryPlayerCard } from '@/components/legendary-player-card';
 import { Badge } from '@/components/ui/badge';
-
-const AddPlayerDialog = lazy(() => import('@/components/add-player-dialog').then(module => ({ default: module.AddPlayerDialog })));
-const DeleteConfirmationDialog = lazy(() => import('@/components/delete-confirmation-dialog').then(module => ({ default: module.DeleteConfirmationDialog })));
-const PlayerDetailsDialog = lazy(() => import('@/components/player-details-dialog').then(module => ({ default: module.PlayerDetailsDialog })));
+import { AddPlayerDialog } from '@/components/add-player-dialog';
+import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
+import { PlayerDetailsDialog } from '@/components/player-details-dialog';
 
 export default function PlayersPage() {
   const { toast } = useToast();
@@ -167,25 +166,23 @@ export default function PlayersPage() {
 
   return (
     <>
-      <Suspense fallback={null}>
-        {isAddPlayerOpen && <AddPlayerDialog open={isAddPlayerOpen} onOpenChange={setAddPlayerOpen} onPlayerAdded={handlePlayerAdded} />}
-        {playerToDelete && (
-          <DeleteConfirmationDialog 
-            open={!!playerToDelete}
-            onOpenChange={() => setPlayerToDelete(null)}
-            onConfirm={handleDeletePlayer}
-            title="Delete Player"
-            description={`Are you sure you want to delete ${playerToDelete?.name}? All associated session data will also be affected.`}
-          />
-        )}
-        {selectedPlayer && (
-          <PlayerDetailsDialog
-            open={!!selectedPlayer}
-            onOpenChange={() => setSelectedPlayer(null)}
-            player={selectedPlayer}
-          />
-        )}
-      </Suspense>
+      {isAddPlayerOpen && <AddPlayerDialog open={isAddPlayerOpen} onOpenChange={setAddPlayerOpen} onPlayerAdded={handlePlayerAdded} />}
+      {playerToDelete && (
+        <DeleteConfirmationDialog 
+          open={!!playerToDelete}
+          onOpenChange={() => setPlayerToDelete(null)}
+          onConfirm={handleDeletePlayer}
+          title="Delete Player"
+          description={`Are you sure you want to delete ${playerToDelete?.name}? All associated session data will also be affected.`}
+        />
+      )}
+      {selectedPlayer && (
+        <PlayerDetailsDialog
+          open={!!selectedPlayer}
+          onOpenChange={() => setSelectedPlayer(null)}
+          player={selectedPlayer}
+        />
+      )}
       <div className="space-y-8">
         <PageHeader
           title="Player Rankings"

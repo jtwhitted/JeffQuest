@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import Link from 'next/link';
@@ -20,10 +20,9 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-const RulesWizardDialog = lazy(() => import('@/components/rules-wizard-dialog').then(module => ({ default: module.RulesWizardDialog })));
-const RulebookManagerDialog = lazy(() => import('@/components/rulebook-manager-dialog').then(module => ({ default: module.RulebookManagerDialog })));
-const VideoPlayerDialog = lazy(() => import('@/components/video-player-dialog').then(module => ({ default: module.VideoPlayerDialog })));
+import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
+import { RulebookManagerDialog } from '@/components/rulebook-manager-dialog';
+import { VideoPlayerDialog } from '@/components/video-player-dialog';
 
 
 export default function GameDetailPage() {
@@ -121,29 +120,27 @@ export default function GameDetailPage() {
 
   return (
     <>
-    <Suspense fallback={null}>
-      {selectedVideo && (
-        <VideoPlayerDialog 
-          open={!!selectedVideo}
-          onOpenChange={() => setSelectedVideo(null)}
-          video={selectedVideo}
-        />
-      )}
-      {game.documents && game.documents.length > 0 && isWizardOpen && (
-        <RulesWizardDialog
-          open={isWizardOpen}
-          onOpenChange={setWizardOpen}
+    {selectedVideo && (
+      <VideoPlayerDialog 
+        open={!!selectedVideo}
+        onOpenChange={() => setSelectedVideo(null)}
+        video={selectedVideo}
+      />
+    )}
+    {game.documents && game.documents.length > 0 && isWizardOpen && (
+      <RulesWizardDialog
+        open={isWizardOpen}
+        onOpenChange={setWizardOpen}
+        game={game}
+      />
+    )}
+    {isRulebookManagerOpen && (
+      <RulebookManagerDialog
+          open={isRulebookManagerOpen}
+          onOpenChange={setRulebookManagerOpen}
           game={game}
-        />
-      )}
-      {isRulebookManagerOpen && (
-        <RulebookManagerDialog
-            open={isRulebookManagerOpen}
-            onOpenChange={setRulebookManagerOpen}
-            game={game}
-        />
-      )}
-    </Suspense>
+      />
+    )}
     <div className="space-y-8">
        <PageHeader
         title={game.name}

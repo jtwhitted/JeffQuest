@@ -43,7 +43,7 @@ export default function AppSidebar() {
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
               fill
-              className="object-cover"
+              className="object-contain"
             />
           </Link>
       </SidebarHeader>
@@ -54,8 +54,9 @@ export default function AppSidebar() {
               asChild
               isActive={pathname === item.href}
               tooltip={{ children: item.label }}
+              onClick={handleLinkClick}
             >
-              <Link href={item.href} onClick={handleLinkClick}>
+              <Link href={item.href}>
                 <item.icon />
                 <span>{item.label}</span>
               </Link>

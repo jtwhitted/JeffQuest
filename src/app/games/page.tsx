@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { Crown, Swords, PlusCircle, Users, BarChart3, Loader2, Dices, Trash2, Search } from 'lucide-react';
-import { useState, useMemo, Suspense, lazy } from 'react';
+import { useState, useMemo } from 'react';
 import type { Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,9 +13,8 @@ import Link from 'next/link';
 import { useGames } from '@/context/game-context';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-
-const AddGameDialog = lazy(() => import('@/components/add-game-dialog').then(module => ({ default: module.AddGameDialog })));
-const DeleteConfirmationDialog = lazy(() => import('@/components/delete-confirmation-dialog').then(module => ({ default: module.DeleteConfirmationDialog })));
+import { AddGameDialog } from '@/components/add-game-dialog';
+import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 
 
 export default function GamesPage() {
@@ -89,18 +88,16 @@ export default function GamesPage() {
 
   return (
     <>
-    <Suspense fallback={null}>
-      {isAddGameOpen && <AddGameDialog open={isAddGameOpen} onOpenChange={setAddGameOpen} />}
-      {gameToDelete && (
-        <DeleteConfirmationDialog
-            open={!!gameToDelete}
-            onOpenChange={() => setGameToDelete(null)}
-            onConfirm={handleDelete}
-            title="Delete Game"
-            description={`Are you sure you want to delete ${gameToDelete?.name}? All associated session data will also be removed.`}
-          />
-      )}
-    </Suspense>
+    {isAddGameOpen && <AddGameDialog open={isAddGameOpen} onOpenChange={setAddGameOpen} />}
+    {gameToDelete && (
+      <DeleteConfirmationDialog
+          open={!!gameToDelete}
+          onOpenChange={() => setGameToDelete(null)}
+          onConfirm={handleDelete}
+          title="Delete Game"
+          description={`Are you sure you want to delete ${gameToDelete?.name}? All associated session data will also be removed.`}
+        />
+    )}
     <div className="space-y-8">
       <PageHeader
         title="Game Library"
