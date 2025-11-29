@@ -30,7 +30,7 @@ export default function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="p-2 hidden lg:flex">
+      <SidebarHeader className="p-2">
          <Link href="/" className="relative flex items-center justify-center w-full h-[180px]">
             <Image
               src="/images/jeff-quest-logo.png"
