@@ -54,9 +54,8 @@ export default function AppSidebar() {
               asChild
               isActive={pathname === item.href}
               tooltip={{ children: item.label }}
-              onClick={handleLinkClick}
             >
-              <Link href={item.href}>
+              <Link href={item.href} onClick={handleLinkClick}>
                 <item.icon />
                 <span>{item.label}</span>
               </Link>
@@ -65,8 +64,8 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Button asChild className="w-full" onClick={handleLinkClick}>
-            <Link href="/sessions/new">
+        <Button asChild className="w-full">
+            <Link href="/sessions/new" onClick={handleLinkClick}>
                 <PlusCircle className="mr-2" />
                 New Session
             </Link>
