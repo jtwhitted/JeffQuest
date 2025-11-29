@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
+import { useSidebar } from './ui/sidebar';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -28,11 +29,16 @@ const navItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  };
 
   return (
     <>
       <SidebarHeader className="p-4">
-         <Link href="/" className="relative flex items-center justify-center w-full h-[180px]">
+         <Link href="/" className="relative flex items-center justify-center w-full h-[180px]" onClick={handleLinkClick}>
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
@@ -48,6 +54,7 @@ export default function AppSidebar() {
               asChild
               isActive={pathname === item.href}
               tooltip={{ children: item.label }}
+              onClick={handleLinkClick}
             >
               <Link href={item.href}>
                 <item.icon />
@@ -58,7 +65,7 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Button asChild className="w-full">
+        <Button asChild className="w-full" onClick={handleLinkClick}>
             <Link href="/sessions/new">
                 <PlusCircle className="mr-2" />
                 New Session
