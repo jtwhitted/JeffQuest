@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -30,7 +31,7 @@ export default function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="p-2">
+      <SidebarHeader className="p-4">
          <Link href="/" className="relative flex items-center justify-center w-full h-[180px]">
             <Image
               src="/images/jeff-quest-logo.png"
