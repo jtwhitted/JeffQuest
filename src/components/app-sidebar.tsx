@@ -1,7 +1,7 @@
 
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   SidebarHeader,
   SidebarMenu,
@@ -38,16 +38,16 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader className="p-0">
-         <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }} onClick={() => handleLinkClick()}>
-           <Link href="/" className="w-full h-full">
-            <Image
-              src="/images/jeff-quest-logo.png"
-              alt="Jeff Quest! Logo"
-              fill
-              className="object-contain"
-            />
+         <Link href="/" onClick={handleLinkClick}>
+            <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }}>
+                <Image
+                src="/images/jeff-quest-logo.png"
+                alt="Jeff Quest! Logo"
+                fill
+                className="object-contain"
+                />
+            </div>
           </Link>
-        </div>
       </SidebarHeader>
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
