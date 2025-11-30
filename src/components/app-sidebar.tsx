@@ -1,7 +1,7 @@
 
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   SidebarHeader,
   SidebarMenu,
@@ -29,18 +29,12 @@ const navItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { setOpenMobile } = useSidebar();
-
-  const handleLinkClick = (href: string) => {
-    router.push(href);
-    setOpenMobile(false);
-  };
 
   return (
     <>
       <SidebarHeader className="p-0">
-         <Link href="/" onClick={() => handleLinkClick('/')}>
+         <Link href="/" onClick={() => setOpenMobile(false)}>
             <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }}>
                 <Image
                   src="/images/jeff-quest-logo.png"
@@ -54,22 +48,27 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <SidebarMenuButton
-              isActive={pathname === item.href}
-              tooltip={{ children: item.label }}
-              onClick={() => handleLinkClick(item.href)}
-            >
-              <item.icon />
-              <span>{item.label}</span>
-            </SidebarMenuButton>
+            <Link href={item.href} legacyBehavior passHref>
+                <SidebarMenuButton
+                  as="a"
+                  isActive={pathname === item.href}
+                  tooltip={{ children: item.label }}
+                  onClick={() => setOpenMobile(false)}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Button className="w-full" onClick={() => handleLinkClick('/sessions/new')}>
-            <PlusCircle className="mr-2" />
-            New Session
-        </Button>
+        <Link href="/sessions/new" legacyBehavior passHref>
+            <Button as="a" className="w-full" onClick={() => setOpenMobile(false)}>
+                <PlusCircle className="mr-2" />
+                New Session
+            </Button>
+        </Link>
       </div>
     </>
   );
