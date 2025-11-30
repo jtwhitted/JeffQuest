@@ -50,9 +50,8 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} onClick={handleLinkClick} legacyBehavior passHref>
+            <Link href={item.href} onClick={handleLinkClick}>
               <SidebarMenuButton
-                as="a"
                 isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
               >
