@@ -1,6 +1,6 @@
 'use client';
 
-import { Sidebar, SidebarInset } from '@/components/ui/sidebar';
+import { Sidebar } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/app-sidebar';
 import Header from '@/components/header';
 import { useGames } from '@/context/game-context';

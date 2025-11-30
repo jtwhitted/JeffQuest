@@ -137,6 +137,7 @@ const SidebarProvider = React.forwardRef<
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH,
+                "--sidebar-width-mobile": SIDEBAR_WIDTH_MOBILE,
                 "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
                 ...style,
               } as React.CSSProperties
@@ -178,7 +179,14 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { state, openMobile, setOpenMobile } = useSidebar()
+    const { state, openMobile, setOpenMobile } = useSidebar();
+
+    // On the server, isMobile is undefined. In this case, we render null
+    // to prevent a hydration mismatch. The client will render the correct
+    // layout after hydration.
+    if (isMobile === undefined) {
+      return null;
+    }
     
     if (isMobile) {
       return (
