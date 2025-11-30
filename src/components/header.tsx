@@ -1,11 +1,9 @@
-
 'use client';
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import AppSidebar from '@/components/app-sidebar';
 import { PanelLeft } from 'lucide-react';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useSidebar } from '@/components/ui/sidebar';
 
 export default function Header() {
@@ -21,11 +19,10 @@ export default function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0">
-            <VisuallyHidden>
-              <SheetHeader>
-                <SheetTitle>Navigation Menu</SheetTitle>
-              </SheetHeader>
-            </VisuallyHidden>
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation Menu</SheetTitle>
+              <SheetDescription>Main navigation links for the application.</SheetDescription>
+            </SheetHeader>
             <AppSidebar />
           </SheetContent>
         </Sheet>
