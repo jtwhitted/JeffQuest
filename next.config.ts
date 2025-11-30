@@ -32,9 +32,6 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  experimental: {
-    serverActions: {},
-  },
 };
 
 export default nextConfig;
