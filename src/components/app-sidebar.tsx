@@ -29,16 +29,18 @@ const navItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
-  const handleLinkClick = () => {
+  const handleLinkClick = (href: string) => {
+    router.push(href);
     setOpenMobile(false);
   };
 
   return (
     <>
       <SidebarHeader className="p-0">
-         <Link href="/" onClick={handleLinkClick}>
+         <Link href="/" onClick={() => handleLinkClick('/')}>
             <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }}>
                 <Image
                   src="/images/jeff-quest-logo.png"
@@ -52,26 +54,22 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href}>
-                <SidebarMenuButton
-                  isActive={pathname === item.href}
-                  tooltip={{ children: item.label }}
-                  onClick={handleLinkClick}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-            </Link>
+            <SidebarMenuButton
+              isActive={pathname === item.href}
+              tooltip={{ children: item.label }}
+              onClick={() => handleLinkClick(item.href)}
+            >
+              <item.icon />
+              <span>{item.label}</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Link href="/sessions/new">
-            <Button className="w-full" onClick={handleLinkClick}>
-                <PlusCircle className="mr-2" />
-                New Session
-            </Button>
-        </Link>
+        <Button className="w-full" onClick={() => handleLinkClick('/sessions/new')}>
+            <PlusCircle className="mr-2" />
+            New Session
+        </Button>
       </div>
     </>
   );
