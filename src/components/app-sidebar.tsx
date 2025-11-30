@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -49,11 +50,10 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href}>
+            <Link href={item.href} onClick={handleLinkClick}>
               <SidebarMenuButton
                 isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
-                onClick={handleLinkClick}
               >
                 <item.icon />
                 <span>{item.label}</span>
@@ -63,12 +63,12 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Button asChild className="w-full">
-            <Link href="/sessions/new" onClick={handleLinkClick}>
+        <Link href="/sessions/new" onClick={handleLinkClick}>
+            <Button className="w-full">
                 <PlusCircle className="mr-2" />
                 New Session
-            </Link>
-        </Button>
+            </Button>
+        </Link>
       </div>
     </>
   );
