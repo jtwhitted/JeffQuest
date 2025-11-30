@@ -27,8 +27,8 @@ const navItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { setOpenMobile } = useSidebar();
   const router = useRouter();
+  const { setOpenMobile } = useSidebar();
 
   const handleLinkClick = (href: string) => {
     router.push(href);
