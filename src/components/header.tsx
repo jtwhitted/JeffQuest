@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import AppSidebar from '@/components/app-sidebar';
 import { PanelLeft } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function Header() {
+  const { setOpenMobile } = useSidebar();
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6 lg:hidden">
       <div className="flex items-center gap-4">
@@ -19,6 +21,11 @@ export default function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0">
+            <VisuallyHidden>
+              <SheetHeader>
+                <SheetTitle>Navigation Menu</SheetTitle>
+              </SheetHeader>
+            </VisuallyHidden>
             <AppSidebar />
           </SheetContent>
         </Sheet>
