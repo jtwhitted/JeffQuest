@@ -65,8 +65,8 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Button asChild className="w-full">
-            <Link href="/sessions/new" onClick={handleLinkClick}>
+        <Button asChild className="w-full" onClick={handleLinkClick}>
+            <Link href="/sessions/new">
                 <PlusCircle className="mr-2" />
                 New Session
             </Link>
