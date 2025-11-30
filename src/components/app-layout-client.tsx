@@ -6,7 +6,6 @@ import Header from '@/components/header';
 import { useGames } from '@/context/game-context';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useIsMounted } from '@/hooks/use-is-mounted';
 
 export default function AppLayoutClient({
   children,
@@ -15,20 +14,17 @@ export default function AppLayoutClient({
 }) {
   const { isLoading } = useGames();
   const isMobile = useIsMobile();
-  const isMounted = useIsMounted();
 
   return (
     <>
-      {isMounted && (
-        <Sidebar
-          collapsible="icon"
-          variant="sidebar"
-          className="bg-sidebar text-sidebar-foreground"
-          isMobile={isMobile}
-        >
-          <AppSidebar />
-        </Sidebar>
-      )}
+      <Sidebar
+        collapsible="icon"
+        variant="sidebar"
+        className="bg-sidebar text-sidebar-foreground"
+        isMobile={isMobile}
+      >
+        <AppSidebar />
+      </Sidebar>
       <div className="flex flex-1 flex-col lg:pl-[--sidebar-width-icon]">
         <Header />
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
