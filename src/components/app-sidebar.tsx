@@ -53,9 +53,8 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} legacyBehavior passHref>
+            <Link href={item.href}>
               <SidebarMenuButton
-                as="a"
                 isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
                 onClick={handleLinkClick}
@@ -68,8 +67,8 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Link href="/sessions/new" legacyBehavior passHref>
-            <Button as="a" className="w-full" onClick={handleLinkClick}>
+        <Link href="/sessions/new">
+            <Button className="w-full" onClick={handleLinkClick}>
                 <PlusCircle className="mr-2" />
                 New Session
             </Button>
