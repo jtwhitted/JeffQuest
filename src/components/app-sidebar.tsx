@@ -31,10 +31,14 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
 
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  };
+
   return (
     <>
       <SidebarHeader className="p-0">
-         <Link href="/" onClick={() => setOpenMobile(false)}>
+         <Link href="/" onClick={handleLinkClick}>
             <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }}>
                 <Image
                   src="/images/jeff-quest-logo.png"
@@ -48,12 +52,11 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} legacyBehavior passHref>
+            <Link href={item.href}>
                 <SidebarMenuButton
-                  as="a"
                   isActive={pathname === item.href}
                   tooltip={{ children: item.label }}
-                  onClick={() => setOpenMobile(false)}
+                  onClick={handleLinkClick}
                 >
                   <item.icon />
                   <span>{item.label}</span>
@@ -63,8 +66,8 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Link href="/sessions/new" legacyBehavior passHref>
-            <Button as="a" className="w-full" onClick={() => setOpenMobile(false)}>
+        <Link href="/sessions/new">
+            <Button className="w-full" onClick={handleLinkClick}>
                 <PlusCircle className="mr-2" />
                 New Session
             </Button>
