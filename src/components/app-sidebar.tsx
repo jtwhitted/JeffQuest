@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -27,45 +29,49 @@ const navItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
-  const handleLinkClick = (href: string) => {
-    router.push(href);
+  const handleLinkClick = () => {
     setOpenMobile(false);
   };
 
   return (
     <>
       <SidebarHeader className="p-0">
-         <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }} onClick={() => handleLinkClick('/')}>
+         <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }} onClick={() => handleLinkClick()}>
+           <Link href="/" className="w-full h-full">
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
               fill
               className="object-contain"
             />
+          </Link>
         </div>
       </SidebarHeader>
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <SidebarMenuButton
-              isActive={pathname === item.href}
-              tooltip={{ children: item.label }}
-              onClick={() => handleLinkClick(item.href)}
-            >
-              <item.icon />
-              <span>{item.label}</span>
-            </SidebarMenuButton>
+            <Link href={item.href}>
+                <SidebarMenuButton
+                  isActive={pathname === item.href}
+                  tooltip={{ children: item.label }}
+                  onClick={handleLinkClick}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Button className="w-full" onClick={() => handleLinkClick('/sessions/new')}>
-            <PlusCircle className="mr-2" />
-            New Session
-        </Button>
+        <Link href="/sessions/new">
+            <Button className="w-full" onClick={handleLinkClick}>
+                <PlusCircle className="mr-2" />
+                New Session
+            </Button>
+        </Link>
       </div>
     </>
   );
