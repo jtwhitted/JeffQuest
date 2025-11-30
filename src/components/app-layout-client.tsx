@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Sidebar } from '@/components/ui/sidebar';
@@ -6,14 +7,31 @@ import Header from '@/components/header';
 import { useGames } from '@/context/game-context';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import React, { useState, useEffect } from 'react';
 
 export default function AppLayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isLoading } = useGames();
+  const { isLoading: isDataLoading } = useGames();
   const isMobile = useIsMobile();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || isDataLoading) {
+    // This avoids the hydration mismatch
+    return (
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            <div className="flex h-full w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        </main>
+    );
+  }
 
   return (
     <>
@@ -28,11 +46,7 @@ export default function AppLayoutClient({
       <div className="flex flex-1 flex-col lg:pl-[--sidebar-width-icon]">
         <Header />
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            {isLoading ? (
-                <div className="flex h-full w-full items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            ) : children}
+            {children}
         </main>
       </div>
     </>
