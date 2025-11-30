@@ -19,9 +19,11 @@ export default function AppLayoutClient({
   const isMobile = useIsMobile();
   const isMounted = useIsMounted();
 
-  if (!isMounted || isDataLoading) {
-    // This avoids the hydration mismatch by rendering a loader on the server
-    // and on the initial client render. This loader is consistent.
+  if (!isMounted) {
+    return null;
+  }
+
+  if (isDataLoading) {
     return (
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
             <div className="flex h-full w-full items-center justify-center">
