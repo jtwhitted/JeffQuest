@@ -20,7 +20,13 @@ export default function AppLayoutClient({
   const isMounted = useIsMounted();
 
   if (!isMounted) {
-    return null;
+    return (
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            <div className="flex h-full w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        </main>
+    );
   }
 
   if (isDataLoading) {
