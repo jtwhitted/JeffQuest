@@ -19,11 +19,6 @@ export default function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 p-0">
-            <VisuallyHidden>
-              <SheetHeader>
-                <SheetTitle>Navigation Menu</SheetTitle>
-              </SheetHeader>
-            </VisuallyHidden>
             <AppSidebar />
           </SheetContent>
         </Sheet>

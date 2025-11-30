@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Sidebar, SidebarInset } from '@/components/ui/sidebar';
