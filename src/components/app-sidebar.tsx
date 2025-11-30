@@ -39,13 +39,12 @@ export default function AppSidebar() {
     <>
       <SidebarHeader className="p-0">
          <Link href="/">
-            <div className="relative flex items-center justify-center w-full h-[180px]">
+            <div className="relative flex items-center justify-center w-full h-[180px]" onClick={handleLinkClick}>
                 <Image
                   src="/images/jeff-quest-logo.png"
                   alt="Jeff Quest! Logo"
                   fill
                   className="object-contain"
-                  onClick={handleLinkClick}
                 />
             </div>
           </Link>
