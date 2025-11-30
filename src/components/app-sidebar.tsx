@@ -1,7 +1,7 @@
 
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   SidebarHeader,
   SidebarMenu,
@@ -29,10 +29,10 @@ const navItems = [
 export default function AppSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
-  const router = useRouter();
 
   const handleLinkClick = (href: string) => {
-    router.push(href);
+    // This is a more direct way to handle navigation that avoids Link component conflicts.
+    window.location.href = href;
     setOpenMobile(false);
   };
 
