@@ -24,25 +24,29 @@ export function VideoPlayerDialog({ open, onOpenChange, video }: VideoPlayerDial
     setIsClient(true);
   }, []);
 
-  if (!video || !isClient) return null;
+  if (!isClient) {
+    return null; // Don't render on the server
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{video.title}</DialogTitle>
-        </DialogHeader>
-        <div className="relative aspect-video">
-          <ReactPlayer
-            url={`https://www.youtube.com/${video.id}`}
-            width="100%"
-            height="100%"
-            controls
-            playing
-            className="absolute top-0 left-0"
-          />
-        </div>
-      </DialogContent>
+      {video && (
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{video.title}</DialogTitle>
+          </DialogHeader>
+          <div className="relative aspect-video">
+            <ReactPlayer
+              url={`https://www.youtube.com/${video.id}`}
+              width="100%"
+              height="100%"
+              controls
+              playing
+              className="absolute top-0 left-0"
+            />
+          </div>
+        </DialogContent>
+      )}
     </Dialog>
   );
 }

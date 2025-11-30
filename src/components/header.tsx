@@ -1,13 +1,11 @@
 
 'use client';
 
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import AppSidebar from '@/components/app-sidebar';
 import { PanelLeft } from 'lucide-react';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import Link from 'next/link';
-import Image from 'next/image';
 
 export default function Header() {
   return (

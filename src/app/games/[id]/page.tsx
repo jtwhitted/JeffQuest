@@ -120,28 +120,22 @@ export default function GameDetailPage() {
 
   return (
     <>
-    {selectedVideo && (
       <VideoPlayerDialog 
         open={!!selectedVideo}
         onOpenChange={() => setSelectedVideo(null)}
         video={selectedVideo}
       />
-    )}
-    {game.documents && game.documents.length > 0 && isWizardOpen && (
       <RulesWizardDialog
         open={isWizardOpen}
         onOpenChange={setWizardOpen}
         game={game}
       />
-    )}
-    {isRulebookManagerOpen && (
       <RulebookManagerDialog
           open={isRulebookManagerOpen}
           onOpenChange={setRulebookManagerOpen}
           game={game}
       />
-    )}
-    <div className="space-y-8">
+      <div className="space-y-8">
        <PageHeader
         title={game.name}
         description={game.yearPublished ? `Published in ${game.yearPublished}` : 'A game in your collection'}
