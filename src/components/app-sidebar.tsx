@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -7,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   LayoutGrid,
@@ -17,7 +19,6 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
-import { useSidebar } from './ui/sidebar';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -37,22 +38,26 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader className="p-0">
-         <Link href="/" onClick={handleLinkClick} className="relative flex items-center justify-center w-full h-[180px]">
-            <Image
-              src="/images/jeff-quest-logo.png"
-              alt="Jeff Quest! Logo"
-              fill
-              className="object-contain"
-            />
+         <Link href="/">
+            <div className="relative flex items-center justify-center w-full h-[180px]">
+                <Image
+                  src="/images/jeff-quest-logo.png"
+                  alt="Jeff Quest! Logo"
+                  fill
+                  className="object-contain"
+                  onClick={handleLinkClick}
+                />
+            </div>
           </Link>
       </SidebarHeader>
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} onClick={handleLinkClick}>
+            <Link href={item.href}>
               <SidebarMenuButton
                 isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
+                onClick={handleLinkClick}
               >
                 <item.icon />
                 <span>{item.label}</span>
@@ -62,8 +67,8 @@ export default function AppSidebar() {
         ))}
       </SidebarMenu>
       <div className="p-2">
-        <Link href="/sessions/new" onClick={handleLinkClick}>
-            <Button className="w-full">
+        <Link href="/sessions/new">
+            <Button className="w-full" onClick={handleLinkClick}>
                 <PlusCircle className="mr-2" />
                 New Session
             </Button>
