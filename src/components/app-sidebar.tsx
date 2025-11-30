@@ -37,7 +37,7 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader className="p-0">
-         <Link href="/" className="relative flex items-center justify-center w-full h-[180px]" onClick={handleLinkClick}>
+         <Link href="/" className="relative flex items-center justify-center w-full h-[180px]">
             <Image
               src="/images/jeff-quest-logo.png"
               alt="Jeff Quest! Logo"
@@ -49,10 +49,12 @@ export default function AppSidebar() {
       <SidebarMenu className="flex-1">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} onClick={handleLinkClick}>
+            <Link href={item.href} legacyBehavior passHref>
               <SidebarMenuButton
+                as="a"
                 isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
+                onClick={handleLinkClick}
               >
                 <item.icon />
                 <span>{item.label}</span>
