@@ -21,7 +21,7 @@ export default function AppLayoutClient({
 
   if (!isMounted || isDataLoading) {
     // This avoids the hydration mismatch by rendering a loader on the server
-    // and on the initial client render.
+    // and on the initial client render. This loader is consistent.
     return (
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
             <div className="flex h-full w-full items-center justify-center">
