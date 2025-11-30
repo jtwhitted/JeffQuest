@@ -38,8 +38,8 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader className="p-0">
-         <Link href="/" onClick={handleLinkClick}>
-            <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }}>
+         <Link href="/">
+            <div className="relative flex items-center justify-center w-full h-[180px]" style={{ cursor: 'pointer' }} onClick={handleLinkClick}>
                 <Image
                 src="/images/jeff-quest-logo.png"
                 alt="Jeff Quest! Logo"
