@@ -32,16 +32,10 @@ export default function AppSidebar({ onLinkClick }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  console.log('AppSidebar rendered. onLinkClick prop is:', onLinkClick ? 'defined' : 'undefined');
-
   const handleLinkClick = (href: string) => {
-    console.log(`handleLinkClick called with href: ${href}`);
     router.push(href);
     if (onLinkClick) {
-      console.log('Calling onLinkClick...');
       onLinkClick();
-    } else {
-      console.log('onLinkClick is undefined, not calling it.');
     }
   };
 
