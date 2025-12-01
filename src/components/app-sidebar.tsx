@@ -22,6 +22,13 @@ interface AppSidebarProps {
   onLinkClick?: () => void;
 }
 
+const navItems = [
+  { href: '/', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/sessions', label: 'Sessions', icon: Swords },
+  { href: '/players', label: 'Players', icon: Users },
+  { href: '/games', label: 'Games', icon: Dices },
+];
+
 export default function AppSidebar({ onLinkClick }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
