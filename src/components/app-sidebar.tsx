@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   SidebarHeader,
   SidebarMenu,
@@ -31,6 +31,7 @@ const navItems = [
 
 export default function AppSidebar({ onLinkClick }: AppSidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLinkClick = (href: string) => {
     router.push(href);
@@ -55,7 +56,7 @@ export default function AppSidebar({ onLinkClick }: AppSidebarProps) {
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
-                isActive={false} // Let active state be handled by layout/page
+                isActive={pathname === item.href}
                 tooltip={{ children: item.label }}
                 onClick={() => handleLinkClick(item.href)}
               >
