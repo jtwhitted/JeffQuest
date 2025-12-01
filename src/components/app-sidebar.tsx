@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
+import { useSidebar } from './ui/sidebar';
 
 interface AppSidebarProps {
   onLinkClick?: () => void;
@@ -32,11 +33,15 @@ const navItems = [
 export default function AppSidebar({ onLinkClick }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { setOpenMobile } = useSidebar();
 
   const handleLinkClick = (href: string) => {
     router.push(href);
     if (onLinkClick) {
       onLinkClick();
+    } else {
+      // Fallback for when not on mobile
+      setOpenMobile(false);
     }
   };
 
