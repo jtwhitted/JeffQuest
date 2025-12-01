@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -16,13 +17,6 @@ import {
 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
-
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutGrid },
-  { href: '/sessions', label: 'Sessions', icon: Swords },
-  { href: '/games', label: 'Games', icon: Dices },
-  { href: '/players', label: 'Players', icon: Users },
-];
 
 interface AppSidebarProps {
   onLinkClick?: () => void;
