@@ -23,7 +23,7 @@ export default function Header() {
               <SheetTitle>Navigation Menu</SheetTitle>
               <SheetDescription>Main navigation links for the application.</SheetDescription>
             </SheetHeader>
-            <AppSidebar />
+            <AppSidebar onLinkClick={() => setOpenMobile(false)} />
           </SheetContent>
         </Sheet>
       </div>

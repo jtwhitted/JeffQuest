@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -7,7 +6,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  useSidebar,
 } from '@/components/ui/sidebar';
 import {
   LayoutGrid,
@@ -26,14 +24,19 @@ const navItems = [
   { href: '/players', label: 'Players', icon: Users },
 ];
 
-export default function AppSidebar() {
+interface AppSidebarProps {
+  onLinkClick?: () => void;
+}
+
+export default function AppSidebar({ onLinkClick }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { setOpenMobile } = useSidebar();
 
   const handleLinkClick = (href: string) => {
     router.push(href);
-    setOpenMobile(false);
+    if (onLinkClick) {
+      onLinkClick();
+    }
   };
 
   return (
