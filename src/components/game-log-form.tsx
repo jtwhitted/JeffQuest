@@ -60,7 +60,7 @@ const formSchema = z.object({
       score: z.coerce.number().optional(),
   })).optional(),
   notes: z.string().optional(),
-  duration: z.coerce.number().optional(),
+  duration: z.coerce.number().min(0, 'Duration cannot be negative').optional(),
 }).refine(data => {
     // If competitive and players are selected, a winner must be chosen.
     if (!data.isCooperative && data.playerIds.length > 0) {
@@ -122,7 +122,7 @@ export default function GameLogForm() {
       scores: [],
       notes: '',
       duration: undefined,
-    });
+    }, { keepDefaultValues: true });
   }, [form]);
 
 
@@ -135,7 +135,7 @@ export default function GameLogForm() {
     if (!gameId) return;
     const selectedGame = games.find(g => g.id === gameId);
     const isCoopGame = selectedGame?.mechanics?.includes('Cooperative Game') || false;
-    form.setValue('isCooperative', isCoopGame, { shouldValidate: true });
+    form.setValue('isCooperative', isCoopGame, { shouldValidate: false });
   }, [gameId, games, form]);
   
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
@@ -147,11 +147,11 @@ export default function GameLogForm() {
         const existing = existingScores.find(s => s.playerId === playerId);
         return existing || { playerId, score: undefined };
     });
-    form.setValue('scores', newScores, { shouldValidate: true });
+    form.setValue('scores', newScores, { shouldValidate: false });
     
     const winnerId = form.getValues('winnerId');
     if (winnerId && !selectedPlayerIds.includes(winnerId)) {
-      form.setValue('winnerId', undefined);
+      form.setValue('winnerId', undefined, { shouldValidate: false });
     }
     
   }, [selectedPlayerIds, form]);
@@ -169,24 +169,24 @@ export default function GameLogForm() {
       });
   
       if (winner?.playerId) {
-        form.setValue('winnerId', winner.playerId, { shouldValidate: true });
+        form.setValue('winnerId', winner.playerId, { shouldValidate: false });
       }
     }
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
   const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
-    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
+    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: false });
     if (result.date) {
         const localDate = new Date(result.date + 'T00:00:00');
-        form.setValue('date', localDate, { shouldValidate: true });
+        form.setValue('date', localDate, { shouldValidate: false });
     }
-    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
-    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
-    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
+    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: false });
+    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: false });
+    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: false });
     if (result.isCooperative) {
-        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
+        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: false });
     } else {
-        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: true });
+        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: false });
     }
     
     if (result.scores && result.scores.length > 0) {
@@ -195,8 +195,11 @@ export default function GameLogForm() {
             const foundScore = result.scores?.find(s => s.playerId === pid);
             return { playerId: pid, score: foundScore ? foundScore.score : undefined };
         });
-        form.setValue('scores', newScores, { shouldValidate: true });
+        form.setValue('scores', newScores, { shouldValidate: false });
     }
+    
+    // Validate all fields after populating to show any errors
+    form.trigger();
     
     toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
   };
@@ -247,7 +250,7 @@ export default function GameLogForm() {
     try {
       const newGame = await addGame({ bggId, name });
       if (newGame) {
-        form.setValue('gameId', newGame.id, { shouldValidate: true });
+        form.setValue('gameId', newGame.id, { shouldValidate: false });
         toast({
           title: 'Game Added!',
           description: `${newGame.name} has been added and selected.`,
@@ -492,7 +495,7 @@ export default function GameLogForm() {
                     <FormItem>
                         <FormLabel>Game Duration (minutes)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="e.g. 90" {...field} value={field.value ?? ''} />
+                            <Input type="number" placeholder="e.g. 90" min="0" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -668,7 +671,7 @@ export default function GameLogForm() {
                                         } else {
                                             newScores.push({ playerId: player.id, score: isNaN(scoreValue) ? undefined : scoreValue });
                                         }
-                                        form.setValue('scores', newScores, { shouldValidate: true });
+                                        form.setValue('scores', newScores, { shouldValidate: false });
                                     }}
                                     value={form.getValues('scores')?.find(s => s.playerId === player.id)?.score ?? ''}
                                 />

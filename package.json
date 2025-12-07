@@ -8,6 +8,7 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "NODE_ENV=production next build",
     "start": "next start",
+    "migrate": "tsx scripts/migrate-to-supabase.ts",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
@@ -39,6 +40,7 @@
     "@radix-ui/react-toast": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@radix-ui/react-visually-hidden": "^1.1.0",
+    "@supabase/supabase-js": "^2.86.2",
     "brace-expansion": "^4.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -65,7 +67,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tmp": "^0.2.5",
     "wav": "^1.0.2",
-    "zod": "^3.24.2"
+    "zod": "^4.1.13"
   },
   "overrides": {
     "body-parser": "^2.2.1"
@@ -77,6 +79,7 @@
     "genkit-cli": "^1.20.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

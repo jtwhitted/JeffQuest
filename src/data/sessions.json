@@ -118,5 +118,33 @@
       }
     ],
     "notes": ""
+  },
+  {
+    "id": "s1765049554096",
+    "gameId": "g1762881557498",
+    "date": "2025-12-06T19:31:49.763Z",
+    "playerIds": [
+      "p1762879138303",
+      "p1763782401084",
+      "p1763854886637"
+    ],
+    "isCooperative": true,
+    "cooperativeResult": "win",
+    "scores": [
+      {
+        "playerId": "p1762879138303",
+        "score": 9
+      },
+      {
+        "playerId": "p1763782401084",
+        "score": 9
+      },
+      {
+        "playerId": "p1763854886637",
+        "score": 9
+      }
+    ],
+    "notes": "It was bad.  Real bad",
+    "duration": 27
   }
 ]

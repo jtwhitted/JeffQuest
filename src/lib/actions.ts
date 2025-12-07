@@ -614,16 +614,18 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
     url.searchParams.append('key', YOUTUBE_API_KEY);
 
     try {
+        console.log(`[YouTube] Searching for: "How to play ${query}"`);
         const response = await fetch(url.toString());
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('YouTube API Error:', errorData);
-            throw new Error('Failed to fetch videos from YouTube.');
+            console.error('YouTube API Error:', response.status, errorData);
+            throw new Error(`YouTube API failed with status ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
         }
 
         const data = await response.json();
         
         if (!data.items) {
+            console.warn('[YouTube] No items returned from search');
             return [];
         }
 
@@ -634,10 +636,11 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
             channel: item.snippet.channelTitle,
         }));
         
+        console.log(`[YouTube] Found ${videos.length} videos for "${query}"`);
         return videos.slice(0, 3);
 
     } catch (error) {
-        console.error('Error fetching from YouTube:', error);
+        console.error('[YouTube] Error fetching videos:', error);
         return [];
     }
 }
