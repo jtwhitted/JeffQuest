@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   name: 'generatePlayerBioPrompt',
   input: { schema: GeneratePlayerBioInputSchema },
   output: { schema: GeneratePlayerBioOutputSchema },
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-2.5-flash',
   prompt: `You are a creative writer who specializes in tabletop gaming.
 Your task is to write a short player bio for a tabletop gamer named {{{name}}}.
 Use their photo and game stats to create an interesting narrative. Don't just list the stats; build a character around them.

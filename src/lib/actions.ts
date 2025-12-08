@@ -20,6 +20,7 @@ import {
 } from './data';
 import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends, getBggUserDetails } from './bgg';
 import pdf from 'pdf-parse';
+import { suggestGameNightFlow } from '@/ai/flows/suggest-game-night-flow';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -651,6 +652,141 @@ export async function setFavoriteVideoAction(gameId: string, videoId: string | u
     return updatedGame;
 }
 
+const suggestGameNightRequestSchema = z.object({
+    playerIds: z.array(z.string()),
+    availableTime: z.number().optional(),
+    mood: z.string().optional(),
+});
+
+export async function suggestGameNightAction(values: z.infer<typeof suggestGameNightRequestSchema>) {
+    const validatedFields = suggestGameNightRequestSchema.safeParse(values);
+    if (!validatedFields.success) {
+        throw new Error('Invalid request for game suggestions.');
+    }
+    
+    const { playerIds, availableTime, mood } = validatedFields.data;
+    const { games, players, sessions } = await getInitialData();
+
+    // 1. Filter games by player count
+    let candidateGames = games.filter(game => {
+        const playerCount = playerIds.length;
+        return playerCount >= game.minPlayers && playerCount <= game.maxPlayers;
+    });
+
+    // 2. Further filter by available time if provided
+    if (availableTime && availableTime > 0) {
+        candidateGames = candidateGames.filter(game => {
+            const maxPlaytime = game.maxPlaytime;
+            // If a game has no max playtime, we can't be sure it fits, so we exclude it.
+            if (!maxPlaytime) return false;
+            // The game's max playtime should be less than or equal to the available time.
+            return maxPlaytime <= availableTime;
+        });
+    }
+
+    
+    // 3. Create summarized context data for the AI
+    const attendingPlayersSummaries = players
+        .filter(p => playerIds.includes(p.id))
+        .map(p => {
+            const playerSessions = sessions.filter(s => s.playerIds.includes(p.id));
+            
+            if (playerSessions.length === 0) {
+                return { id: p.id, name: p.name, mostPlayedGame: undefined, nemesis: undefined };
+            }
+
+            const playsByGame = playerSessions.reduce((acc, session) => {
+                acc[session.gameId] = (acc[session.gameId] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+            const favoriteGameId = Object.entries(playsByGame).sort(([, a], [, b]) => b - a)[0]?.[0];
+            
+            const competitiveGames = playerSessions.filter(s => !s.isCooperative && s.playerIds.length > 1);
+            const nemesisCounts = competitiveGames
+                .reduce((acc, session) => {
+                    if (session.winnerId && session.winnerId !== p.id) {
+                        acc[session.winnerId] = (acc[session.winnerId] || 0) + 1;
+                    }
+                    return acc;
+                }, {} as Record<string, number>);
+            
+            const topNemesisId = Object.entries(nemesisCounts).sort(([, a], [, b]) => b - a)[0]?.[0];
+            
+            return {
+                id: p.id,
+                name: p.name,
+                mostPlayedGame: games.find(g => g.id === favoriteGameId)?.name,
+                nemesis: players.find(player => player.id === topNemesisId)?.name,
+            };
+        });
+
+
+    const candidateGameSummaries = candidateGames.map(game => {
+        const groupSessions = sessions.filter(s => s.gameId === game.id && s.playerIds.every(pid => playerIds.includes(pid)));
+        
+        const lastPlayedSession = groupSessions.length > 0 
+            ? groupSessions.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+            : undefined;
+        
+        const winsByPlayer = groupSessions.reduce((acc, session) => {
+            if (session.winnerId) {
+                acc[session.winnerId] = (acc[session.winnerId] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+        
+        const topPlayerId = Object.entries(winsByPlayer).sort(([, a], [, b]) => b - a)[0]?.[0];
+
+        return {
+            id: game.id,
+            name: game.name,
+            category: game.category,
+            mechanics: game.mechanics,
+            minPlayers: game.minPlayers,
+            maxPlayers: game.maxPlayers,
+            minPlaytime: game.minPlaytime,
+            maxPlaytime: game.maxPlaytime,
+            difficulty: game.difficulty,
+            lastPlayed: lastPlayedSession?.date,
+            topPlayer: players.find(p => p.id === topPlayerId)?.name,
+        };
+    });
+
+    const aiPayload = {
+        playerIds,
+        availableTime,
+        mood,
+        isSolo: playerIds.length === 1,
+        candidateGames: candidateGameSummaries,
+        attendingPlayers: attendingPlayersSummaries,
+    };
+    
+    // 4. Call the AI flow with the summarized data
+    try {
+        const flowResult = await suggestGameNightFlow(aiPayload);
+        
+        // Self-correction: if the AI returned a name instead of an ID, fix it.
+        const correctedRecommendations = flowResult.recommendations.map(rec => {
+            const gameExistsWithId = candidateGames.some(g => g.id === rec.gameId);
+            if (gameExistsWithId) {
+                return rec; // ID is correct
+            }
+            // If not, find the game by name and replace with the correct ID
+            const gameFoundByName = candidateGames.find(g => g.name === rec.gameId);
+            if (gameFoundByName) {
+                return { ...rec, gameId: gameFoundByName.id };
+            }
+            return null; // or handle as an error if game not found at all
+        }).filter((r): r is { gameId: string; reason: string; } => r !== null);
+
+
+        return { recommendations: correctedRecommendations };
+
+    } catch (e: any) {
+        console.error("AI flow failed:", e);
+        throw new Error(e.message || "The AI game sommelier is busy. Please try again in a moment.");
+    }
+}
 
 export async function importBggFriendsAction(username: string): Promise<{ importedCount: number; friendsFound: number; friendsUsernames: string[] }> {
     if (!username) {

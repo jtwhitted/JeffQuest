@@ -12,4 +12,5 @@ import '@/ai/flows/generate-legendary-card.ts';
 import '@/ai/flows/ask-rulebook.ts';
 import '@/ai/flows/text-to-speech.ts';
 import '@/ai/flows/generate-dashboard-insight.ts';
+import '@/ai/flows/suggest-game-night-flow.ts';
 

@@ -13,6 +13,7 @@ import {
   Users,
   Dices,
   PlusCircle,
+  WandSparkles,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import Image from 'next/image';
@@ -23,6 +24,7 @@ interface AppSidebarProps {
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/planner', label: 'Planner', icon: WandSparkles }, 
   { href: '/sessions', label: 'Sessions', icon: Swords },
   { href: '/players', label: 'Players', icon: Users },
   { href: '/games', label: 'Games', icon: Dices },
