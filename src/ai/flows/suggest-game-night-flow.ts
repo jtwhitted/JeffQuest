@@ -55,7 +55,7 @@ export type SuggestGameNightOutput = z.infer<typeof SuggestGameNightOutputSchema
 
 const suggestGameNightPrompt = ai.definePrompt({
     name: 'suggestGameNightPrompt',
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-3-flash-preview',
     input: { schema: SuggestGameNightInputSchema },
     output: { schema: SuggestGameNightOutputSchema },
     prompt: `You are a board game expert and sommelier. Your task is to recommend the best games for a specific game night from a list of candidate games.

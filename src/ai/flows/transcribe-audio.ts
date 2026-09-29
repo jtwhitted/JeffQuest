@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to transcribe audio to text.
@@ -17,6 +16,7 @@ const TranscribeAudioInputSchema = z.object({
     .describe(
       "A recording of spoken audio, as a data URI that must include a MIME type (e.g., 'audio/webm') and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  prompt: z.string().optional().describe('An optional prompt to guide the transcription model.'),
 });
 export type TranscribeAudioInput = z.infer<typeof TranscribeAudioInputSchema>;
 
@@ -41,10 +41,10 @@ const transcribeAudioFlow = ai.defineFlow(
   },
   async (input) => {
     const { text } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
+        model: 'googleai/gemini-3-flash-preview',
         prompt: [
-            { media: { url: input.audioDataUri, contentType: 'audio/webm' } },
-            { text: 'Transcribe the spoken words from this audio. Return only the text transcription.' },
+            { media: { url: input.audioDataUri } },
+            { text: input.prompt || "You are a transcription service. The following audio is in English. Transcribe the user's spoken words literally and exactly." },
         ],
     });
 

@@ -42,6 +42,7 @@ export function VideoPlayerDialog({ open, onOpenChange, video }: VideoPlayerDial
               height="100%"
               controls
               playing
+              onError={(error) => console.error('Error playing YouTube video:', error)}
               className="absolute top-0 left-0"
             />
           </div>

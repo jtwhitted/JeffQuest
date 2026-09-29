@@ -1,61 +1,93 @@
 [
   {
-    "id": "in-1764262028185",
-    "query": "Show me all games with a play time of an hour or less",
+    "id": "in-1764873718360",
+    "query": "Show me all of the cooperative games, sorted by BGG rank",
     "generatedInsight": {
       "type": "list",
+      "title": "Cooperative Games by BGG Rank",
       "data": [
+        {
+          "id": "g1762835357259",
+          "name": "Vantage",
+          "value": 8.438,
+          "detail": "Adventure",
+          "imageUrl": "https://cf.geekdo-images.com/M0e9l-SHH2H4RMSAcnsDgg__original/img/nT1NtVviWxSBgVv5lvM4RmemITs=/0x0/filters:format(jpeg)/pic8658546.jpg",
+          "valueType": "rating"
+        },
+        {
+          "id": "g1764361801845",
+          "name": "Mage Knight Board Game",
+          "value": 8.08,
+          "detail": "Adventure",
+          "imageUrl": "https://cf.geekdo-images.com/DUO2hz9AlLOH8p9ED-lCWg__original/img/PDDH38Vf9NEB_4ODURxcJKNBfVQ=/0x0/filters:format(jpeg)/pic1083380.jpg",
+          "valueType": "rating"
+        },
+        {
+          "id": "g1764942729770",
+          "name": "The Crew: The Quest for Planet Nine",
+          "value": 7.765,
+          "detail": "Card Game",
+          "imageUrl": "https://cf.geekdo-images.com/98LnQShydr11OBKS46xY-Q__original/img/Q-ZkgnuBu9OTBr7J3qnqPjqamAE=/0x0/filters:format(jpeg)/pic5687013.jpg",
+          "valueType": "rating"
+        },
+        {
+          "id": "g1764362036006",
+          "name": "Eldritch Horror",
+          "value": 7.744,
+          "detail": "Adventure",
+          "imageUrl": "https://cf.geekdo-images.com/oxdsZKIX5_3ovDo38EIaeg__original/img/vxK08kQAEn5qPbejK2CUTyWOsig=/0x0/filters:format(jpeg)/pic1872452.jpg",
+          "valueType": "rating"
+        },
+        {
+          "id": "g1764362164411",
+          "name": "Robinson Crusoe: Adventures on the Cursed Island",
+          "value": 7.729,
+          "detail": "Adventure",
+          "imageUrl": "https://cf.geekdo-images.com/zvHPgrNb9mgkHQk-BwVemA__original/img/OUdMMPwYXTd5JIBG9skImPqa8bg=/0x0/filters:format(jpeg)/pic6026697.jpg",
+          "valueType": "rating"
+        },
         {
           "id": "g1762881557498",
           "name": "Just One",
-          "detail": "60 minutes",
+          "value": 7.598,
+          "detail": "Deduction",
           "imageUrl": "https://cf.geekdo-images.com/74haNunMBn85beBi-yIKwA__original/img/hA22qL6nZxchA8FMTIfhLMcI53I=/0x0/filters:format(png)/pic8669313.png",
-          "value": "60 minutes"
-        },
-        {
-          "id": "g1762884180986",
-          "name": "The King's Dilemma",
-          "detail": "60 minutes",
-          "imageUrl": "https://cf.geekdo-images.com/FJlTdSMkK5hMNtCympJFmg__original/img/pr_jKPa74JjBBm30Mo9Uj9Jq1-w=/0x0/filters:format(jpeg)/pic5429837.jpg",
-          "value": "60 minutes"
-        },
-        {
-          "id": "g1762884281021",
-          "name": "Regicide",
-          "detail": "30 minutes",
-          "imageUrl": "https://cf.geekdo-images.com/C9U2E51tkzLljewFEGQ74g__original/img/Q-a5lAydzhwNLLhy8n326tlxuYE=/0x0/filters:format(jpeg)/pic5837347.jpg",
-          "value": "30 minutes"
+          "valueType": "rating"
         },
         {
           "id": "g1762884301543",
           "name": "The Shipwreck Arcana",
-          "detail": "30 minutes",
+          "value": 7.412,
+          "detail": "Card Game",
           "imageUrl": "https://cf.geekdo-images.com/yv5EAl5uidhZ53WJI-bQ4g__original/img/M7dWeql-u4Xtcaff5tfSCa2AvSs=/0x0/filters:format(png)/pic4042715.png",
-          "value": "30 minutes"
+          "valueType": "rating"
         },
         {
-          "id": "g1763665148376",
-          "name": "We Didn't Playtest This at All with Chaos Pack Expansion",
-          "detail": "10 minutes",
-          "imageUrl": "https://cf.geekdo-images.com/ln2wZ5mlnbqgWtZL5DKsTA__original/img/KyarogRGx8Lp7o6cDZaD5qq3fPA=/0x0/filters:format(png)/pic1955488.png",
-          "value": "10 minutes"
-        },
-        {
-          "id": "g1763679492571",
-          "name": "The Crew: The Quest for Planet Nine",
-          "detail": "20 minutes",
-          "imageUrl": "https://cf.geekdo-images.com/98LnQShydr11OBKS46xY-Q__original/img/Q-ZkgnuBu9OTBr7J3qnqPjqamAE=/0x0/filters:format(jpeg)/pic5687013.jpg",
-          "value": "20 minutes"
+          "id": "g1762884281021",
+          "name": "Regicide",
+          "value": 7.405,
+          "detail": "Card Game",
+          "imageUrl": "https://cf.geekdo-images.com/C9U2E51tkzLljewFEGQ74g__original/img/Q-a5lAydzhwNLLhy8n326tlxuYE=/0x0/filters:format(jpeg)/pic5837347.jpg",
+          "valueType": "rating"
         },
         {
           "id": "g1763939648505",
           "name": "The Mind",
-          "detail": "20 minutes",
+          "value": 6.729,
+          "detail": "Card Game",
           "imageUrl": "https://cf.geekdo-images.com/q_JGK291hrhnhiRB0667oA__original/img/8VjZEG278faO9JZwzce3v3EKssI=/0x0/filters:format(png)/pic3979766.png",
-          "value": "20 minutes"
+          "valueType": "rating"
         }
-      ],
-      "title": "Games with a Play Time of 60 Minutes or Less"
+      ]
+    }
+  },
+  {
+    "id": "in-1764982247827",
+    "query": "Show me all my games with a playtime under an hour",
+    "generatedInsight": {
+      "type": "list",
+      "title": "Games with Playtime Under One Hour",
+      "data": []
     }
   }
 ]

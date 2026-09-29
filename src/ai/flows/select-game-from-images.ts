@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to visually select the correct board game from a list of candidates.
@@ -66,7 +65,7 @@ Here is the user's photo:`,
     promptParts.push({ text: "\n\nNow, based on your visual analysis, which candidate is the correct one? Return only the bggId of the best match." });
 
     const { output } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash',
+      model: 'googleai/gemini-3-flash-preview',
       prompt: promptParts,
       output: { schema: SelectGameOutputSchema },
       config: { temperature: 0.1 }

@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import type { Game, Player, Session, RulebookDocument, YoutubeVideo, DashboardInsight, GenerateInsightOutput } from './types';
+import type { Game, Player, Session, RulebookDocument, YoutubeVideo, DashboardInsight, GenerateInsightOutput, RulebookDocumentType } from './types';
 import { 
     addGameToDB,
     addSessionToDB,
@@ -21,8 +21,6 @@ import {
 import { searchBgg, getBggDetails, getBggCollection, getBggPlayHistory, BggPlay, getBggFriends, getBggUserDetails } from './bgg';
 import pdf from 'pdf-parse';
 import { suggestGameNightFlow } from '@/ai/flows/suggest-game-night-flow';
-import fs from 'fs/promises';
-import path from 'path';
 
 // Server Actions for data mutation
 
@@ -268,7 +266,7 @@ export async function searchBggAction(query: string): Promise<Partial<Game>[]> {
 export async function getBggDetailsAction(ids: string): Promise<Partial<Game & {id: string}>[]> {
   if (!ids || ids.length === 0) return [];
   try {
-    const details = await getBggDetails(ids.split(','), true, false); // Fetch stats, but not comments
+    const details = await getBggDetails(ids.split(','), true, true);
     return details;
   } catch (error) {
     console.error('BGG details action failed:', error);
@@ -537,8 +535,46 @@ export async function importBggRatingsAction(username: string, playerId: string)
 }
 
 
+export async function importBggFriendsAction(username: string): Promise<{ importedCount: number, friendsFound: number }> {
+    if (!username) {
+        throw new Error('BGG username is required.');
+    }
 
-export async function handleRulebookUpload(gameId: string, documentName: string, pdfDataUri: string): Promise<Game> {
+    const { players: currentPlayers } = await getInitialData();
+    const bggFriendUsernames = await getBggFriends(username);
+
+    if (bggFriendUsernames.length === 0) {
+        return { importedCount: 0, friendsFound: 0 };
+    }
+
+    const existingBggUsernames = new Set(currentPlayers.map(p => p.bggUsername?.toLowerCase()).filter(Boolean));
+    const newFriendUsernames = bggFriendUsernames.filter(uname => !existingBggUsernames.has(uname.toLowerCase()));
+    
+    let importedCount = 0;
+    
+    for (const friendUsername of newFriendUsernames) {
+        try {
+            const userDetails = await getBggUserDetails(friendUsername);
+            await addPlayer({
+                name: userDetails.name,
+                bggUsername: friendUsername,
+                avatarUrl: userDetails.avatarUrl,
+            });
+            importedCount++;
+        } catch (error) {
+            console.error(`Failed to import friend "${friendUsername}":`, error);
+        }
+    }
+    
+    if (importedCount > 0) {
+        revalidatePath('/players');
+    }
+
+    return { importedCount, friendsFound: bggFriendUsernames.length };
+}
+
+
+export async function handleRulebookUpload(gameId: string, documentName: string, documentType: RulebookDocumentType, pdfDataUri: string): Promise<Game> {
     if (!pdfDataUri.startsWith('data:application/pdf;base64,')) {
         throw new Error('Invalid PDF data format.');
     }
@@ -567,6 +603,7 @@ export async function handleRulebookUpload(gameId: string, documentName: string,
         const newDocument: RulebookDocument = {
             id: `doc-${Date.now()}`,
             name: documentName,
+            type: documentType,
             text: textContent,
         };
 
@@ -615,18 +652,16 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
     url.searchParams.append('key', YOUTUBE_API_KEY);
 
     try {
-        console.log(`[YouTube] Searching for: "How to play ${query}"`);
         const response = await fetch(url.toString());
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('YouTube API Error:', response.status, errorData);
-            throw new Error(`YouTube API failed with status ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
+            console.error('YouTube API Error:', errorData);
+            throw new Error('Failed to fetch videos from YouTube.');
         }
 
         const data = await response.json();
         
         if (!data.items) {
-            console.warn('[YouTube] No items returned from search');
             return [];
         }
 
@@ -637,11 +672,10 @@ export async function searchYoutubeAction(query: string): Promise<YoutubeVideo[]
             channel: item.snippet.channelTitle,
         }));
         
-        console.log(`[YouTube] Found ${videos.length} videos for "${query}"`);
         return videos.slice(0, 3);
 
     } catch (error) {
-        console.error('[YouTube] Error fetching videos:', error);
+        console.error('Error fetching from YouTube:', error);
         return [];
     }
 }
@@ -651,6 +685,7 @@ export async function setFavoriteVideoAction(gameId: string, videoId: string | u
     revalidatePath(`/games/${gameId}`);
     return updatedGame;
 }
+
 
 const suggestGameNightRequestSchema = z.object({
     playerIds: z.array(z.string()),
@@ -786,53 +821,4 @@ export async function suggestGameNightAction(values: z.infer<typeof suggestGameN
         console.error("AI flow failed:", e);
         throw new Error(e.message || "The AI game sommelier is busy. Please try again in a moment.");
     }
-}
-
-export async function importBggFriendsAction(username: string): Promise<{ importedCount: number; friendsFound: number; friendsUsernames: string[] }> {
-    if (!username) {
-        throw new Error('BGG username is required.');
-    }
-
-    const { players: currentPlayers } = await getInitialData();
-    const friendsUsernames = await getBggFriends(username);
-    const friendsFound = Array.isArray(friendsUsernames) ? friendsUsernames.length : 0;
-    
-    if (friendsFound === 0) {
-        return { importedCount: 0, friendsFound: 0, friendsUsernames: [] };
-    }
-    
-    const currentPlayerUsernames = new Set(
-        currentPlayers.map(p => p.bggUsername?.toLowerCase()).filter(Boolean)
-    );
-     const currentPlayerNames = new Set(
-        currentPlayers.map(p => p.name.toLowerCase())
-    );
-
-    const newFriendsUsernames = friendsUsernames.filter(friendUsername => {
-        const lowercasedUsername = friendUsername.toLowerCase();
-        return !currentPlayerUsernames.has(lowercasedUsername) && !currentPlayerNames.has(lowercasedUsername);
-    });
-    
-    let importedCount = 0;
-    if (newFriendsUsernames.length > 0) {
-        for (const friendUsername of newFriendsUsernames) {
-            try {
-                const userDetails = await getBggUserDetails(friendUsername);
-                await addPlayer({
-                    name: userDetails.name,
-                    avatarUrl: userDetails.avatarUrl,
-                    bggUsername: friendUsername,
-                });
-                importedCount++;
-            } catch (error) {
-                console.error(`Failed to import friend ${friendUsername}:`, error);
-            }
-        }
-    }
-    
-    if (importedCount > 0) {
-        revalidatePath('/players');
-    }
-    
-    return { importedCount, friendsFound, friendsUsernames };
 }

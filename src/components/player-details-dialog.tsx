@@ -119,6 +119,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             lastError = null; // Clear error on success
             break; // Exit loop on success
         } catch (error) {
+            console.error(`Error generating legendary card (attempt ${i + 1}/${retries}):`, error);
             lastError = error;
             if (i < retries - 1) {
                 setLoadingMessage(`The AI is busy, retrying in ${delayMs / 1000}s...`);
@@ -140,6 +141,7 @@ export function PlayerDetailsDialog({ open, onOpenChange, player }: PlayerDetail
             description: "The player's epic tale has been written."
         });
     } else {
+        console.error('Failed to generate legendary card after retries:', lastError);
         const errorMessage = lastError?.message || 'The AI is very busy right now. Please try again in a minute.';
         setLegendaryCardState({ loading: false, error: errorMessage, data: null });
         toast({

@@ -182,6 +182,9 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
                 {isImporting && importingMessage === 'Importing Plays...' ? <Loader2 className="mr-2 animate-spin"/> : <History className="mr-2" />}
                 {isImporting && importingMessage === 'Importing Plays...' ? 'Importing...' : 'Import Play History'}
             </Button>
+            
+            <Separator />
+
              <Button 
                 variant="outline" 
                 className="w-full"
@@ -189,7 +192,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
                 disabled={isImporting}
                 >
                 {isImporting && importingMessage === 'Importing...' ? <Loader2 className="mr-2 animate-spin"/> : <Star className="mr-2" />}
-                {isImporting && importingMessage === 'Importing...' ? 'Importing...' : 'Import Ratings & Comments'}
+                {isImporting && importingMessage === 'Importing...' ? 'Importing...' : 'Sync Ratings & Comments'}
             </Button>
              <Button 
                 variant="outline" 
@@ -198,7 +201,7 @@ export function BggImportDialog({ open, onOpenChange, bggUsername, playerId }: B
                 disabled={isImporting}
                 >
                 {isImporting && importingMessage === 'Importing Friends...' ? <Loader2 className="mr-2 animate-spin"/> : <Users className="mr-2" />}
-                {isImporting && importingMessage === 'Importing Friends...' ? 'Importing...' : 'Import BGG Friends'}
+                {isImporting && importingMessage === 'Importing Friends...' ? 'Importing...' : 'Sync BGG Friends'}
             </Button>
           </div>
 

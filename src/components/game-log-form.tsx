@@ -60,7 +60,7 @@ const formSchema = z.object({
       score: z.coerce.number().optional(),
   })).optional(),
   notes: z.string().optional(),
-  duration: z.coerce.number().min(0, 'Duration cannot be negative').optional(),
+  duration: z.coerce.number().min(0, "Duration cannot be negative.").optional(),
 }).refine(data => {
     // If competitive and players are selected, a winner must be chosen.
     if (!data.isCooperative && data.playerIds.length > 0) {
@@ -122,7 +122,7 @@ export default function GameLogForm() {
       scores: [],
       notes: '',
       duration: undefined,
-    }, { keepDefaultValues: true });
+    });
   }, [form]);
 
 
@@ -135,7 +135,7 @@ export default function GameLogForm() {
     if (!gameId) return;
     const selectedGame = games.find(g => g.id === gameId);
     const isCoopGame = selectedGame?.mechanics?.includes('Cooperative Game') || false;
-    form.setValue('isCooperative', isCoopGame, { shouldValidate: false });
+    form.setValue('isCooperative', isCoopGame, { shouldValidate: true });
   }, [gameId, games, form]);
   
   const selectedPlayers = players.filter(p => selectedPlayerIds.includes(p.id));
@@ -147,11 +147,11 @@ export default function GameLogForm() {
         const existing = existingScores.find(s => s.playerId === playerId);
         return existing || { playerId, score: undefined };
     });
-    form.setValue('scores', newScores, { shouldValidate: false });
+    form.setValue('scores', newScores, { shouldValidate: true });
     
     const winnerId = form.getValues('winnerId');
     if (winnerId && !selectedPlayerIds.includes(winnerId)) {
-      form.setValue('winnerId', undefined, { shouldValidate: false });
+      form.setValue('winnerId', undefined);
     }
     
   }, [selectedPlayerIds, form]);
@@ -169,24 +169,24 @@ export default function GameLogForm() {
       });
   
       if (winner?.playerId) {
-        form.setValue('winnerId', winner.playerId, { shouldValidate: false });
+        form.setValue('winnerId', winner.playerId, { shouldValidate: true });
       }
     }
   }, [scores, isCooperative, form, selectedPlayerIds.length]);
 
   const populateFormFromAI = (result: ExtractSessionDetailsOutput) => {
-    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: false });
+    if (result.gameId) form.setValue('gameId', result.gameId, { shouldValidate: true });
     if (result.date) {
         const localDate = new Date(result.date + 'T00:00:00');
-        form.setValue('date', localDate, { shouldValidate: false });
+        form.setValue('date', localDate, { shouldValidate: true });
     }
-    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: false });
-    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: false });
-    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: false });
+    if (result.playerIds && result.playerIds.length > 0) form.setValue('playerIds', result.playerIds, { shouldValidate: true });
+    if (result.isCooperative !== undefined) form.setValue('isCooperative', result.isCooperative, { shouldValidate: true });
+    if (result.durationInMinutes) form.setValue('duration', result.durationInMinutes, { shouldValidate: true });
     if (result.isCooperative) {
-        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: false });
+        if (result.cooperativeResult) form.setValue('cooperativeResult', result.cooperativeResult, { shouldValidate: true });
     } else {
-        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: false });
+        if (result.winnerId) form.setValue('winnerId', result.winnerId, { shouldValidate: true });
     }
     
     if (result.scores && result.scores.length > 0) {
@@ -195,11 +195,8 @@ export default function GameLogForm() {
             const foundScore = result.scores?.find(s => s.playerId === pid);
             return { playerId: pid, score: foundScore ? foundScore.score : undefined };
         });
-        form.setValue('scores', newScores, { shouldValidate: false });
+        form.setValue('scores', newScores, { shouldValidate: true });
     }
-    
-    // Validate all fields after populating to show any errors
-    form.trigger();
     
     toast({ title: 'Details Extracted!', description: 'The form has been populated from your session.' });
   };
@@ -250,7 +247,7 @@ export default function GameLogForm() {
     try {
       const newGame = await addGame({ bggId, name });
       if (newGame) {
-        form.setValue('gameId', newGame.id, { shouldValidate: false });
+        form.setValue('gameId', newGame.id, { shouldValidate: true });
         toast({
           title: 'Game Added!',
           description: `${newGame.name} has been added and selected.`,
@@ -260,6 +257,7 @@ export default function GameLogForm() {
         throw new Error('Failed to fetch details from BGG.');
       }
     } catch (error: any) {
+      console.error('Failed to add game by ID:', error);
       toast({
         variant: "destructive",
         title: "Error adding game",
@@ -280,7 +278,6 @@ export default function GameLogForm() {
   const handleToggleRecording = async () => {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
-      setIsRecording(false);
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -306,7 +303,10 @@ export default function GameLogForm() {
             const base64Audio = reader.result as string;
             if (base64Audio) {
               try {
-                const { text } = await transcribeAudio({ audioDataUri: base64Audio });
+                const { text } = await transcribeAudio({ 
+                  audioDataUri: base64Audio,
+                  prompt: "Transcribe the user's spoken words about the game session they just played. The user may mention player names, the game played, scores, the winner, and other events. Return only the transcribed text."
+                });
                 
                 const currentNotes = form.getValues('notes') || '';
                 const newNotes = currentNotes ? `${currentNotes}\n\n${text}` : text;
@@ -327,13 +327,18 @@ export default function GameLogForm() {
               } finally {
                 setIsProcessing(false);
                 setProcessingMessage('');
+                setIsRecording(false);
               }
             }
           };
         };
 
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
+        setTimeout(() => {
+            if (mediaRecorderRef.current?.state === 'inactive') {
+                mediaRecorderRef.current?.start();
+                setIsRecording(true);
+            }
+        }, 300); // 300ms delay to allow microphone to initialize
       } catch (err) {
         console.error('Error accessing microphone:', err);
         toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access the microphone.' });
@@ -350,6 +355,7 @@ export default function GameLogForm() {
         });
         router.push('/sessions');
     } catch (error) {
+        console.error('Failed to log session:', error);
         toast({
             variant: "destructive",
             title: "Error",
@@ -495,7 +501,7 @@ export default function GameLogForm() {
                     <FormItem>
                         <FormLabel>Game Duration (minutes)</FormLabel>
                         <FormControl>
-                            <Input type="number" placeholder="e.g. 90" min="0" {...field} value={field.value ?? ''} />
+                            <Input type="number" placeholder="e.g. 90" {...field} value={field.value ?? ''} min="0" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -671,7 +677,7 @@ export default function GameLogForm() {
                                         } else {
                                             newScores.push({ playerId: player.id, score: isNaN(scoreValue) ? undefined : scoreValue });
                                         }
-                                        form.setValue('scores', newScores, { shouldValidate: false });
+                                        form.setValue('scores', newScores, { shouldValidate: true });
                                     }}
                                     value={form.getValues('scores')?.find(s => s.playerId === player.id)?.score ?? ''}
                                 />
@@ -719,3 +725,4 @@ export default function GameLogForm() {
     
 
     
+

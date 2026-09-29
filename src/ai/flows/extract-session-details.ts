@@ -103,7 +103,7 @@ export async function extractSessionDetails(input: ExtractSessionDetailsInput): 
 
 const extractDetailsPrompt = ai.definePrompt({
     name: 'extractDetailsPrompt',
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-3-flash-preview',
     tools: [findGameByName, findPlayersByNames],
     input: { schema: ExtractSessionDetailsInputSchema },
     output: { schema: ExtractSessionDetailsOutputSchema },

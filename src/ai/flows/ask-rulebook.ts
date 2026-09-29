@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to answer questions based on a game's rulebook.
@@ -12,7 +11,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const DocumentSchema = z.object({
-  name: z.string().describe("The name of the document (e.g., 'Core Rulebook', 'FAQ')."),
+  name: z.string().describe("The user-provided name of the document (e.g., 'Core Rulebook', 'FAQ')."),
+  type: z.enum(['Rulebook', 'Errata', 'Quick Start', 'House Rules', 'Other']).describe("The type of document."),
   text: z.string().describe("The full text content of the document."),
 });
 
@@ -22,8 +22,14 @@ const AskRulebookInputSchema = z.object({
 });
 export type AskRulebookInput = z.infer<typeof AskRulebookInputSchema>;
 
+const CitationSchema = z.object({
+    documentName: z.string().describe("The exact name of the source document from which the information was taken."),
+    pageNumber: z.coerce.number().optional().describe("The page number in the source document where the answer can be found."),
+});
+
 const AskRulebookOutputSchema = z.object({
   answer: z.string().describe('The AI-generated answer to the user\'s question.'),
+  citations: z.array(CitationSchema).optional().describe("An array of sources used to generate the answer. Each source must include the document name and, if possible, the page number."),
 });
 export type AskRulebookOutput = z.infer<typeof AskRulebookOutputSchema>;
 
@@ -35,17 +41,23 @@ const askRulebookPrompt = ai.definePrompt({
   name: 'askRulebookPrompt',
   input: { schema: AskRulebookInputSchema },
   output: { schema: AskRulebookOutputSchema },
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-3-flash-preview',
   prompt: `You are the "Rules Wizard," an expert on board game rules. Your task is to answer a user's question based *only* on the provided rulebook documents.
 
-You have been given one or more documents. Use all of them to formulate your answer.
+**CRITICAL INSTRUCTIONS:**
+1.  **Prioritize Documents:** Use the documents in this order of priority: 1) Errata, 2) Rulebook, 3) Quick Start, 4) House Rules, 5) Other. If an Errata document contradicts a Rulebook, the Errata is correct.
+2.  **Formulate the Answer:** Provide a clear and concise answer based *only* on the content of the rulebook documents, respecting the priority order.
+3.  **Provide Citations:** After giving the answer, you MUST provide citations for where you found the information.
+    - The citation must include the 'documentName' which is the user-provided name of the source document.
+    - If the source document has page numbers in its text, extract the page number. If not, you can omit the 'pageNumber' field.
 
 If the answer is not in the provided documents, state that you cannot find the answer in the provided rules. Do not make up information.
 
 **Rulebook Documents:**
 ---
 {{#each documents}}
-## Document: {{{name}}}
+## Document Name: {{{name}}}
+## Document Type: {{{type}}}
 
 {{{text}}}
 
@@ -53,9 +65,7 @@ If the answer is not in the provided documents, state that you cannot find the a
 {{/each}}
 
 **User's Question:**
-"{{{query}}}"
-
-Provide a clear and concise answer based on the rulebook documents.`,
+"{{{query}}}"`,
 });
 
 const askRulebookFlow = ai.defineFlow(

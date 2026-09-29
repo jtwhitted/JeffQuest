@@ -103,6 +103,7 @@ export function AddGameDialog({ open, onOpenChange }: AddGameDialogProps) {
       });
       handleGameAdded();
     } catch (error: any) {
+      console.error('Failed to add game by ID:', error);
       toast({
         variant: "destructive",
         title: "Error adding game",

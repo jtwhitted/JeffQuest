@@ -40,6 +40,7 @@ export default function SessionsPage() {
         description: `The session for ${game?.name} on ${format(parseISO(sessionToDelete.date), 'MM/dd/yyyy')} has been removed.`,
       });
     } catch (e) {
+      console.error('Failed to delete session:', e);
       toast({
         variant: 'destructive',
         title: 'Error',

@@ -104,6 +104,7 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       setGames(prevGames => [...prevGames, newGame]);
       return newGame;
     } catch (error) {
+        console.error("Failed to add game:", error);
         // Re-throw the error to be caught by the calling component
         throw error;
     } 
@@ -122,6 +123,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       const newPlayer = await addPlayerAction(playerData);
       setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
       return newPlayer;
+    } catch (error) {
+      console.error("Failed to add player:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +137,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
         const updatedPlayer = await updatePlayerAction(playerId, playerData);
         setPlayers(prevPlayers => prevPlayers.map(p => p.id === playerId ? { ...p, ...updatedPlayer} : p));
         return updatedPlayer;
+    } catch (error) {
+        console.error("Failed to update player:", error);
+        throw error;
     } finally {
         setIsLoading(false);
     }
@@ -144,6 +151,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       const newSession = await addSessionAction(sessionData);
       setSessions(prevSessions => [...prevSessions, newSession]);
       return newSession;
+    } catch (error) {
+      console.error("Failed to add session:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -155,6 +165,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       await deleteGameAction(gameId);
       setGames(prev => prev.filter(g => g.id !== gameId));
       setSessions(prev => prev.filter(s => s.gameId !== gameId));
+    } catch (error) {
+      console.error("Failed to delete game:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -171,6 +184,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
         playerIds: s.playerIds.filter(id => id !== playerId),
         winnerId: s.winnerId === playerId ? undefined : s.winnerId
       })));
+    } catch (error) {
+      console.error("Failed to delete player:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +197,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     try {
       await deleteSessionAction(sessionId);
       setSessions(prev => prev.filter(s => s.id !== sessionId));
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -192,6 +211,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
       const newInsight = await addInsightAction({ query, generatedInsight });
       setDashboardInsights(prev => [...prev, newInsight]);
       return newInsight;
+    } catch (error) {
+      console.error("Failed to add insight:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -202,6 +224,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     try {
       const updatedInsight = await updateInsightAction(insightId, { generatedInsight });
       setDashboardInsights(prev => prev.map(i => i.id === insightId ? updatedInsight : i));
+    } catch (error) {
+      console.error("Failed to update insight:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -213,6 +238,9 @@ export function GameProvider({ children, initialData }: GameProviderProps) {
     try {
       await deleteInsightAction(insightId);
       setDashboardInsights(prev => prev.filter(i => i.id !== insightId));
+    } catch (error) {
+      console.error("Failed to delete insight:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

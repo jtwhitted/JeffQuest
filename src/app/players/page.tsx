@@ -41,6 +41,7 @@ export default function PlayersPage() {
         description: `${playerToDelete.name} has been removed.`
       });
     } catch (e) {
+      console.error('Failed to remove player:', e);
       toast({
         variant: "destructive",
         title: "Error",

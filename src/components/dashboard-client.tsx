@@ -165,8 +165,8 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
     .map(p => getFullPlayerStats(p))
     .filter(p => p && p.gamesPlayed > 0) as PlayerWithFullStats[];
 
-  const topPlayerWithStats = playersWithStats.sort((a, b) => b.winRate - a.winRate || b.wins - a.wins)[0] || null;
-  const bottomPlayerWithStats = playersWithStats.sort((a, b) => a.winRate - b.winRate || a.gamesPlayed - b.gamesPlayed)[0] || null;
+  const topPlayerWithStats = playersWithStats.length > 0 ? playersWithStats.sort((a, b) => b.winRate - a.winRate || b.wins - a.wins)[0] : null;
+  const bottomPlayerWithStats = playersWithStats.length > 0 ? playersWithStats.sort((a, b) => a.winRate - b.winRate || a.gamesPlayed - b.gamesPlayed)[0] : null;
 
   const recentSessions = [...sessions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -222,7 +222,13 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                 {mostPlayedGame ? (
                 <Link href={`/games/${mostPlayedGame.id}`} className="flex items-center gap-4 group">
                     <div className="relative">
-                        <Image src={mostPlayedGame.imageUrl} alt={mostPlayedGame.name} width={48} height={48} className="rounded-md object-cover h-12 w-12" data-ai-hint={`${mostPlayedGame.name} boardgame`} />
+                        {mostPlayedGame.imageUrl ? (
+                            <Image src={mostPlayedGame.imageUrl} alt={mostPlayedGame.name} width={48} height={48} className="rounded-md object-cover h-12 w-12" data-ai-hint={`${mostPlayedGame.name} boardgame`} />
+                        ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted">
+                                <Dices className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                        )}
                     </div>
                     <div>
                         <div className="text-xl font-bold group-hover:underline">{mostPlayedGame.name}</div>
@@ -317,14 +323,21 @@ export default function DashboardClient({ sessions, players, games }: DashboardC
                     <ul className="space-y-4">
                         {recentSessions.map(session => {
                             const game = games.find(g => g.id === session.gameId);
+                            if (!game) return null;
                             const sessionPlayers = players.filter(p => session.playerIds.includes(p.id));
                             const winner = players.find(p => p.id === session.winnerId);
-                            if (!game) return null;
+                            
                             return (
                                 <li key={session.id}>
                                     <Link href={`/sessions/${session.id}`} className="block rounded-lg border p-4 transition-colors hover:bg-muted/50">
                                         <div className="flex items-start gap-4">
-                                            <Image src={game.imageUrl} alt={game.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" data-ai-hint={`${game.name} boardgame`} />
+                                            {game.imageUrl ? (
+                                                <Image src={game.imageUrl} alt={game.name} width={64} height={64} className="rounded-md object-cover h-16 w-16" data-ai-hint={`${game.name} boardgame`} />
+                                            ) : (
+                                                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-muted">
+                                                    <Dices className="h-8 w-8 text-muted-foreground" />
+                                                </div>
+                                            )}
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
                                                     <div>
