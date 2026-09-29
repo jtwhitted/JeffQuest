@@ -44,3 +44,25 @@ GEMINI_API_KEY="YOUR_API_KEY_HERE"
 ```
 
 When you deploy to a hosting provider, make sure to set this environment variable in their "secrets" or "environment variables" configuration panel.
+
+### Firestore Setup
+
+Data (games, players, sessions, dashboard insights) is stored in Firestore on the Firebase project `studio-645902535-c7b43`, via the Admin SDK (`src/lib/firebase-admin.ts`).
+
+**Deployed on Firebase App Hosting:** no setup needed — the backend's own service account is used automatically.
+
+**Local development:** generate a service account key (Firebase Console → Project Settings → Service Accounts → Generate new private key) and add its fields to `.env.local`:
+
+```
+FIREBASE_PROJECT_ID=studio-645902535-c7b43
+FIREBASE_CLIENT_EMAIL="...@studio-645902535-c7b43.iam.gserviceaccount.com"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+**One-time data migration:** to copy the existing `src/data/*.json` records into Firestore, run:
+
+```
+npm run migrate:firebase
+```
+
+This is safe to re-run; it overwrites documents by the same `id` rather than duplicating them.
