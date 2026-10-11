@@ -32,4 +32,15 @@ function createApp(): App {
 const app = createApp();
 
 export const db = getFirestore(app);
-db.settings({ ignoreUndefinedProperties: true });
+
+try {
+    db.settings({ ignoreUndefinedProperties: true });
+} catch {
+    // Firestore throws if settings() is called more than once on the same
+    // underlying client. The Firebase app itself is deduplicated via
+    // getApps() above, but on Vercel this module can still be evaluated
+    // more than once per warm serverless instance (Server Actions and
+    // Server Components are bundled separately), and getFirestore(app)
+    // returns the same cached client both times. Safe to ignore: it just
+    // means an earlier module instantiation already applied these settings.
+}
