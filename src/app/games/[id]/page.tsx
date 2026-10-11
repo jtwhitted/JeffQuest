@@ -24,7 +24,6 @@ import { RulesWizardDialog } from '@/components/rules-wizard-dialog';
 import { RulebookManagerDialog } from '@/components/rulebook-manager-dialog';
 import { VideoPlayerDialog } from '@/components/video-player-dialog';
 
-
 export default function GameDetailPage() {
   const { id } = useParams();
   const { games, sessions, players, isLoading, setFavoriteVideo } = useGames();
@@ -75,6 +74,7 @@ export default function GameDetailPage() {
             description: newFavoriteId ? 'This is now the top video for this game.' : undefined,
         });
     } catch (e) {
+        console.error('Failed to update favorite video:', e);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update favorite video.' });
     } finally {
         setIsFavoriting(false);
@@ -402,5 +402,5 @@ export default function GameDetailPage() {
       <GameSessionHistory sessions={gameSessions} allPlayers={players} />
     </div>
     </>
-  );
+  )
 }

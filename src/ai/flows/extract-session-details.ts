@@ -50,10 +50,14 @@ let dataLoaded = false;
 
 async function loadData() {
     if (!dataLoaded) {
-        const data = await getInitialData();
-        allGames = data.games;
-        allPlayers = data.players;
-        dataLoaded = true;
+        try {
+            const data = await getInitialData();
+            allGames = data.games;
+            allPlayers = data.players;
+            dataLoaded = true;
+        } catch (error) {
+            console.error('Failed to load initial data in extract-session-details:', error);
+        }
     }
 }
 // Load data at startup
@@ -103,7 +107,7 @@ export async function extractSessionDetails(input: ExtractSessionDetailsInput): 
 
 const extractDetailsPrompt = ai.definePrompt({
     name: 'extractDetailsPrompt',
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-3-flash-preview',
     tools: [findGameByName, findPlayersByNames],
     input: { schema: ExtractSessionDetailsInputSchema },
     output: { schema: ExtractSessionDetailsOutputSchema },

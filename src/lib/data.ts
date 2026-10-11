@@ -2,181 +2,151 @@
 'use server';
 
 import type { Player, Game, Session, DashboardInsight } from './types';
-import fs from 'fs/promises';
-import path from 'path';
+import { db } from './firebase-admin';
 
-// Define paths to the JSON files
-const dataDir = path.join(process.cwd(), 'src', 'data');
-const PLAYERS_PATH = path.join(dataDir, 'players.json');
-const GAMES_PATH = path.join(dataDir, 'games.json');
-const SESSIONS_PATH = path.join(dataDir, 'sessions.json');
-const DASHBOARD_PATH = path.join(dataDir, 'dashboard.json');
+const playersCol = db.collection('players');
+const gamesCol = db.collection('games');
+const sessionsCol = db.collection('sessions');
+const dashboardCol = db.collection('dashboardInsights');
 
-
-// Helper function to read data from a JSON file
-async function readData<T>(filePath: string): Promise<T[]> {
-    try {
-        await fs.mkdir(dataDir, { recursive: true });
-        const data = await fs.readFile(filePath, 'utf-8');
-        return JSON.parse(data) as T[];
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-            // If the file doesn't exist, return an empty array
-            return [];
-        }
-        console.error(`Error reading data from ${filePath}:`, error);
-        throw error;
-    }
+function withId<T>(doc: FirebaseFirestore.QueryDocumentSnapshot): T {
+    return { ...doc.data(), id: doc.id } as T;
 }
-
-// Helper function to write data to a JSON file
-async function writeData<T>(filePath: string, data: T[]): Promise<void> {
-    try {
-        await fs.mkdir(dataDir, { recursive: true });
-        await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (error) {
-        console.error(`Error writing data to ${filePath}:`, error);
-        throw error;
-    }
-}
-
 
 // --- Data Accessor ---
 export async function getInitialData() {
-    const [players, games, sessions, dashboard] = await Promise.all([
-        readData<Player>(PLAYERS_PATH),
-        readData<Game>(GAMES_PATH),
-        readData<Session>(SESSIONS_PATH),
-        readData<DashboardInsight>(DASHBOARD_PATH),
+    const [playersSnap, gamesSnap, sessionsSnap, dashboardSnap] = await Promise.all([
+        playersCol.get(),
+        gamesCol.get(),
+        sessionsCol.get(),
+        dashboardCol.get(),
     ]);
-    return { players, games, sessions, dashboard };
+    return {
+        players: playersSnap.docs.map(d => withId<Player>(d)),
+        games: gamesSnap.docs.map(d => withId<Game>(d)),
+        sessions: sessionsSnap.docs.map(d => withId<Session>(d)),
+        dashboard: dashboardSnap.docs.map(d => withId<DashboardInsight>(d)),
+    };
 }
 
 // --- Data Mutation Functions ---
 
 export async function addGameToDB(game: Game): Promise<Game> {
-    const games = await readData<Game>(GAMES_PATH);
-    
-    const gameIndex = games.findIndex(g => g.bggId === game.bggId || g.id === game.bggId);
+    let existingDoc: FirebaseFirestore.QueryDocumentSnapshot | undefined;
 
-    if (gameIndex !== -1) {
-        // Game exists, update it with the new data.
-        const updatedGame = { ...games[gameIndex], ...game };
-        games[gameIndex] = updatedGame;
-        await writeData(GAMES_PATH, games);
+    if (game.bggId) {
+        const byBggId = await gamesCol.where('bggId', '==', game.bggId).limit(1).get();
+        existingDoc = byBggId.docs[0];
+        if (!existingDoc) {
+            const byIdMatchingBggId = await gamesCol.doc(game.bggId).get();
+            if (byIdMatchingBggId.exists) {
+                existingDoc = byIdMatchingBggId as unknown as FirebaseFirestore.QueryDocumentSnapshot;
+            }
+        }
+    }
+
+    if (existingDoc) {
+        const { id: _ignoredId, ...gameData } = game;
+        const updatedGame = { ...existingDoc.data(), ...gameData, id: existingDoc.id } as Game;
+        await gamesCol.doc(existingDoc.id).set(gameData, { merge: true });
         return updatedGame;
     }
 
-    // If game does not exist, add it.
-    games.push(game);
-    await writeData(GAMES_PATH, games);
+    const { id, ...gameData } = game;
+    await gamesCol.doc(id).set(gameData);
     return game;
 }
 
 export async function updateGameInDB(gameId: string, updatedData: Partial<Game>): Promise<Game> {
-    const games = await readData<Game>(GAMES_PATH);
-    const gameIndex = games.findIndex(g => g.id === gameId);
-    if (gameIndex === -1) {
+    const docRef = gamesCol.doc(gameId);
+    const doc = await docRef.get();
+    if (!doc.exists) {
         throw new Error('Game not found');
     }
-    const updatedGame = { ...games[gameIndex], ...updatedData };
-    games[gameIndex] = updatedGame;
-    await writeData(GAMES_PATH, games);
-    return updatedGame;
+    const { id: _ignoredId, ...patch } = updatedData;
+    await docRef.set(patch, { merge: true });
+    return { ...doc.data(), ...patch, id: gameId } as Game;
 }
 
 export async function addSessionToDB(session: Session): Promise<Session> {
-    const sessions = await readData<Session>(SESSIONS_PATH);
+    const docRef = sessionsCol.doc(session.id);
     // Prevent adding duplicate sessions from BGG import
-    if (session.id.startsWith('s-bgg-') && sessions.find(s => s.id === session.id)) {
-        return session;
+    if (session.id.startsWith('s-bgg-')) {
+        const existing = await docRef.get();
+        if (existing.exists) {
+            return session;
+        }
     }
-    sessions.push(session);
-    await writeData(SESSIONS_PATH, sessions);
+    const { id, ...sessionData } = session;
+    await docRef.set(sessionData);
     return session;
 }
 
 export async function addPlayerToDB(player: Player): Promise<Player> {
-    const players = await readData<Player>(PLAYERS_PATH);
-    players.push(player);
-    await writeData(PLAYERS_PATH, players);
+    const { id, ...playerData } = player;
+    await playersCol.doc(id).set(playerData);
     return player;
 }
 
 export async function updatePlayerInDB(playerId: string, updatedData: Partial<Player>): Promise<Player> {
-    const players = await readData<Player>(PLAYERS_PATH);
-    const playerIndex = players.findIndex(p => p.id === playerId);
-    if (playerIndex === -1) {
+    const docRef = playersCol.doc(playerId);
+    const doc = await docRef.get();
+    if (!doc.exists) {
         throw new Error('Player not found');
     }
-    const updatedPlayer = { ...players[playerIndex], ...updatedData };
-    players[playerIndex] = updatedPlayer;
-    await writeData(PLAYERS_PATH, players);
-    return updatedPlayer;
+    const { id: _ignoredId, ...patch } = updatedData;
+    await docRef.set(patch, { merge: true });
+    return { ...doc.data(), ...patch, id: playerId } as Player;
 }
 
-
 export async function deleteGameFromDB(gameId: string): Promise<void> {
-    let games = await readData<Game>(GAMES_PATH);
-    games = games.filter(g => g.id !== gameId);
-    await writeData(GAMES_PATH, games);
-    
+    await gamesCol.doc(gameId).delete();
+
     // Also delete associated sessions
-    let sessions = await readData<Session>(SESSIONS_PATH);
-    sessions = sessions.filter(s => s.gameId !== gameId);
-    await writeData(SESSIONS_PATH, sessions);
+    const orphanedSessions = await sessionsCol.where('gameId', '==', gameId).get();
+    const batch = db.batch();
+    orphanedSessions.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
 }
 
 export async function deletePlayerFromDB(playerId: string): Promise<void> {
-    let players = await readData<Player>(PLAYERS_PATH);
-    players = players.filter(p => p.id !== playerId);
-    await writeData(PLAYERS_PATH, players);
+    await playersCol.doc(playerId).delete();
 
-    // Also update sessions
-    let sessions = await readData<Session>(SESSIONS_PATH);
-    sessions = sessions.map(s => {
-        const newPlayerIds = s.playerIds.filter(id => id !== playerId);
-        if (newPlayerIds.length < s.playerIds.length) {
-            let winnerId = s.winnerId;
-            if (winnerId === playerId) {
-                winnerId = undefined;
-            }
-            return { ...s, playerIds: newPlayerIds, winnerId };
-        }
-        return s;
+    // Also update sessions that included this player
+    const affectedSessions = await sessionsCol.where('playerIds', 'array-contains', playerId).get();
+    const batch = db.batch();
+    affectedSessions.docs.forEach(d => {
+        const session = d.data() as Session;
+        const newPlayerIds = session.playerIds.filter(id => id !== playerId);
+        const winnerId = session.winnerId === playerId ? undefined : session.winnerId;
+        batch.set(d.ref, { playerIds: newPlayerIds, winnerId }, { merge: true });
     });
-    await writeData(SESSIONS_PATH, sessions);
+    await batch.commit();
 }
 
 export async function deleteSessionFromDB(sessionId: string): Promise<void> {
-    let sessions = await readData<Session>(SESSIONS_PATH);
-    sessions = sessions.filter(s => s.id !== sessionId);
-    await writeData(SESSIONS_PATH, sessions);
+    await sessionsCol.doc(sessionId).delete();
 }
 
 export async function addInsightToDB(insight: DashboardInsight): Promise<DashboardInsight> {
-    const insights = await readData<DashboardInsight>(DASHBOARD_PATH);
-    insights.push(insight);
-    await writeData(DASHBOARD_PATH, insights);
+    const { id, ...insightData } = insight;
+    await dashboardCol.doc(id).set(insightData);
     return insight;
 }
 
 export async function updateInsightInDB(insightId: string, updatedData: Partial<DashboardInsight>): Promise<DashboardInsight> {
-    const insights = await readData<DashboardInsight>(DASHBOARD_PATH);
-    const insightIndex = insights.findIndex(i => i.id === insightId);
+    const docRef = dashboardCol.doc(insightId);
+    const doc = await docRef.get();
 
-    if (insightIndex === -1) {
+    if (!doc.exists) {
         throw new Error('Insight not found.');
     }
 
-    const updatedInsight = { ...insights[insightIndex], ...updatedData };
-    insights[insightIndex] = updatedInsight;
-    await writeData(DASHBOARD_PATH, insights);
-    return updatedInsight;
+    const { id: _ignoredId, ...patch } = updatedData;
+    await docRef.set(patch, { merge: true });
+    return { ...doc.data(), ...patch, id: insightId } as DashboardInsight;
 }
 
 export async function deleteInsightFromDB(insightId: string): Promise<void> {
-    let insights = await readData<DashboardInsight>(DASHBOARD_PATH);
-    insights = insights.filter(i => i.id !== insightId);
-    await writeData(DASHBOARD_PATH, insights);
+    await dashboardCol.doc(insightId).delete();
 }

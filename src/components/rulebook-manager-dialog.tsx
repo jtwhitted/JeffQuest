@@ -15,11 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Loader2, UploadCloud, Trash2, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleRulebookUpload, deleteRulebookDocument } from '@/lib/actions';
-import { Game } from '@/lib/types';
+import type { Game, RulebookDocumentType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useGames } from '@/context/game-context';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface RulebookManagerDialogProps {
   open: boolean;
@@ -29,7 +30,7 @@ interface RulebookManagerDialogProps {
 
 export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookManagerDialogProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [documentName, setDocumentName] = useState('');
+  const [documentType, setDocumentType] = useState<RulebookDocumentType>('Rulebook');
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -39,10 +40,6 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
   const handleFileSelect = (selectedFile: File | null | undefined) => {
     if (selectedFile && selectedFile.type === 'application/pdf') {
       setFile(selectedFile);
-      if (!documentName) {
-        // Pre-fill name based on filename, removing .pdf
-        setDocumentName(selectedFile.name.replace(/\.pdf$/i, ''));
-      }
     } else {
       setFile(null);
       toast({
@@ -79,10 +76,8 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
       toast({ title: 'No file selected', variant: 'destructive' });
       return;
     }
-     if (!documentName.trim()) {
-      toast({ title: 'Document name is required', variant: 'destructive' });
-      return;
-    }
+    
+    const documentName = `${game.name} ${documentType}`;
 
     setIsUploading(true);
     
@@ -91,21 +86,23 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
     reader.onload = async () => {
         try {
             const pdfDataUri = reader.result as string;
-            const updatedGame = await handleRulebookUpload(game.id, documentName, pdfDataUri);
+            const updatedGame = await handleRulebookUpload(game.id, documentName, documentType, pdfDataUri);
             updateGame(updatedGame.id, { documents: updatedGame.documents });
             toast({
                 title: 'Upload Successful',
                 description: `"${documentName}" has been added.`,
             });
             setFile(null);
-            setDocumentName('');
+            setDocumentType('Rulebook');
         } catch (error: any) {
+             console.error('Failed to upload rulebook document:', error);
              toast({ title: 'Upload Failed', description: error.message, variant: 'destructive' });
         } finally {
             setIsUploading(false);
         }
     };
-    reader.onerror = () => {
+    reader.onerror = (error) => {
+        console.error('FileReader error during rulebook document read:', error);
         toast({ title: 'File Read Error', variant: 'destructive' });
         setIsUploading(false);
     };
@@ -118,6 +115,7 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
         updateGame(updatedGame.id, { documents: updatedGame.documents });
         toast({ title: 'Document Deleted' });
     } catch (error: any) {
+        console.error('Failed to delete rulebook document:', error);
         toast({ title: 'Deletion Failed', description: error.message, variant: 'destructive' });
     } finally {
         setIsDeleting(null);
@@ -126,7 +124,7 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
 
   const handleClose = () => {
     setFile(null);
-    setDocumentName('');
+    setDocumentType('Rulebook');
     onOpenChange(false);
   };
 
@@ -149,7 +147,8 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
                             <div key={doc.id} className="flex items-center justify-between group">
                                 <div className="flex items-center gap-2">
                                     <FileText className="h-4 w-4 text-muted-foreground"/>
-                                    <span className="text-sm">{doc.name}</span>
+                                    <span className="text-sm font-medium">{doc.name}</span>
+                                    <span className="text-xs text-muted-foreground">({doc.type})</span>
                                 </div>
                                 <Button 
                                     size="icon" 
@@ -174,14 +173,20 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
             
             <div className="space-y-4">
                 <h3 className="font-semibold text-sm pt-2">Upload New Document</h3>
-                <Input
-                    id="doc-name"
-                    placeholder="Document Name (e.g., Core Rules, FAQ)"
-                    value={documentName}
-                    onChange={(e) => setDocumentName(e.target.value)}
-                    disabled={isUploading}
-                    className="col-span-3"
-                />
+                <div className="space-y-2">
+                     <Select value={documentType} onValueChange={(value) => setDocumentType(value as RulebookDocumentType)} disabled={isUploading}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select type..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Rulebook">Rulebook</SelectItem>
+                            <SelectItem value="Errata">Errata / FAQ</SelectItem>
+                            <SelectItem value="Quick Start">Quick Start</SelectItem>
+                            <SelectItem value="House Rules">House Rules</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
               <div 
                 className={cn(
                   "flex flex-col items-center justify-center space-y-2 rounded-lg border-2 border-dashed border-muted p-6 text-center transition-colors",
@@ -212,7 +217,7 @@ export function RulebookManagerDialog({ game, open, onOpenChange }: RulebookMana
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={handleClose}>Done</Button>
-                <Button onClick={handleUpload} disabled={isUploading || !file || !documentName.trim()}>
+                <Button onClick={handleUpload} disabled={isUploading || !file}>
                     {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isUploading ? 'Processing...' : 'Upload & Parse'}
                 </Button>

@@ -92,6 +92,7 @@ export function RulebookDialog({ game, open, onOpenChange }: RulebookDialogProps
             setFile(null);
             onOpenChange(false); // Close dialog on success
         } catch (error: any) {
+             console.error('Failed to upload rulebook:', error);
              toast({
                 title: 'Upload Failed',
                 description: error.message || 'Could not process the rulebook.',
@@ -101,7 +102,8 @@ export function RulebookDialog({ game, open, onOpenChange }: RulebookDialogProps
             setIsUploading(false);
         }
     };
-    reader.onerror = () => {
+    reader.onerror = (error) => {
+        console.error('FileReader error during rulebook read:', error);
         toast({
             title: 'File Read Error',
             description: 'Could not read the selected file.',

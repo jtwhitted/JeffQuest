@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -120,6 +121,12 @@ export default function PlannerPage() {
                                 setIsRecording(false);
                             }
                         }
+                    };
+                    reader.onerror = (error) => {
+                        console.error('FileReader error during audio transcription:', error);
+                        toast({ variant: 'destructive', title: 'Audio Read Error', description: 'Could not read recorded audio.' });
+                        setIsProcessing(false);
+                        setIsRecording(false);
                     };
                 };
                 
@@ -280,3 +287,6 @@ export default function PlannerPage() {
         </>
     );
 }
+
+    
+

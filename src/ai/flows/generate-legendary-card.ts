@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to generate a legendary player card with a title and bio.
@@ -35,7 +34,7 @@ const generateCardContentPrompt = ai.definePrompt({
     name: 'generatePlayerCardContentPrompt',
     input: { schema: GenerateLegendaryCardInputSchema },
     output: { schema: GenerateLegendaryCardOutputSchema },
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-3-flash-preview',
     prompt: `You are a fantasy world scribe, granting epic titles and writing short legends for tabletop gamers.
     Based on the player's stats and favorite game, create:
     1. A short, epic-sounding title (e.g., "The Unyielding Baron", "Mistress of the Dice"). Do NOT include the player's actual name in the title itself.
@@ -64,4 +63,3 @@ const generateLegendaryCardFlow = ai.defineFlow(
     return output;
   }
 );
-

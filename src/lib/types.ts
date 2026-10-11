@@ -9,10 +9,13 @@ export interface Player {
   legendaryImageDataUri?: string;
 }
 
+export type RulebookDocumentType = 'Rulebook' | 'Errata' | 'Quick Start' | 'House Rules' | 'Other';
+
 export interface RulebookDocument {
   id: string;
   name:string;
   text: string;
+  type: RulebookDocumentType;
 }
 
 export interface Game {
@@ -92,6 +95,16 @@ export interface GenerateInsightOutput {
     data?: (ChartDataItem | ListItem | StackedChartDataItem)[];
     dataKeys?: string[];
 }
+
+export type Citation = {
+    documentName: string;
+    pageNumber?: number;
+};
+
+export type AskRulebookOutput = {
+    answer: string;
+    citations?: Citation[];
+};
 
 
 // Slimmed down types for sending to AI

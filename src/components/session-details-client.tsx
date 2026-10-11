@@ -70,6 +70,7 @@ export default function SessionDetailsClient({ session, game, players, winner }:
             setState({ loading: false, error: null, summary: result.summary });
             return; // Success, exit the function
         } catch (error) {
+            console.error(`Summary generation attempt ${i + 1} failed:`, error);
             lastError = error;
             if (i < retries - 1) {
                 console.log(`Summary generation failed, retrying in ${delayMs / 1000}s... (Attempt ${i + 1}/${retries})`);

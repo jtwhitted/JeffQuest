@@ -50,7 +50,7 @@ const prompt = ai.definePrompt({
       isWin: z.boolean().optional(),
     })},
   output: {schema: SessionSummaryOutputSchema},
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-3-flash-preview',
   prompt: `You are a seasoned tabletop gamer, skilled at creating engaging session reports.
   Your task is to generate a {{summaryType}} summary of the game session provided.
 

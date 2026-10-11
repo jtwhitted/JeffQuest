@@ -18,6 +18,10 @@ const ptSans = PT_Sans({
 export const metadata: Metadata = {
   title: 'Jeff Quest!',
   description: 'Keep track of your board game records.',
+  openGraph: {
+    title: 'Jeff Quest!',
+    description: 'Keep track of your board game records.',
+  },
 };
 
 export default async function RootLayout({

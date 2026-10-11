@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI flow to extract a board game title from an image.
@@ -33,7 +32,7 @@ const getGameTitlePrompt = ai.definePrompt({
     name: 'getGameTitlePrompt',
     input: { schema: GetGameTitleInputSchema },
     output: { schema: GetGameTitleOutputSchema },
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-3-flash-preview',
     prompt: `You are an expert at identifying board games from images of their box art.
 Your task is to analyze the provided image and extract the main title of the game.
 

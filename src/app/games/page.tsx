@@ -75,6 +75,7 @@ export default function GamesPage() {
         description: `${gameToDelete.name} has been removed from your collection.`,
       });
     } catch (e) {
+      console.error('Failed to delete game:', e);
       toast({
         variant: 'destructive',
         title: 'Error',

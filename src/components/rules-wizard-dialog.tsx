@@ -12,9 +12,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mic, Sparkles, Square, Volume2, Play } from 'lucide-react';
+import { Loader2, Mic, Sparkles, Square, Volume2, BookOpen } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
-import type { Game } from '@/lib/types';
+import type { Game, AskRulebookOutput } from '@/lib/types';
 import { askRulebook } from '@/ai/flows/ask-rulebook';
 import { transcribeAudio } from '@/ai/flows/transcribe-audio';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
@@ -31,7 +31,7 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
   const { toast } = useToast();
   const [query, setQuery] = useState('');
   const [isAsking, setIsAsking] = useState(false);
-  const [answer, setAnswer] = useState('');
+  const [result, setResult] = useState<AskRulebookOutput | null>(null);
   
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -56,7 +56,7 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
       return;
     }
     setIsAsking(true);
-    setAnswer('');
+    setResult(null);
     setAudioDataUri(null);
     setIsSpeaking(false);
 
@@ -65,12 +65,20 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
         throw new Error("No rulebook documents found for this game.");
       }
       
-      const result = await askRulebook({ documents: game.documents, query });
-      setAnswer(result.answer);
+      const aiResult = await askRulebook({
+        documents: game.documents.map(doc => ({
+            name: doc.name,
+            text: doc.text,
+            type: doc.type || 'Rulebook' // Default to 'Rulebook' for older data
+        })),
+        query,
+      });
+
+      setResult(aiResult);
       
-      if (result.answer) {
+      if (aiResult.answer) {
           try {
-              const speechResult = await textToSpeech({ text: result.answer });
+              const speechResult = await textToSpeech({ text: aiResult.answer });
               setAudioDataUri(speechResult.audioDataUri);
               
               // Automatically play the audio
@@ -105,7 +113,6 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
   const handleToggleRecording = async () => {
     if (isRecording) {
       mediaRecorderRef.current?.stop();
-      setIsRecording(false);
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -130,7 +137,10 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
             const base64Audio = reader.result as string;
             if (base64Audio) {
               try {
-                const { text } = await transcribeAudio({ audioDataUri: base64Audio });
+                const { text } = await transcribeAudio({ 
+                    audioDataUri: base64Audio,
+                    prompt: "You are a helpful assistant. The user is asking a question about a board game's rules. Transcribe their question accurately.",
+                });
                 setQuery(text);
                 toast({ title: 'Question transcribed!', description: 'You can now ask the wizard.' });
               } catch (error: any) {
@@ -138,13 +148,24 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
                 toast({ variant: 'destructive', title: 'Transcription Failed', description: error.message });
               } finally {
                 setIsTranscribing(false);
+                setIsRecording(false);
               }
             }
           };
+          reader.onerror = (error) => {
+            console.error('FileReader error during question audio transcription:', error);
+            toast({ variant: 'destructive', title: 'Audio Read Error', description: 'Could not read recorded audio.' });
+            setIsTranscribing(false);
+            setIsRecording(false);
+          };
         };
 
-        mediaRecorderRef.current.start();
-        setIsRecording(true);
+        setTimeout(() => {
+            if (mediaRecorderRef.current?.state === 'inactive') {
+                mediaRecorderRef.current?.start();
+                setIsRecording(true);
+            }
+        }, 300);
       } catch (err) {
         console.error('Error accessing microphone:', err);
         toast({ variant: 'destructive', title: 'Microphone Error', description: 'Could not access the microphone.' });
@@ -162,7 +183,7 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
 
   const handleClose = () => {
     setQuery('');
-    setAnswer('');
+    setResult(null);
     setIsAsking(false);
     setAudioDataUri(null);
     setIsSpeaking(false);
@@ -213,26 +234,46 @@ export function RulesWizardDialog({ open, onOpenChange, game }: RulesWizardDialo
               {isAsking ? 'Thinking...' : 'Ask Wizard'}
             </Button>
 
-            {(isAsking || answer) && (
-              <div className="pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Answer:</h3>
-                  {audioDataUri && (
-                    <Button variant="outline" size="icon" onClick={handlePlayAudio} disabled={isSpeaking}>
-                      {isSpeaking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
-                      <span className="sr-only">Play audio</span>
-                    </Button>
-                  )}
-                </div>
-                <ScrollArea className="h-48 rounded-md border p-4 text-sm bg-secondary/50">
-                  {isAsking && !answer ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            {(isAsking || result?.answer) && (
+              <div className="pt-4 space-y-4">
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold">Answer:</h3>
+                        {audioDataUri && (
+                            <Button variant="outline" size="icon" onClick={handlePlayAudio} disabled={isSpeaking}>
+                            {isSpeaking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
+                            <span className="sr-only">Play audio</span>
+                            </Button>
+                        )}
                     </div>
-                  ) : (
-                    <p className="whitespace-pre-wrap">{answer}</p>
-                  )}
-                </ScrollArea>
+                    <ScrollArea className="max-h-48 rounded-md border p-4 text-sm bg-secondary/50">
+                    {isAsking && !result?.answer ? (
+                        <div className="flex items-center justify-center h-24">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : (
+                        <p className="whitespace-pre-wrap">{result?.answer}</p>
+                    )}
+                    </ScrollArea>
+                </div>
+                {result?.citations && result.citations.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-xs mb-2">Sources:</h4>
+                    <div className="rounded-md border p-4 text-sm bg-secondary/50">
+                        <ul className="space-y-1.5">
+                            {result.citations.map((citation, index) => (
+                                <li key={index} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                    <BookOpen className="h-3 w-3" />
+                                    <span>
+                                    {citation.documentName}
+                                    {citation.pageNumber ? ` (pg. ${citation.pageNumber})` : ''}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
         </div>

@@ -1,8 +1,17 @@
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
 
-import type {NextConfig} from 'next';
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
+  serverExternalPackages: ['pdf-parse'],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -23,7 +32,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'i.ytimg.com',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co',
+      },
     ],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
@@ -31,4 +44,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = (phase) => {
+  if (phase === PHASE_DEVELOPMENT_SERVER) {
+    return {
+      ...nextConfig,
+      distDir: '.next-dev',
+    };
+  }
+  return nextConfig;
+};
