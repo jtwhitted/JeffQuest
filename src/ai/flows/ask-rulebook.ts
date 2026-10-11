@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { getRulebookCacheName, askWithCachedRulebook } from '@/ai/rulebook-cache';
 
 const DocumentSchema = z.object({
   name: z.string().describe("The user-provided name of the document (e.g., 'Core Rulebook', 'FAQ')."),
@@ -80,12 +81,25 @@ const askRulebookFlow = ai.defineFlow(
       return { answer: "I'm sorry, but no rulebooks have been uploaded for this game yet. Please upload a rulebook to ask questions." };
     }
 
+    // Try answering from a Gemini context cache of these documents first, so
+    // repeated questions about the same game don't re-send the full
+    // rulebook text every time. Falls through to the normal (uncached) path
+    // below on any failure — caching is a cost optimization, never a
+    // functionality requirement.
+    const cacheName = await getRulebookCacheName(input.documents);
+    if (cacheName) {
+      const cachedResult = await askWithCachedRulebook(cacheName, input.query);
+      if (cachedResult?.answer) {
+        return cachedResult;
+      }
+    }
+
     const { output } = await askRulebookPrompt(input);
-    
+
     if (!output?.answer) {
       throw new Error('The Rules Wizard was unable to generate an answer.');
     }
-    
+
     return output;
   }
 );

@@ -102,7 +102,14 @@ export function GameScanDialog({
         return;
       }
       
-      const candidatesWithImages = searchResults.filter(r => r.imageUrl && r.id && r.name);
+      // searchResults is already sorted most-popular-first (exact name match,
+      // then rating count), so capping here keeps the most likely matches
+      // and avoids sending dozens of box-art images to the vision model for
+      // common titles with many BGG entries.
+      const MAX_VISUAL_CANDIDATES = 8;
+      const candidatesWithImages = searchResults
+        .filter(r => r.imageUrl && r.id && r.name)
+        .slice(0, MAX_VISUAL_CANDIDATES);
 
       if (candidatesWithImages.length <= 1) {
         onGameAdded(searchResults, title); // If only one or zero with image, show text results
