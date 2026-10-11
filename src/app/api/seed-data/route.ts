@@ -5,6 +5,10 @@ import gamesData from '@/data/games.json';
 import sessionsData from '@/data/sessions.json';
 import dashboardData from '@/data/dashboard.json';
 
+// This endpoint writes data, so it must never be statically pre-rendered
+// (and therefore pre-executed) at build time.
+export const dynamic = 'force-dynamic';
+
 type SeedRecord = { id: string; [key: string]: unknown };
 
 const collections: { name: string; records: SeedRecord[] }[] = [
