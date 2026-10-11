@@ -50,10 +50,14 @@ let dataLoaded = false;
 
 async function loadData() {
     if (!dataLoaded) {
-        const data = await getInitialData();
-        allGames = data.games;
-        allPlayers = data.players;
-        dataLoaded = true;
+        try {
+            const data = await getInitialData();
+            allGames = data.games;
+            allPlayers = data.players;
+            dataLoaded = true;
+        } catch (error) {
+            console.error('Failed to load initial data in extract-session-details:', error);
+        }
     }
 }
 // Load data at startup

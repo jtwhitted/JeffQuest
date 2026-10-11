@@ -331,6 +331,13 @@ export default function GameLogForm() {
               }
             }
           };
+          reader.onerror = (error) => {
+            console.error('FileReader error during session audio transcription:', error);
+            toast({ variant: 'destructive', title: 'Audio Read Error', description: 'Could not read recorded audio.' });
+            setIsProcessing(false);
+            setProcessingMessage('');
+            setIsRecording(false);
+          };
         };
 
         setTimeout(() => {

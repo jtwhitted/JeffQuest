@@ -37,7 +37,10 @@ async function toWav(pcmData: Buffer): Promise<string> {
     });
 
     const bufs: any[] = [];
-    writer.on('error', reject);
+    writer.on('error', (err) => {
+      console.error('WAV writer error:', err);
+      reject(err);
+    });
     writer.on('data', (d) => bufs.push(d));
     writer.on('end', () => resolve(Buffer.concat(bufs).toString('base64')));
 

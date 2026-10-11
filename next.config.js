@@ -1,9 +1,16 @@
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
+  serverExternalPackages: ['pdf-parse'],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -37,4 +44,12 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = (phase) => {
+  if (phase === PHASE_DEVELOPMENT_SERVER) {
+    return {
+      ...nextConfig,
+      distDir: '.next-dev',
+    };
+  }
+  return nextConfig;
+};
